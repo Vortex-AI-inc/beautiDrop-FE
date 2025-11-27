@@ -27,11 +27,18 @@ import {
   ArrowRight,
   Play,
   MapPin,
-  Star
+  Star,
+  Sparkles
 } from "lucide-react"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function ContactPage() {
+  const { toast } = useToast()
   const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
     salonName: "",
     businessType: "",
     teamSize: "",
@@ -49,6 +56,21 @@ export default function ContactPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     console.log("Form submitted:", formData)
+    toast({
+      title: "Request Received",
+      description: "We'll be in touch shortly to schedule your consultation!",
+    })
+    setFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      salonName: "",
+      businessType: "",
+      teamSize: "",
+      bestTime: "",
+      challenge: ""
+    })
   }
 
   return (
@@ -60,13 +82,14 @@ export default function ContactPage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="text-sm font-semibold text-blue-600 mb-2 tracking-wide uppercase">
+              <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-600 px-4 py-1.5 rounded-full text-sm font-bold mb-6">
+                <MessageSquare className="w-4 h-4" />
                 Contact Us
               </div>
               <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
                 Let's Transform <br />
                 Your Salon <br />
-                <span className="text-blue-600">Together</span>
+                <span className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-[#980ffa]">Together</span>
               </h1>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-lg">
                 Ready to automate your booking? Our team is here to help you set up the perfect AI receptionist for your business.
@@ -165,15 +188,70 @@ export default function ContactPage() {
             {/* Form Column */}
             <div className="lg:col-span-7">
               <div className="mb-8">
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                  Get Your Free <span className="text-blue-600">Consultation</span>
+                <h2 className="text-5xl font-bold text-gray-900 mb-2">
+                  Get Your Free <span className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-[#980ffa]">Consultation</span>
                 </h2>
-                <p className="text-gray-600">
+                <p className="text-gray-600 text-xl">
                   Tell us about your salon and we'll show you how Beauty Drop AI can help you grow.
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">First Name *</Label>
+                    <Input
+                      id="firstName"
+                      name="firstName"
+                      placeholder="Enter your first name"
+                      value={formData.firstName}
+                      onChange={handleChange}
+                      className="h-12"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last Name *</Label>
+                    <Input
+                      id="lastName"
+                      name="lastName"
+                      placeholder="Enter your last name"
+                      value={formData.lastName}
+                      onChange={handleChange}
+                      className="h-12"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address *</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      placeholder="your@email.com"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className="h-12"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      placeholder="915-268-1877"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="h-12"
+                    />
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="salonName">Salon/Spa Name *</Label>
