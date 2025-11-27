@@ -1,161 +1,183 @@
-import { ArrowRight, MessageCircle, Calendar } from "lucide-react"
+import {
+  ArrowRight,
+  MessageCircle,
+  Calendar,
+  Phone,
+  CreditCard,
+  Bell,
+  Gift,
+  Bot,
+  Check,
+  Star,
+  Play
+} from "lucide-react"
 import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Header } from "../components/layout/header"
+import { Footer } from "../components/layout/footer"
 
 export default function Home() {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen bg-white">
+      <Header />
+
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-50 via-cyan-50 to-blue-100 pt-16 pb-20">
+      <section className="pt-32 pb-20 bg-gradient-to-br from-blue-50 via-white to-blue-50 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <h1 className="text-5xl lg:text-6xl font-bold font-heading tracking-tight">
-                  <span className="text-blue-600">AI Assistant</span>
-                  <br />
-                  <span className="text-gray-900">for your Beauty</span>
-                  <br />
-                  <span className="text-gray-900">Services</span>
+            <div className="space-y-8 relative z-10">
+              <div className="space-y-2">
+                <h1 className="text-5xl lg:text-7xl font-bold font-heading tracking-tight leading-[1.1]">
+                  <span className="text-blue-600 block">AI Assistant</span>
+                  <span className="text-gray-900 block">for your Beauty</span>
+                  <span className="text-gray-900 block">Services</span>
                 </h1>
               </div>
 
-              <p className="text-lg text-gray-600 leading-relaxed max-w-md">
+              <p className="text-lg text-gray-600 leading-relaxed max-w-lg">
                 Meet Beauty Drop - your 24/7 AI receptionist that answers calls, books appointments, handles payments,
                 and keeps your customers happy while you focus on what you do best.
               </p>
 
-              {/* Feature Pills */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 bg-white rounded-lg p-4 shadow-sm">
-                  <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
-                    <MessageCircle className="w-6 h-6 text-white" />
+              <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                <div className="flex items-center gap-3 bg-white rounded-full px-2 py-2 pr-6 shadow-sm border border-gray-100 w-fit">
+                  <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center shrink-0">
+                    <Phone className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">24/7 Call Handling</h3>
-                    <p className="text-sm text-gray-600">Never miss a customer</p>
+                    <p className="font-bold text-gray-900 text-sm">24/7 Call Handling</p>
+                    <p className="text-xs text-gray-500">Never miss a customer</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 bg-white rounded-lg p-4 shadow-sm">
-                  <div className="w-10 h-10 bg-yellow-500 rounded-lg flex items-center justify-center">
-                    <Calendar className="w-6 h-6 text-white" />
+                <div className="flex items-center gap-3 bg-white rounded-full px-2 py-2 pr-6 shadow-sm border border-gray-100 w-fit">
+                  <div className="w-10 h-10 bg-amber-400 rounded-full flex items-center justify-center shrink-0">
+                    <Calendar className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">Smart Booking</h3>
-                    <p className="text-sm text-gray-600">Automated scheduling</p>
+                    <p className="font-bold text-gray-900 text-sm">Smart Booking</p>
+                    <p className="text-xs text-gray-500">Automated scheduling</p>
                   </div>
                 </div>
               </div>
 
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <Link
-                  href="/signup"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-                >
+              <div className="flex flex-wrap gap-4 pt-4">
+                <Button className="h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold rounded-lg shadow-lg shadow-blue-200 transition-all hover:scale-105">
                   Start Free Trial
-                </Link>
-                <Link
-                  href="/features"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-white text-blue-600 font-semibold rounded-lg border-2 border-gray-200 hover:border-blue-600 transition-colors"
-                >
-                  <ArrowRight className="w-5 h-5" />
-                  See Features
-                </Link>
+                </Button>
+                <Button variant="outline" className="h-14 px-8 border-2 border-blue-100 text-blue-600 hover:bg-blue-50 text-lg font-semibold rounded-lg transition-all">
+                  <Play className="w-5 h-5 mr-2 fill-current" />
+                  Watch Demo
+                </Button>
               </div>
             </div>
 
             {/* Right Image */}
-            <div className="relative">
-              <div className="bg-white rounded-2xl overflow-hidden shadow-xl">
-                <img
-                  src="/salon-professional-beauty-consultation.jpg"
-                  alt="AI Booking Assistant in Beauty Salon"
-                  className="w-full h-auto"
-                />
-                {/* Booking Badge */}
-                <div className="absolute top-4 right-4 bg-white rounded-xl shadow-lg p-4 flex items-center gap-3">
-                  <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                    <MessageCircle className="w-6 h-6 text-white" />
+            <div className="relative lg:h-[600px] flex items-center justify-center">
+              <div className="relative w-full max-w-lg mx-auto">
+                {/* Main Image Container */}
+                <div className="bg-white p-4 rounded-3xl shadow-2xl relative z-10">
+                  <img
+                    src="/hero.avif"
+                    alt="AI Booking Assistant"
+                    className="w-full h-auto rounded-2xl object-cover aspect-[4/3]"
+                  />
+
+                  {/* Floating Elements */}
+                  <div className="absolute -top-6 -right-6 bg-white p-4 rounded-2xl shadow-xl flex items-center gap-3 animate-bounce-slow">
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                      <Phone className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Incoming Call</p>
+                      <p className="font-bold text-gray-900">Booking Request</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-600">Incoming Call</p>
-                    <p className="font-semibold text-gray-900">Booking Request</p>
+
+                  <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-2xl shadow-xl flex items-center gap-3 animate-bounce-slow delay-700">
+                    <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                      <Star className="w-5 h-5 text-amber-500 fill-current" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Customer Rating</p>
+                      <div className="flex items-center gap-1">
+                        <span className="font-bold text-gray-900">5.0</span>
+                        <div className="flex">
+                          {[1, 2, 3, 4, 5].map(i => (
+                            <Star key={i} className="w-3 h-3 text-amber-400 fill-current" />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* AI Handling Badge */}
-                <div className="absolute bottom-4 right-4 bg-white rounded-lg shadow-lg px-4 py-2 flex items-center gap-2">
-                  <span className="text-yellow-500 text-xl">⭐</span>
-                  <span className="font-semibold text-gray-900">AI Handling</span>
-                </div>
+                {/* Decorative Elements */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-blue-100/50 rounded-full blur-3xl -z-10" />
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Main Benefits Section */}
-      <section className="py-20 bg-white">
+      {/* Features Section */}
+      <section className="py-24 bg-white" id="features">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold font-heading tracking-tight text-gray-900 mb-4">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl lg:text-5xl font-bold font-heading text-gray-900 mb-6">
               Everything Your Salon Needs in One <span className="text-blue-600">AI Assistant</span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Beauty Drop handles every aspect of customer communication so you can focus on delivering exceptional
-              beauty services.
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Beauty Drop handles every aspect of customer communication so you can focus on delivering exceptional beauty services.
             </p>
           </div>
 
-          {/* Features Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
-                icon: "📞",
+                icon: Phone,
+                color: "bg-blue-500",
                 title: "24/7 Call Answering",
-                description:
-                  "Never miss another customer call. Beauty Drop answers every phone call professionally, day or night, ensuring you capture every business opportunity.",
+                desc: "No more missed calls. Your AI receptionist answers every call professionally, any time of day."
               },
               {
-                icon: "📅",
+                icon: Calendar,
+                color: "bg-amber-500",
                 title: "Smart Appointment Booking",
-                description:
-                  "Seamlessly integrates with your technicians' calendars to book appointments automatically, optimizing your schedule and reducing no-shows.",
+                desc: "Seamlessly integrates with your calendar to book appointments automatically."
               },
               {
-                icon: "💳",
+                icon: CreditCard,
+                color: "bg-teal-500",
                 title: "Payment Processing",
-                description:
-                  "Handles credit card collection for cancellation policies and no-shows via secure text messages, protecting your business from lost revenue.",
+                desc: "Securely handle payments and deposits to reduce no-shows and protect your revenue."
               },
               {
-                icon: "🔔",
+                icon: Bell,
+                color: "bg-rose-500",
                 title: "Smart Reminders",
-                description:
-                  "Automatically sends appointment reminders via call or SMS, reducing no-shows and keeping your schedule full and profitable.",
+                desc: "Automated SMS and call reminders to keep your schedule full and organized."
               },
               {
-                icon: "🎁",
+                icon: Gift,
+                color: "bg-orange-500",
                 title: "Upselling & Products",
-                description:
-                  "Intelligently promotes additional services and sells products to customers after visits, with direct shipping to their homes.",
+                desc: "Intelligently suggest add-on services and products to increase ticket value."
               },
               {
-                icon: "🤖",
+                icon: Bot,
+                color: "bg-indigo-500",
                 title: "Custom AI Training",
-                description:
-                  "We create and train your AI agent specifically for your salon, ensuring it knows your services, pricing, and policies perfectly.",
-              },
-            ].map((feature, index) => (
-              <div
-                key={index}
-                className="bg-white border border-gray-200 rounded-xl p-8 hover:shadow-lg transition-shadow"
-              >
-                <div className="text-4xl mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">{feature.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                desc: "Trained specifically on your salon's services, pricing, and policies."
+              }
+            ].map((feature, i) => (
+              <div key={i} className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 group">
+                <div className={`w-14 h-14 ${feature.color} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                  <feature.icon className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
+                <p className="text-gray-600 leading-relaxed">{feature.desc}</p>
               </div>
             ))}
           </div>
@@ -163,286 +185,380 @@ export default function Home() {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-20 bg-gray-50" id="pricing">
+      <section className="py-24 bg-blue-50/50" id="pricing">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold font-heading tracking-tight text-gray-900 mb-4">
-              Simple, Transparent Pricing
+            <h2 className="text-4xl lg:text-5xl font-bold font-heading text-gray-900 mb-6">
+              Simple, Transparent <span className="text-blue-600">Pricing</span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Choose the perfect plan for your salon. All plans include setup, training, and 24/7 support.
+            <p className="text-xl text-gray-600 mb-8">
+              Choose the perfect plan for your salon. No hidden fees.
             </p>
-            <p className="text-lg text-green-600 font-semibold mt-4">Free Credit Card Processing Available</p>
           </div>
 
-          {/* Pricing Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            {[
-              {
-                name: "Starter",
-                price: "$88",
-                period: "/month",
-                minutes: "250 Minutes",
-                description: "Perfect for small salons",
-                features: ["24/7 Call Answering", "Appointment Booking", "SMS Reminders", "Basic AI Training"],
-                popular: false,
-              },
-              {
-                name: "Professional",
-                price: "$188",
-                period: "/month",
-                minutes: "500 Minutes",
-                description: "Ideal for growing salons",
-                features: ["Everything in Starter", "Payment Processing", "Advanced Upselling", "Priority Support"],
-                popular: true,
-              },
-              {
-                name: "Enterprise",
-                price: "$388",
-                period: "/month",
-                minutes: "1000 Minutes",
-                description: "For busy multi-location salons",
-                features: [
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+            {/* Starter Plan */}
+            <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm hover:shadow-lg transition-all">
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Starter</h3>
+              <p className="text-gray-500 text-sm mb-6">Perfect for solo stylists</p>
+              <div className="flex items-baseline mb-6">
+                <span className="text-4xl font-bold text-gray-900">$88</span>
+                <span className="text-gray-500">/month</span>
+              </div>
+              <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg text-sm font-semibold text-center mb-8">
+                250 Minutes Included
+              </div>
+              <ul className="space-y-4 mb-8">
+                {[
+                  "24/7 Call Answering",
+                  "Basic Appointment Booking",
+                  "SMS Reminders",
+                  "Email Support"
+                ].map((item, i) => (
+                  <li key={i} className="flex items-center gap-3 text-gray-600 text-sm">
+                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                      <Check className="w-3 h-3 text-green-600" />
+                    </div>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold">
+                Get Started
+              </Button>
+            </div>
+
+            {/* Professional Plan */}
+            <div className="bg-white rounded-2xl p-8 border-2 border-blue-600 shadow-xl relative transform md:-translate-y-4">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg">
+                Most Popular
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Professional</h3>
+              <p className="text-gray-500 text-sm mb-6">For growing salons</p>
+              <div className="flex items-baseline mb-6">
+                <span className="text-4xl font-bold text-gray-900">$188</span>
+                <span className="text-gray-500">/month</span>
+              </div>
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold text-center mb-8 shadow-md">
+                500 Minutes Included
+              </div>
+              <ul className="space-y-4 mb-8">
+                {[
+                  "Everything in Starter",
+                  "Advanced Booking Logic",
+                  "Payment Processing",
+                  "Priority Support",
+                  "Custom AI Training"
+                ].map((item, i) => (
+                  <li key={i} className="flex items-center gap-3 text-gray-700 font-medium text-sm">
+                    <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                      <Check className="w-3 h-3 text-blue-600" />
+                    </div>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-12 text-lg shadow-lg shadow-blue-200">
+                Get Started
+              </Button>
+            </div>
+
+            {/* Enterprise Plan */}
+            <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm hover:shadow-lg transition-all">
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
+              <p className="text-gray-500 text-sm mb-6">For multi-location salons</p>
+              <div className="flex items-baseline mb-6">
+                <span className="text-4xl font-bold text-gray-900">$388</span>
+                <span className="text-gray-500">/month</span>
+              </div>
+              <div className="bg-amber-50 text-amber-700 px-4 py-2 rounded-lg text-sm font-semibold text-center mb-8">
+                1000 Minutes Included
+              </div>
+              <ul className="space-y-4 mb-8">
+                {[
                   "Everything in Professional",
                   "Multi-location Support",
-                  "Advanced Analytics",
-                  "Dedicated Support",
-                ],
-                popular: false,
-              },
-            ].map((plan, index) => (
-              <div
-                key={index}
-                className={`rounded-xl p-8 relative transition-transform hover:scale-105 ${
-                  plan.popular
-                    ? "bg-blue-600 text-white shadow-2xl ring-4 ring-blue-200"
-                    : "bg-white border border-gray-200"
-                }`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-bold">
-                    Most Popular
-                  </div>
-                )}
-                <h3 className={`text-2xl font-bold font-heading mb-2 ${plan.popular ? "text-white" : "text-gray-900"}`}>
-                  {plan.name}
-                </h3>
-                <p className={`text-sm mb-6 ${plan.popular ? "text-blue-100" : "text-gray-600"}`}>{plan.description}</p>
-                <div className="mb-2">
-                  <span className={`text-4xl font-bold ${plan.popular ? "text-white" : "text-gray-900"}`}>
-                    {plan.price}
-                  </span>
-                  <span className={plan.popular ? "text-blue-100" : "text-gray-600"}>{plan.period}</span>
-                </div>
-                <p className={`text-sm font-semibold mb-6 ${plan.popular ? "text-blue-100" : "text-gray-600"}`}>
-                  {plan.minutes}
-                </p>
-                <p className={`text-xs mb-6 ${plan.popular ? "text-blue-100" : "text-gray-600"}`}>
-                  $0.25 per additional minute
-                </p>
-
-                <Link
-                  href="/signup"
-                  className={`block w-full py-3 rounded-lg font-semibold text-center transition-colors mb-6 ${
-                    plan.popular
-                      ? "bg-white text-blue-600 hover:bg-blue-50"
-                      : "bg-blue-600 text-white hover:bg-blue-700"
-                  }`}
-                >
-                  Get Started
-                </Link>
-
-                <ul className={`space-y-3 text-sm ${plan.popular ? "text-blue-50" : "text-gray-600"}`}>
-                  {plan.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-start gap-3">
-                      <span className={`text-lg ${plan.popular ? "text-green-300" : "text-green-500"}`}>✓</span>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+                  "Dedicated Account Manager",
+                  "API Access",
+                  "White-label Options"
+                ].map((item, i) => (
+                  <li key={i} className="flex items-center gap-3 text-gray-600 text-sm">
+                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                      <Check className="w-3 h-3 text-green-600" />
+                    </div>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Button variant="outline" className="w-full border-2 border-gray-200 hover:border-blue-600 hover:text-blue-600 font-semibold">
+                Contact Sales
+              </Button>
+            </div>
           </div>
 
-          {/* Credit Card Processing CTA */}
-          <div className="bg-blue-50 rounded-xl p-8 border border-blue-200 text-center">
-            <h3 className="text-2xl font-bold font-heading text-gray-900 mb-3">
-              Waive Monthly Fees with Our Credit Card Processing
-            </h3>
-            <p className="text-gray-600 mb-4 max-w-2xl mx-auto">
-              Let us handle all your credit card processing and we'll waive your monthly SAAS fees. Plus, our zero-fee
-              program passes all costs to customers, so you pay nothing.
-            </p>
-            <Link
-              href="/credit-card-processing"
-              className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Learn More About Credit Card Processing
-            </Link>
+          {/* Credit Card Processing Banner */}
+          <div className="mt-16 bg-white rounded-2xl p-8 border border-gray-200 shadow-lg flex flex-col md:flex-row items-center justify-between gap-8">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Star className="w-5 h-5 text-amber-400 fill-current" />
+                <span className="font-bold text-gray-900">Special Offer</span>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                Waive Monthly Fees with Our Credit Card Processing
+              </h3>
+              <p className="text-gray-600 max-w-2xl">
+                Switch your payment processing to us and get the Professional plan for free.
+                Plus, eliminate credit card fees by passing them to customers.
+              </p>
+            </div>
+            <Button className="whitespace-nowrap px-8 bg-gray-900 hover:bg-gray-800 text-white font-semibold">
+              Learn More
+            </Button>
           </div>
         </div>
       </section>
 
-      {/* Why Choose Section */}
-      <section className="py-20 bg-white">
+      {/* Why Choose Us Section */}
+      <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold font-heading tracking-tight text-gray-900 mb-4">
-              Why Salon Owners Choose Beauty Drop AI
+            <h2 className="text-4xl lg:text-5xl font-bold font-heading text-gray-900 mb-6">
+              Why Salon Owners Choose <span className="text-blue-600">Beauty Drop AI</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Transform your salon operations with AI that understands the beauty industry inside and out.
             </p>
           </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            {[
-              { stat: "24/7", label: "Always Available" },
-              { stat: "95%", label: "Customer Satisfaction" },
-              { stat: "+35%", label: "Revenue Increase" },
-            ].map((item, index) => (
-              <div key={index} className="text-center">
-                <div className="text-5xl font-bold text-blue-600 mb-2 font-heading">{item.stat}</div>
-                <p className="text-lg text-gray-600">{item.label}</p>
-              </div>
-            ))}
-          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div className="relative">
+              <div className="absolute inset-0 bg-blue-600 rounded-3xl rotate-3 opacity-10"></div>
+              <div className="relative rounded-3xl shadow-2xl overflow-hidden">
+                <img
+                  src="/home2.webp"
+                  alt="Salon Owner Happy"
+                  className="w-full object-cover h-[500px]"
+                />
 
-          {/* Benefits Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {[
-              {
-                title: "Never Miss Another Booking",
-                description:
-                  "While you're busy with clients, Beauty Drop AI handles incoming calls professionally, capturing every potential booking opportunity 24/7.",
-              },
-              {
-                title: "Reduce No-Shows by 60%",
-                description:
-                  "Smart reminders and payment collection for cancellation policies protect your revenue and keep your schedule full.",
-              },
-              {
-                title: "Focus On What You Love",
-                description:
-                  "Stop interrupting treatments to answer the phone. Let Beauty Drop AI handle the business while you create beautiful results for your clients.",
-              },
-              {
-                title: "Increase Revenue Per Client",
-                description:
-                  "Beauty Drop AI intelligently upsells services and products, then ships purchases directly to clients' homes, creating additional revenue streams.",
-              },
-            ].map((benefit, index) => (
-              <div key={index} className="bg-gray-50 rounded-lg p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">{benefit.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{benefit.description}</p>
+                {/* Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+
+                {/* Revenue Increase Badge */}
+                <div className="absolute top-8 right-8 bg-white rounded-2xl p-4 shadow-xl flex items-center gap-3">
+                  <div className="w-12 h-12 bg-teal-400 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Revenue Increase</p>
+                    <p className="text-2xl font-bold text-gray-900">+35%</p>
+                  </div>
+                </div>
+
+                {/* Bottom Stats */}
+                <div className="absolute bottom-8 left-8 right-8 grid grid-cols-2 gap-6">
+                  <div className="text-center">
+                    <p className="text-5xl font-bold text-white mb-1">24/7</p>
+                    <p className="text-sm text-white/90 font-medium">Always Available</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-5xl font-bold text-white mb-1">100%</p>
+                    <p className="text-sm text-white/90 font-medium">Customer Satisfaction</p>
+                  </div>
+                </div>
               </div>
-            ))}
+            </div>
+
+            <div className="space-y-8">
+              {[
+                {
+                  icon: Phone,
+                  color: "bg-blue-100 text-blue-600",
+                  title: "Never Miss Another Booking",
+                  desc: "While you're busy with clients, Beauty Drop AI handles incoming calls professionally, capturing every potential booking opportunity."
+                },
+                {
+                  icon: Calendar,
+                  color: "bg-amber-100 text-amber-600",
+                  title: "Reduce No-Shows by 60%",
+                  desc: "Smart reminders and payment collection for cancellation policies protect your revenue and keep your schedule full."
+                },
+                {
+                  icon: Star,
+                  color: "bg-teal-100 text-teal-600",
+                  title: "Focus On What You Love",
+                  desc: "Stop interrupting treatments to answer the phone. Let Beauty Drop AI handle the business while you create beautiful results."
+                },
+                {
+                  icon: Gift,
+                  color: "bg-rose-100 text-rose-600",
+                  title: "Increase Revenue Per Client",
+                  desc: "Intelligently upsell services and products, creating additional revenue streams without being pushy."
+                }
+              ].map((item, i) => (
+                <div key={i} className="flex gap-4">
+                  <div className={`w-12 h-12 ${item.color} rounded-xl flex items-center justify-center shrink-0`}>
+                    <item.icon className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">{item.title}</h3>
+                    <p className="text-gray-600 leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Proven Results Section */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold font-heading tracking-tight text-gray-900 mb-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold font-heading text-gray-900 mb-4">
               Proven Results for Salon Owners
             </h2>
-            <p className="text-xl text-gray-600">Real impact from real salons using Beauty Drop AI</p>
+            <p className="text-gray-600">Real impact from real salons using Beauty Drop AI</p>
           </div>
 
-          {/* Results Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { stat: "100%", label: "Calls Answered" },
-              { stat: "40%", label: "More Bookings" },
-              { stat: "60%", label: "Fewer No-Shows" },
-              { stat: "35%", label: "Revenue Growth" },
-            ].map((item, index) => (
-              <div key={index} className="bg-white rounded-lg p-6 text-center border border-gray-200">
-                <div className="text-4xl font-bold text-blue-600 mb-2 font-heading">{item.stat}</div>
+              { stat: "100%", label: "Calls Answered", icon: Phone, color: "text-blue-600" },
+              { stat: "40%", label: "More Bookings", icon: Calendar, color: "text-amber-500" },
+              { stat: "60%", label: "Fewer No-Shows", icon: UserX, color: "text-rose-500" },
+              { stat: "35%", label: "Revenue Growth", icon: TrendingUp, color: "text-green-500" }
+            ].map((item, i) => (
+              <div key={i} className="bg-white p-6 rounded-xl shadow-sm text-center border border-gray-100">
+                <div className={`w-12 h-12 mx-auto mb-4 rounded-full bg-gray-50 flex items-center justify-center ${item.color}`}>
+                  {i === 0 && <Phone className="w-6 h-6" />}
+                  {i === 1 && <Calendar className="w-6 h-6" />}
+                  {i === 2 && <span className="text-2xl font-bold">✕</span>}
+                  {i === 3 && <span className="text-2xl font-bold">📈</span>}
+                </div>
+                <p className={`text-4xl font-bold mb-2 ${item.color}`}>{item.stat}</p>
                 <p className="text-gray-600 font-medium">{item.label}</p>
               </div>
             ))}
           </div>
-
-          {/* Testimonial */}
-          <div className="bg-white rounded-xl p-8 border-2 border-blue-200 text-center max-w-2xl mx-auto">
-            <p className="text-lg text-gray-700 mb-4">
-              "Beauty Drop AI increased our bookings by 40% in the first month!"
-            </p>
-            <p className="text-gray-600 font-semibold">- Sarah, Salon Owner</p>
-          </div>
         </div>
       </section>
+      {/* CTA Section */}
+      <section className="py-24 bg-[#111827] relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div className="space-y-8">
+              <h2 className="text-4xl lg:text-5xl font-bold font-heading text-white leading-tight">
+                Ready to Transform Your Salon with <span className="text-amber-400">AI Power?</span>
+              </h2>
+              <p className="text-lg text-gray-300 leading-relaxed max-w-lg">
+                Join over 1,000+ salon owners who have automated their bookings, increased their revenue, and reclaimed their time.
+              </p>
 
-      {/* Final CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-blue-700">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="text-4xl lg:text-5xl font-bold font-heading text-white mb-4">
-              Ready to Transform Your Salon with AI Power?
-            </h2>
-            <p className="text-xl text-blue-100 mb-2">
-              Join hundreds of salon owners who've increased their revenue by 35% with Beauty Drop AI.
-            </p>
-            <p className="text-lg text-blue-100 mb-8">
-              Start your free trial today and see the difference in just 24 hours.
-            </p>
-
-            {/* Benefits List */}
-            <div className="bg-white/20 backdrop-blur rounded-lg p-6 mb-8 max-w-2xl mx-auto text-left">
-              <ul className="space-y-3 text-white font-medium">
-                <li className="flex items-center gap-3">
-                  <span className="text-xl">✓</span> Setup completed in under 30 minutes
-                </li>
-                <li className="flex items-center gap-3">
-                  <span className="text-xl">✓</span> Free AI training customized for your salon
-                </li>
-                <li className="flex items-center gap-3">
-                  <span className="text-xl">✓</span> No contract required - cancel anytime
-                </li>
+              <ul className="space-y-4">
+                {[
+                  "Zero setup cost & 14-day free trial",
+                  "Seamless integration with your current tools",
+                  "24/7 support from our dedicated team"
+                ].map((item, i) => (
+                  <li key={i} className="flex items-center gap-3 text-gray-300">
+                    <div className="w-6 h-6 rounded-full border border-green-500 flex items-center justify-center shrink-0">
+                      <Check className="w-3 h-3 text-green-500" />
+                    </div>
+                    {item}
+                  </li>
+                ))}
               </ul>
-            </div>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/signup"
-                className="inline-flex items-center justify-center px-8 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors"
-              >
-                Start Free Trial Now
-              </Link>
-              <Link
-                href="/features"
-                className="inline-flex items-center justify-center px-8 py-3 bg-transparent text-white font-semibold rounded-lg border-2 border-white hover:bg-white/10 transition-colors"
-              >
-                See How It Works
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Trust Section */}
-      <section className="py-16 bg-white border-t border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-            {[
-              { stat: "500+", label: "Happy Salons" },
-              { stat: "10k+", label: "Calls Handled" },
-              { stat: "24/7", label: "Always Working" },
-              { stat: "+$480", label: "Today's Results" },
-            ].map((item, index) => (
-              <div key={index}>
-                <div className="text-3xl font-bold text-blue-600 mb-1 font-heading">{item.stat}</div>
-                <p className="text-gray-600">{item.label}</p>
+              <div className="flex flex-wrap gap-4 pt-4">
+                <Button className="h-14 px-8 bg-amber-400 hover:bg-amber-500 text-gray-900 text-lg font-bold rounded-lg shadow-lg">
+                  Start Your Free Trial
+                </Button>
+                <Button className="h-14 px-8 bg-white/10 hover:bg-white/20 text-white border border-white/20 text-lg font-semibold rounded-lg backdrop-blur-sm">
+                  Book Live Demo
+                </Button>
               </div>
-            ))}
+
+              <p className="text-gray-400 text-sm">
+                No credit card required. Cancel anytime.
+              </p>
+            </div>
+
+            <div className="relative lg:h-[500px] flex items-center justify-center">
+              <div className="relative w-full max-w-lg transform rotate-2 hover:rotate-0 transition-transform duration-500">
+                <div className="absolute inset-0 bg-blue-600 rounded-2xl transform translate-x-2 translate-y-2"></div>
+                <img
+                  src="/salon-professional-beauty-consultation.jpg"
+                  alt="Salon Professional"
+                  className="relative w-full h-auto rounded-2xl shadow-2xl border-4 border-gray-800"
+                />
+
+                {/* Testimonial Card */}
+                <div className="absolute -bottom-12 left-8 right-8 bg-white p-6 rounded-xl shadow-xl">
+                  <div className="flex gap-1 mb-3">
+                    {[1, 2, 3, 4, 5].map(i => (
+                      <Star key={i} className="w-4 h-4 text-amber-400 fill-current" />
+                    ))}
+                    <span className="text-xs text-gray-400 ml-2 mt-0.5">Verified Review</span>
+                  </div>
+                  <p className="text-gray-900 italic text-sm mb-4">
+                    "Beauty Drop AI changed my life! I have so much more free time and my clients love the instant responses."
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-xs">
+                      SJ
+                    </div>
+                    <p className="text-xs font-bold text-gray-900">Sarah Jenkins, Glow Salon</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
+
+      <Footer />
     </main>
+  )
+}
+
+function UserX(props: any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <line x1="17" x2="22" y1="8" y2="13" />
+      <line x1="22" x2="17" y1="8" y2="13" />
+    </svg>
+  )
+}
+
+function TrendingUp(props: any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+      <polyline points="16 7 22 7 22 13" />
+    </svg>
   )
 }
