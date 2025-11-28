@@ -30,6 +30,34 @@ export async function fetchShopDashboard(
     }
 }
 
+export async function fetchShop(
+    shopId: string,
+    token: string
+): Promise<Shop | null> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/shops/${shopId}/`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        })
+
+        if (!response.ok) {
+            if (response.status === 404) {
+                return null
+            }
+            throw new Error(`Failed to fetch shop: ${response.statusText}`)
+        }
+
+        const data: Shop = await response.json()
+        return data
+    } catch (error) {
+        console.error('Error fetching shop:', error)
+        throw error
+    }
+}
+
 export async function createShop(
     formData: ShopFormData,
     token: string
@@ -97,6 +125,35 @@ export async function fetchMyShops(token: string): Promise<Shop[]> {
         return data
     } catch (error) {
         console.error('Error fetching my shops:', error)
+        throw error
+    }
+}
+
+export async function generateTimeSlots(
+    shopId: string,
+    startDate: string,
+    endDate: string,
+    token: string
+): Promise<void> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/schedules/time-slots/generate/`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify([{
+                shop_id: parseInt(shopId),
+                start_date: startDate,
+                end_date: endDate
+            }]),
+        })
+
+        if (!response.ok) {
+            throw new Error(`Failed to generate time slots: ${response.statusText}`)
+        }
+    } catch (error) {
+        console.error('Error generating time slots:', error)
         throw error
     }
 }

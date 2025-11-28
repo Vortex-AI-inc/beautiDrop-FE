@@ -190,7 +190,6 @@ export default function CompanyProfilePage() {
 
             <div className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-4xl mx-auto">
-                    {/* Header Section */}
                     <div className="flex items-center justify-between mb-8">
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900">Company Profile</h1>
@@ -209,7 +208,6 @@ export default function CompanyProfilePage() {
                         </div>
                     </div>
 
-                    {/* AI Auto-Fill Banner */}
                     <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-8 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
