@@ -1,98 +1,105 @@
-import { SignUp } from '@clerk/nextjs'
-import { Header } from "../../../components/layout/header"
-import { Footer } from "../../../components/layout/footer"
-import { Zap, Headphones, FileText, TrendingUp } from "lucide-react"
+import { Header } from "@/components/layout/header"
+import { Footer } from "@/components/layout/footer"
+import { Building2, User } from "lucide-react"
+import Link from "next/link"
 
-export default function SignUpPage() {
+export default function SignUpSelectionPage() {
   return (
     <main className="min-h-screen bg-slate-50 flex flex-col pt-20">
       <Header />
 
-      <div className="flex-grow py-12 px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-12rem)]">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-            {/* Left: Clerk SignUp Form */}
-            <div className="flex items-center justify-center">
-              <div className="w-full max-w-md">
-                <SignUp
-                  appearance={{
-                    elements: {
-                      formButtonPrimary:
-                        'bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg',
-                      card: 'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 rounded-2xl',
-                      headerTitle: 'text-3xl font-bold text-gray-900',
-                      headerSubtitle: 'text-gray-500',
-                      socialButtonsBlockButton:
-                        'bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 font-medium rounded-lg',
-                      formFieldInput:
-                        'border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500',
-                      footerActionLink: 'text-blue-600 hover:text-blue-500 font-medium',
-                    },
-                  }}
-                  routing="path"
-                  path="/signup"
-                  signInUrl="/login"
-                  afterSignUpUrl="/"
-                />
+      <div className="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl w-full space-y-8">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              Join Beauty Drop AI
+            </h1>
+            <p className="text-xl text-gray-600">
+              Choose how you want to use the platform
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+            {/* Salon Owner Card */}
+            <Link
+              href="/signup/business"
+              className="group relative bg-white rounded-2xl p-8 shadow-sm border-2 border-transparent hover:border-blue-500 hover:shadow-xl transition-all duration-300"
+            >
+              <div className="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl">
+                FOR BUSINESS
               </div>
-            </div>
-
-            {/* Right: Benefits Card */}
-            <div className="hidden lg:block space-y-8">
-              <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-8">
-                <div className="inline-block bg-green-400 text-white px-4 py-1 rounded-full text-sm font-bold mb-6">
-                  ✓ Trusted Platform
-                </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                  Join <span className="text-blue-600">Successful</span><br />
-                  Beauty Professionals
-                </h2>
-                <p className="text-gray-600 mb-8">
-                  Start your free trial today and see why beauty professionals trust Beauty Drop AI to grow their business.
-                </p>
-
-                <div className="space-y-6">
-                  {[
-                    { Icon: Zap, title: "Quick Setup", desc: "Get started in under 5 minutes with our guided setup process", color: "bg-green-100" },
-                    { Icon: Headphones, title: "24/7 Support", desc: "Our team is here to help you succeed every step of the way", color: "bg-orange-100" },
-                    { Icon: FileText, title: "No Contracts", desc: "Cancel anytime with no hidden fees or long-term commitments", color: "bg-purple-100" },
-                    { Icon: TrendingUp, title: "Proven Results", desc: "Average 40% increase in bookings within the first month", color: "bg-yellow-100" }
-                  ].map((benefit, i) => (
-                    <div key={i} className="flex gap-4 items-start">
-                      <div className={`w-12 h-12 ${benefit.color} rounded-lg flex items-center justify-center flex-shrink-0`}>
-                        <benefit.Icon className="w-6 h-6 text-gray-700" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-gray-900 mb-1">{benefit.title}</h3>
-                        <p className="text-sm text-gray-600">{benefit.desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Testimonial */}
-                <div className="mt-8 bg-white rounded-xl p-6 shadow-sm">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                      SJ
-                    </div>
-                    <div>
-                      <p className="font-bold text-gray-900">Sarah Johnson</p>
-                      <p className="text-sm text-gray-500">Owner, Blush Beauty Salon</p>
-                    </div>
-                  </div>
-                  <p className="text-gray-700 italic mb-3">
-                    "Beauty Drop AI has completely transformed my business. I never miss a call now, and my booking rate has doubled!"
-                  </p>
-                  <div className="flex gap-1 text-yellow-400">
-                    {[...Array(5)].map((_, i) => (
-                      <span key={i}>★</span>
-                    ))}
-                    <span className="text-gray-900 ml-2 text-sm font-semibold">5.0/5</span>
-                  </div>
-                </div>
+              <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <Building2 className="w-8 h-8 text-blue-600" />
               </div>
-            </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                I am a Salon Owner
+              </h2>
+              <p className="text-gray-600 mb-6">
+                I want to automate my reception, manage bookings, and grow my beauty business with AI.
+              </p>
+              <ul className="space-y-3 text-sm text-gray-500 mb-8">
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+                  AI Receptionist
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+                  Booking Management
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+                  Business Analytics
+                </li>
+              </ul>
+              <span className="inline-block w-full text-center py-3 px-6 bg-blue-50 text-blue-700 font-semibold rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                Create Business Account
+              </span>
+            </Link>
+
+            {/* Customer Card */}
+            <Link
+              href="/signup/customer"
+              className="group relative bg-white rounded-2xl p-8 shadow-sm border-2 border-transparent hover:border-purple-500 hover:shadow-xl transition-all duration-300"
+            >
+              <div className="absolute top-0 right-0 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl">
+                FOR CUSTOMERS
+              </div>
+              <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <User className="w-8 h-8 text-purple-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                I am a Customer
+              </h2>
+              <p className="text-gray-600 mb-6">
+                I want to book appointments, discover salons, and manage my beauty schedule.
+              </p>
+              <ul className="space-y-3 text-sm text-gray-500 mb-8">
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-purple-500 rounded-full" />
+                  Easy Online Booking
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-purple-500 rounded-full" />
+                  Appointment Reminders
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-purple-500 rounded-full" />
+                  Discover New Salons
+                </li>
+              </ul>
+              <span className="inline-block w-full text-center py-3 px-6 bg-purple-50 text-purple-700 font-semibold rounded-lg group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                Create Customer Account
+              </span>
+            </Link>
+          </div>
+
+          <div className="text-center mt-8">
+            <p className="text-gray-600">
+              Already have an account?{' '}
+              <Link href="/login" className="text-blue-600 font-semibold hover:underline">
+                Sign in
+              </Link>
+            </p>
           </div>
         </div>
       </div>

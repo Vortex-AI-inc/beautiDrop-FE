@@ -16,11 +16,7 @@ export function Logo({ className, variant = "horizontal", size = "md", theme = "
 
     const textColor = theme === "dark" ? "text-white" : "text-gray-900"
 
-    // Always use the stacked layout as requested by the user, 
-    // or we can keep the variant prop but update the stacked implementation.
-    // The user said "our logo should looks like this", implying this is THE logo.
-    // However, for a header, a horizontal version might still be useful.
-    // I will update the 'stacked' variant to match the description perfectly.
+
 
     if (variant === "stacked") {
         return (
@@ -40,7 +36,6 @@ export function Logo({ className, variant = "horizontal", size = "md", theme = "
         )
     }
 
-    // Horizontal variant (fallback or for smaller spaces)
     return (
         <div className={cn("flex items-center font-bold tracking-tight", sizeClasses[size], className)}>
             <span className="text-blue-600">BEAUTY</span>

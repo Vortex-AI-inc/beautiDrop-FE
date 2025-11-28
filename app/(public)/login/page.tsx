@@ -27,7 +27,7 @@ export default function LoginPage() {
                         routing="path"
                         path="/login"
                         signUpUrl="/signup"
-                        afterSignInUrl="/"
+                        afterSignInUrl="/portal"
                     />
                 </div>
             </div>

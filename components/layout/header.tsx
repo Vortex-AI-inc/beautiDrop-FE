@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Menu, X, Rocket } from "lucide-react"
+import { Menu, X, Rocket, UserCircle } from "lucide-react"
 import { useState } from "react"
 import { Logo } from "@/components/ui/logo"
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
@@ -47,6 +47,12 @@ export function Header() {
               </Link>
             </SignedOut>
             <SignedIn>
+              <Link href="/portal">
+                <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50 font-medium px-4 rounded-lg flex items-center gap-2">
+                  <UserCircle className="w-4 h-4" />
+                  Customer Portal
+                </Button>
+              </Link>
               <UserButton
                 appearance={{
                   elements: {
@@ -111,6 +117,15 @@ export function Header() {
                 </Link>
               </SignedOut>
               <SignedIn>
+                <Link
+                  href="/portal"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Button variant="outline" className="w-full border-blue-600 text-blue-600 hover:bg-blue-50 font-medium px-4 rounded-lg flex items-center justify-center gap-2">
+                    <UserCircle className="w-4 h-4" />
+                    Customer Portal
+                  </Button>
+                </Link>
                 <div className="py-2">
                   <UserButton
                     appearance={{
