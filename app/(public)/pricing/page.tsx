@@ -24,7 +24,8 @@ import {
   FileCheck,
   Server,
   Clock as ClockIcon,
-  ZapIcon
+  ZapIcon,
+  ArrowRight
 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -115,9 +116,12 @@ function CostCalculator() {
           <p className="text-4xl font-bold text-green-600">${costPerMinute}</p>
         </div>
 
-        <Button className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl">
-          Get Started with Enterprise Plan
-        </Button>
+        <Link href="/signup">
+          <Button className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl">
+            Get Started with Enterprise Plan
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </Link>
       </div>
     </div>
   )
@@ -259,9 +263,12 @@ export default function PricingPage() {
                   </li>
                 ))}
               </ul>
-              <Button className="w-full h-12 bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold rounded-lg">
-                Get Started
-              </Button>
+              <Link href="/signup">
+                <Button className="w-full h-12 bg-white hover:bg-blue-50 text-blue-600 font-semibold rounded-lg">
+                  Get Started
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
             </div>
 
             {/* Professional Plan - Popular */}
@@ -294,9 +301,11 @@ export default function PricingPage() {
                   </li>
                 ))}
               </ul>
-              <Button className="w-full h-12 bg-amber-400 hover:bg-amber-500 text-gray-900 font-bold rounded-lg shadow-lg">
-                Get Started
-              </Button>
+              <Link href="/signup">
+                <Button className="w-full h-12 bg-amber-400 hover:bg-amber-500 text-gray-900 font-bold rounded-lg shadow-lg">
+                  Get Started
+                </Button>
+              </Link>
             </div>
 
             {/* Enterprise Plan */}
@@ -326,9 +335,11 @@ export default function PricingPage() {
                   </li>
                 ))}
               </ul>
-              <Button className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg">
-                Contact Sales
-              </Button>
+              <Link href="/contact">
+                <Button className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg">
+                  Contact Sales
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -382,9 +393,11 @@ export default function PricingPage() {
               <h3 className="text-lg font-bold text-gray-900 mb-2">Growing Company</h3>
               <p className="text-4xl font-bold text-blue-600 mb-3">450 min/mo</p>
               <p className="text-sm text-gray-600 mb-4">Sales calls, customer service, workflows</p>
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg">
-                Professional Plan: $188/mo
-              </Button>
+              <Link href="/signup">
+                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg">
+                  Professional Plan: $188/mo
+                </Button>
+              </Link>
             </div>
 
             {/* Enterprise */}
@@ -473,14 +486,18 @@ export default function PricingPage() {
                 Our team is here to help you choose the right plan for your needs.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button className="h-12 px-8 bg-white text-blue-600 hover:bg-blue-50 font-semibold rounded-lg flex items-center gap-2">
-                  <Phone className="w-5 h-5" />
-                  Call Sales
-                </Button>
-                <Button className="h-12 px-8 bg-white/20 hover:bg-white/30 text-white font-semibold rounded-lg backdrop-blur-sm flex items-center gap-2 border border-white/30">
-                  <Mail className="w-5 h-5" />
-                  Email Support
-                </Button>
+                <Link href="/contact">
+                  <Button className="h-12 px-8 bg-white text-blue-600 hover:bg-blue-50 font-semibold rounded-lg flex items-center gap-2">
+                    <Phone className="w-5 h-5" />
+                    Call Sales
+                  </Button>
+                </Link>
+                <Link href="/support">
+                  <Button className="h-12 px-8 bg-white/20 hover:bg-white/30 text-white font-semibold rounded-lg backdrop-blur-sm flex items-center gap-2 border border-white/30">
+                    <Mail className="w-5 h-5" />
+                    Email Support
+                  </Button>
+                </Link>
               </div>
             </div>
 
@@ -532,15 +549,19 @@ export default function PricingPage() {
 
             {/* Main CTAs */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-              <Button className="h-14 px-8 bg-amber-400 hover:bg-amber-500 text-gray-900 text-lg font-bold rounded-xl shadow-lg shadow-amber-400/20 flex items-center gap-2">
-                <Rocket className="w-5 h-5" />
-                Start Free Trial Now
-                <span className="text-xs bg-gray-900/10 px-2 py-0.5 rounded-full ml-1">100 Minutes Free</span>
-              </Button>
-              <Button className="h-14 px-8 bg-white/10 hover:bg-white/20 text-white text-lg font-semibold rounded-xl backdrop-blur-sm border border-white/20 flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
-                Schedule Demo
-              </Button>
+              <Link href="/signup">
+                <Button className="h-14 px-8 bg-amber-400 hover:bg-amber-500 text-gray-900 text-lg font-bold rounded-xl shadow-lg shadow-amber-400/20 flex items-center gap-2">
+                  <Rocket className="w-5 h-5" />
+                  Start Free Trial Now
+                  <span className="text-xs bg-gray-900/10 px-2 py-0.5 rounded-full ml-1">100 Minutes Free</span>
+                </Button>
+              </Link>
+              <Link href="/contact">
+                <Button className="h-14 px-8 bg-white/10 hover:bg-white/20 text-white text-lg font-semibold rounded-xl backdrop-blur-sm border border-white/20 flex items-center gap-2">
+                  <Calendar className="w-5 h-5" />
+                  Schedule Demo
+                </Button>
+              </Link>
             </div>
 
             <p className="text-purple-200 text-sm">

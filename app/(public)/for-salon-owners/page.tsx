@@ -26,7 +26,8 @@ import {
     Clock as ClockIcon,
     Play,
     BarChart3,
-    Megaphone
+    Megaphone,
+    ArrowRight
 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -61,14 +62,18 @@ export default function ForSalonOwnersPage() {
                                 Streamline operations, boost client satisfaction, and increase revenue with our comprehensive salon management platform designed specifically for beauty professionals.
                             </p>
                             <div className="flex flex-wrap gap-4">
-                                <Button className="h-14 px-8 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-lg shadow-lg flex items-center gap-2">
-                                    <Rocket className="w-5 h-5" />
-                                    Start Free Trial
-                                </Button>
-                                <Button className="h-14 px-8 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg backdrop-blur-sm border border-white/20 flex items-center gap-2">
-                                    <Play className="w-5 h-5 fill-current" />
-                                    Watch Demo
-                                </Button>
+                                <Link href="/contact">
+                                    <Button variant="outline" className="h-12 px-6 border-2 border-gray-200 hover:border-blue-600 hover:text-blue-600 font-semibold rounded-lg flex items-center gap-2">
+                                        <Mail className="w-4 h-4" />
+                                        Contact Sales
+                                    </Button>
+                                </Link>
+                                <Link href="/features">
+                                    <Button className="h-14 px-8 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg backdrop-blur-sm border border-white/20 flex items-center gap-2">
+                                        <Play className="w-5 h-5 fill-current" />
+                                        Watch Demo
+                                    </Button>
+                                </Link>
                             </div>
                         </div>
                         <div className="relative">
@@ -223,9 +228,12 @@ export default function ForSalonOwnersPage() {
                                     </li>
                                 ))}
                             </ul>
-                            <Button className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg">
-                                Get Started
-                            </Button>
+                            <Link href="/signup">
+                                <Button className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg flex items-center justify-center">
+                                    Get Started
+                                    <ArrowRight className="w-4 h-4 ml-2" />
+                                </Button>
+                            </Link>
                         </div>
 
                         {/* Professional Plan - Popular */}
@@ -294,7 +302,8 @@ export default function ForSalonOwnersPage() {
                                     </li>
                                 ))}
                             </ul>
-                            <Button className="w-full h-12 bg-gray-50 hover:bg-gray-100 text-gray-900 font-semibold rounded-lg border border-gray-200">
+                            <Button className="w-full h-12 bg-gray-50 hover:bg-gray-100 text-gray-900 font-semibold rounded-lg border border-gray-200 flex items-center justify-center">
+                                <Mail className="w-4 h-4 mr-2" />
                                 Contact Sales
                             </Button>
                         </div>

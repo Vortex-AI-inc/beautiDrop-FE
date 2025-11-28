@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Header } from "../../../components/layout/header"
 import { Footer } from "../../../components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -28,7 +29,8 @@ import {
   Play,
   MapPin,
   Star,
-  Sparkles
+  Sparkles,
+  MessageCircle
 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 
@@ -416,13 +418,18 @@ export default function ContactPage() {
                   Skip the form and call us directly. Our specialists are ready to help.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Button className="w-full h-12 bg-[#00c853] hover:bg-[#00b54b] text-white font-bold text-base">
-                    <Phone className="w-4 h-4 mr-2" />
-                    (555) 123-4567
-                  </Button>
-                  <Button variant="outline" className="w-full h-12 bg-white border-orange-400 text-orange-500 hover:bg-orange-50 font-bold text-base">
-                    Chat with Sales
-                  </Button>
+                  <Link href="tel:916-268-1877">
+                    <Button className="w-full h-12 bg-[#00c853] hover:bg-[#00b54b] text-white font-bold text-base">
+                      <Phone className="w-4 h-4 mr-2" />
+                      916-268-1877
+                    </Button>
+                  </Link>
+                  <Link href="/contact">
+                    <Button variant="outline" className="w-full h-12 bg-white border-orange-400 text-orange-500 hover:bg-orange-50 font-bold text-base">
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Chat with Sales
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -514,6 +521,7 @@ export default function ContactPage() {
                     Call us anytime, day or night. Our US-based support team is always ready to help with urgent issues or questions.
                   </p>
                   <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                    <Phone className="w-4 h-4 mr-2" />
                     Call Support
                   </Button>
                 </div>
@@ -529,6 +537,7 @@ export default function ContactPage() {
                     Send us a detailed email for complex issues. We typically respond within 2 hours with a comprehensive solution.
                   </p>
                   <Button size="sm" className="bg-orange-500 hover:bg-orange-600">
+                    <Mail className="w-4 h-4 mr-2" />
                     Email Us
                   </Button>
                 </div>
@@ -544,6 +553,7 @@ export default function ContactPage() {
                     Chat with our support engineers in real-time right from your dashboard. Perfect for quick questions and guidance.
                   </p>
                   <Button size="sm" className="bg-teal-500 hover:bg-teal-600">
+                    <MessageSquare className="w-4 h-4 mr-2" />
                     Start Chat
                   </Button>
                 </div>

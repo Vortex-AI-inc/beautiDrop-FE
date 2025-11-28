@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Header } from "../../../components/layout/header"
 import { Footer } from "../../../components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -20,7 +21,8 @@ import {
     Rocket,
     Phone,
     Gift,
-    X
+    X,
+    MessageCircle
 } from "lucide-react"
 
 export default function CreditCardProcessingPage() {
@@ -116,14 +118,18 @@ export default function CreditCardProcessingPage() {
                             </div>
 
                             <div className="flex gap-4">
-                                <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-6 text-lg rounded-lg shadow-lg shadow-blue-600/20 flex items-center gap-2">
-                                    <Rocket className="w-5 h-5" />
-                                    Get Started Today
-                                </Button>
-                                <Button variant="outline" className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold px-8 py-6 text-lg rounded-lg flex items-center gap-2">
-                                    <Phone className="w-5 h-5" />
-                                    (555) 123-4567
-                                </Button>
+                                <Link href="/signup">
+                                    <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-6 text-lg rounded-lg shadow-lg shadow-blue-600/20 flex items-center gap-2">
+                                        <Rocket className="w-5 h-5" />
+                                        Get Started Today
+                                    </Button>
+                                </Link>
+                                <Link href="tel:916-268-1877">
+                                    <Button variant="outline" className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold px-8 py-6 text-lg rounded-lg flex items-center gap-2">
+                                        <Phone className="w-5 h-5" />
+                                        916-268-1877
+                                    </Button>
+                                </Link>
                             </div>
                         </div>
 
@@ -662,6 +668,7 @@ export default function CreditCardProcessingPage() {
                                         (555) 123-4567
                                     </Button>
                                     <Button variant="outline" className="flex-1 bg-white text-sm h-10">
+                                        <MessageCircle className="w-4 h-4 mr-2" />
                                         Chat Now
                                     </Button>
                                 </div>

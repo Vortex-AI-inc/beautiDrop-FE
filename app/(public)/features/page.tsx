@@ -75,14 +75,18 @@ export default function FeaturesPage() {
 
                             {/* CTA Buttons */}
                             <div className="flex flex-wrap gap-4">
-                                <Button className="h-12 px-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg">
-                                    <Play className="w-4 h-4 mr-2" />
-                                    See It In Action
-                                </Button>
-                                <Button variant="outline" className="h-12 px-6 border-2 border-gray-200 hover:border-blue-600 hover:text-blue-600 font-semibold rounded-lg">
-                                    <Phone className="w-4 h-4 mr-2" />
-                                    Call 916-266-9677
-                                </Button>
+                                <Link href="/signup">
+                                    <Button className="h-12 px-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg">
+                                        <Play className="w-4 h-4 mr-2" />
+                                        See It In Action
+                                    </Button>
+                                </Link>
+                                <Link href="tel:916-266-9677">
+                                    <Button variant="outline" className="h-12 px-6 border-2 border-gray-200 hover:border-blue-600 hover:text-blue-600 font-semibold rounded-lg">
+                                        <Phone className="w-4 h-4 mr-2" />
+                                        Call 916-266-9677
+                                    </Button>
+                                </Link>
                             </div>
                         </div>
 

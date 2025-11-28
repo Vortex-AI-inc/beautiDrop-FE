@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Phone, Calendar, Zap, Bell, TrendingUp, Users, CreditCard } from "lucide-react"
+import { Phone, Calendar, Zap, Bell, TrendingUp, Users, CreditCard, Play, Info, ArrowRight, Rocket } from "lucide-react"
 
 export default function HomePage() {
   return (
@@ -47,16 +47,16 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <Link
                 href="/signup"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-teal-500 text-white font-semibold rounded-lg hover:bg-teal-600 transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
               >
-                <Phone className="w-5 h-5" />
+                <Rocket className="w-5 h-5" />
                 Start Free Trial
               </Link>
               <Link
                 href="/features"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 border-2 border-blue-600 text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors"
               >
-                <span>▶</span>
+                <Play className="w-5 h-5 fill-current" />
                 See Features
               </Link>
             </div>
@@ -77,11 +77,13 @@ export default function HomePage() {
                   <div className="text-sm text-gray-600">Booking Request</div>
                   <div className="text-lg font-semibold text-gray-900">(555) 123-4567</div>
                   <div className="space-y-2">
-                    <button className="w-full py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600">
-                      📅 Book Appointment
+                    <button className="w-full py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 flex items-center justify-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      Book Appointment
                     </button>
-                    <button className="w-full py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">
-                      ℹ️ Get Info
+                    <button className="w-full py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 flex items-center justify-center gap-2">
+                      <Info className="w-4 h-4" />
+                      Get Info
                     </button>
                   </div>
                 </div>
@@ -189,9 +191,10 @@ export default function HomePage() {
           </div>
           <Link
             href="/signup"
-            className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
+            className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap gap-2"
           >
             Get Started
+            <ArrowRight className="w-5 h-5" />
           </Link>
         </div>
       </section>
