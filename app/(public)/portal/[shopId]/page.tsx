@@ -150,13 +150,13 @@ export default function ShopDashboardPage() {
                                 <h3 className="font-semibold text-gray-900 text-sm">Company</h3>
                                 <p className="text-xs text-gray-500 mt-1">Business information</p>
                             </Link>
-                            <Link href={`/portal/${shopId}/staff`} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-center group">
-                                <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm text-center opacity-50 pointer-events-none">
+                                <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center mx-auto mb-3">
                                     <Users className="w-5 h-5 text-orange-600" />
                                 </div>
                                 <h3 className="font-semibold text-gray-900 text-sm">Staff</h3>
                                 <p className="text-xs text-gray-500 mt-1">Team management</p>
-                            </Link>
+                            </div>
                             <Link href={`/portal/${shopId}/services`} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-center group">
                                 <div className="w-10 h-10 bg-teal-50 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
                                     <Scissors className="w-5 h-5 text-teal-600" />
@@ -164,25 +164,25 @@ export default function ShopDashboardPage() {
                                 <h3 className="font-semibold text-gray-900 text-sm">Services</h3>
                                 <p className="text-xs text-gray-500 mt-1">Service offerings</p>
                             </Link>
-                            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-center group">
-                                <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm text-center opacity-50 pointer-events-none">
+                                <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center mx-auto mb-3">
                                     <Phone className="w-5 h-5 text-purple-600" />
                                 </div>
                                 <h3 className="font-semibold text-gray-900 text-sm">Phone</h3>
                                 <p className="text-xs text-gray-500 mt-1">Call routing</p>
                             </div>
-                            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-center group">
+                            <Link href={`/portal/${shopId}/scheduling`} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-center group">
                                 <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
                                     <Calendar className="w-5 h-5 text-red-600" />
                                 </div>
                                 <h3 className="font-semibold text-gray-900 text-sm">Scheduling</h3>
                                 <p className="text-xs text-gray-500 mt-1">Appointment management</p>
-                            </div>
+                            </Link>
                         </div>
 
                         {/* Bottom Actions */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
+                            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4 opacity-50 pointer-events-none">
                                 <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0">
                                     <CreditCard className="w-5 h-5 text-red-600" />
                                 </div>
@@ -192,7 +192,7 @@ export default function ShopDashboardPage() {
                                 </div>
                             </div>
 
-                            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
+                            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4 opacity-50 pointer-events-none">
                                 <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center flex-shrink-0">
                                     <Rocket className="w-5 h-5 text-orange-600" />
                                 </div>
