@@ -1,15 +1,28 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Header } from "@/components/layout/header"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, Sparkles, Scissors, Trash2 } from "lucide-react"
+import { ArrowLeft, Sparkles, Scissors, Trash2, Loader2, Edit2 } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@clerk/nextjs"
+import { createService, fetchServices, deleteService, updateService, toggleServiceActive } from "@/lib/api/services"
+import type { Service } from "@/types/service"
+import { Switch } from "@/components/ui/switch"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+    DialogFooter,
+} from "@/components/ui/dialog"
 import {
     Select,
     SelectContent,
@@ -26,21 +39,16 @@ import {
     TableRow,
 } from "@/components/ui/table"
 
-interface Service {
-    id: string
-    name: string
-    duration: number
-    price: number
-    category: string
-    description: string
-    staff: string[]
-}
-
 export default function ServicesManagementPage() {
     const params = useParams()
     const shopId = params.shopId as string
     const { toast } = useToast()
+    const { getToken } = useAuth()
     const [services, setServices] = useState<Service[]>([])
+    const [isLoading, setIsLoading] = useState(true)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+    const [editingService, setEditingService] = useState<Service | null>(null)
     const [formData, setFormData] = useState({
         name: "",
         duration: "",
@@ -61,11 +69,36 @@ export default function ServicesManagementPage() {
         "Other"
     ]
 
+    useEffect(() => {
+        loadServices()
+    }, [shopId])
+
+    const loadServices = async () => {
+        try {
+            setIsLoading(true)
+            const token = await getToken()
+            if (!token) return
+            const data = await fetchServices(shopId, token)
+            setServices(data)
+        } catch (error) {
+            console.error("Failed to load services", error)
+            toast({
+                title: "Error",
+                description: "Failed to load services. Please try again.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
     const handleInputChange = (field: string, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }))
     }
 
-    const handleAddService = () => {
+    const handleSubmit = async () => {
+        if (isSubmitting) return
+
         if (!formData.name.trim()) {
             toast({
                 title: "Error",
@@ -93,28 +126,77 @@ export default function ServicesManagementPage() {
             return
         }
 
-        if (!formData.category) {
+        try {
+            setIsSubmitting(true)
+            const token = await getToken()
+            if (!token) {
+                toast({
+                    title: "Error",
+                    description: "You must be logged in to manage services.",
+                    variant: "destructive"
+                })
+                return
+            }
+
+            const payload = {
+                shop_id: shopId,
+                name: formData.name,
+                description: formData.description,
+                price: formData.price,
+                duration_minutes: parseInt(formData.duration),
+                is_active: true
+            }
+
+            if (editingService) {
+                const updatedService = await updateService(editingService.id, payload, token)
+                setServices(prev => prev.map(s => s.id === editingService.id ? updatedService : s))
+                toast({
+                    title: "Success",
+                    description: "Service updated successfully.",
+                })
+                setIsEditModalOpen(false)
+            } else {
+                const newService = await createService(payload, token)
+                setServices(prev => [...prev, newService])
+                toast({
+                    title: "Success",
+                    description: `${newService.name} has been added to your services.`,
+                })
+                // Reset form only on create
+                setFormData({
+                    name: "",
+                    duration: "",
+                    price: "",
+                    category: "",
+                    description: ""
+                })
+            }
+        } catch (error: any) {
+            console.error("Failed to save service", error)
             toast({
                 title: "Error",
-                description: "Please select a category.",
+                description: error.message || "Failed to save service. Please try again.",
                 variant: "destructive"
             })
-            return
+        } finally {
+            setIsSubmitting(false)
         }
+    }
 
-        const newService: Service = {
-            id: Date.now().toString(),
-            name: formData.name,
-            duration: parseInt(formData.duration),
-            price: parseFloat(formData.price),
-            category: formData.category,
-            description: formData.description,
-            staff: []
-        }
+    const handleEditClick = (service: Service) => {
+        setEditingService(service)
+        setFormData({
+            name: service.name,
+            duration: service.duration_minutes.toString(),
+            price: service.price,
+            category: "",
+            description: service.description
+        })
+        setIsEditModalOpen(true)
+    }
 
-        setServices(prev => [...prev, newService])
-
-        // Reset form
+    const handleCreateClick = () => {
+        setEditingService(null)
         setFormData({
             name: "",
             duration: "",
@@ -122,21 +204,55 @@ export default function ServicesManagementPage() {
             category: "",
             description: ""
         })
-
-        toast({
-            title: "Success",
-            description: `${formData.name} has been added to your services.`,
-        })
+        // No modal for create, it's inline as per design
     }
 
-    const handleDeleteService = (id: string) => {
-        const service = services.find(s => s.id === id)
-        setServices(prev => prev.filter(s => s.id !== id))
+    const handleToggleActive = async (id: number, currentStatus: boolean) => {
+        try {
+            const token = await getToken()
+            if (!token) return
 
-        toast({
-            title: "Service removed",
-            description: `${service?.name} has been removed from your services.`,
-        })
+            // Optimistic update
+            setServices(prev => prev.map(s => s.id === id ? { ...s, is_active: !currentStatus } : s))
+
+            await toggleServiceActive(id, token)
+
+            toast({
+                title: "Status updated",
+                description: `Service is now ${!currentStatus ? 'active' : 'inactive'}.`,
+            })
+        } catch (error) {
+            console.error("Failed to toggle service status", error)
+            // Revert on error
+            setServices(prev => prev.map(s => s.id === id ? { ...s, is_active: currentStatus } : s))
+            toast({
+                title: "Error",
+                description: "Failed to update status. Please try again.",
+                variant: "destructive"
+            })
+        }
+    }
+
+    const handleDeleteService = async (id: number) => {
+        try {
+            const token = await getToken()
+            if (!token) return
+
+            await deleteService(id, token)
+            setServices(prev => prev.filter(s => s.id !== id))
+
+            toast({
+                title: "Service removed",
+                description: "The service has been removed successfully.",
+            })
+        } catch (error) {
+            console.error("Failed to delete service", error)
+            toast({
+                title: "Error",
+                description: "Failed to delete service. Please try again.",
+                variant: "destructive"
+            })
+        }
     }
 
     return (
@@ -174,11 +290,31 @@ export default function ServicesManagementPage() {
                         </Button>
                     </div>
 
+                    {/* Action Required Banner */}
+                    {services.some(s => !s.staff || s.staff.length === 0) && (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-8 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                    <span className="text-yellow-600 font-bold">!</span>
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold text-gray-900">Action Required: Unassigned Services</h3>
+                                    <p className="text-sm text-gray-600">These services won't appear in your booking system until staff members are assigned.</p>
+                                </div>
+                            </div>
+                            <Button className="bg-yellow-500 hover:bg-yellow-600 text-white border-0">
+                                Go to Setup Wizard
+                            </Button>
+                        </div>
+                    )}
+
                     {/* Add New Service Card */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-                        <div className="flex items-center gap-2 mb-6">
-                            <Scissors className="w-5 h-5 text-blue-600" />
-                            <h2 className="text-lg font-bold text-gray-900">Add New Service</h2>
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2">
+                                <Scissors className="w-5 h-5 text-blue-600" />
+                                <h2 className="text-lg font-bold text-gray-900">Add New Service</h2>
+                            </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -248,24 +384,106 @@ export default function ServicesManagementPage() {
                         <div className="flex justify-end">
                             <Button
                                 className="bg-blue-600 hover:bg-blue-700 text-white"
-                                onClick={handleAddService}
+                                onClick={handleSubmit}
+                                disabled={isSubmitting}
                             >
-                                <Scissors className="w-4 h-4 mr-2" />
-                                Add Service
+                                {isSubmitting ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                ) : (
+                                    <Scissors className="w-4 h-4 mr-2" />
+                                )}
+                                {isSubmitting ? "Adding..." : "Add Service"}
                             </Button>
                         </div>
                     </div>
 
-                    {/* Your Services Card */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                        <div className="flex items-center gap-2 mb-6">
-                            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                                <Scissors className="w-4 h-4 text-white" />
+                    {/* Edit Modal */}
+                    <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                        <DialogContent className="sm:max-w-[600px]">
+                            <DialogHeader>
+                                <DialogTitle>Edit Service</DialogTitle>
+                                <DialogDescription>
+                                    Make changes to your service here. Click save when you're done.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="grid gap-4 py-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="edit-name">Service Name</Label>
+                                        <Input
+                                            id="edit-name"
+                                            value={formData.name}
+                                            onChange={(e) => handleInputChange('name', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="edit-duration">Duration (min)</Label>
+                                        <Input
+                                            id="edit-duration"
+                                            type="number"
+                                            value={formData.duration}
+                                            onChange={(e) => handleInputChange('duration', e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="edit-price">Price ($)</Label>
+                                        <Input
+                                            id="edit-price"
+                                            type="number"
+                                            step="0.01"
+                                            value={formData.price}
+                                            onChange={(e) => handleInputChange('price', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="edit-category">Category</Label>
+                                        <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
+                                            <SelectTrigger id="edit-category">
+                                                <SelectValue placeholder="Select category" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {CATEGORIES.map((category) => (
+                                                    <SelectItem key={category} value={category}>
+                                                        {category}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="edit-description">Description</Label>
+                                    <Textarea
+                                        id="edit-description"
+                                        value={formData.description}
+                                        onChange={(e) => handleInputChange('description', e.target.value)}
+                                    />
+                                </div>
                             </div>
-                            <h2 className="text-lg font-bold text-gray-900">Your Services</h2>
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
+                                <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-blue-600 text-white">
+                                    {isSubmitting ? "Saving..." : "Save Changes"}
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+
+                    {/* Your Services Card */}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div className="bg-teal-500 px-6 py-4 flex items-center gap-2">
+                            <Scissors className="w-5 h-5 text-white" />
+                            <h2 className="text-lg font-bold text-white">Your Services</h2>
                         </div>
 
-                        {services.length === 0 ? (
+                        {isLoading ? (
+                            <div className="text-center py-12">
+                                <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-4" />
+                                <p className="text-gray-600">Loading services...</p>
+                            </div>
+                        ) : services.length === 0 ? (
                             <div className="text-center py-12">
                                 <Scissors className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No Services Yet</h3>
@@ -276,41 +494,74 @@ export default function ServicesManagementPage() {
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead>Service</TableHead>
-                                            <TableHead>Duration</TableHead>
-                                            <TableHead>Price</TableHead>
-                                            <TableHead>Category</TableHead>
-                                            <TableHead>Description</TableHead>
-                                            <TableHead>Staff</TableHead>
-                                            <TableHead className="text-right">Actions</TableHead>
+                                            <TableHead className="font-bold text-gray-900">Service</TableHead>
+                                            <TableHead className="font-bold text-gray-900">Duration</TableHead>
+                                            <TableHead className="font-bold text-gray-900">Price</TableHead>
+                                            <TableHead className="font-bold text-gray-900">Category</TableHead>
+                                            <TableHead className="font-bold text-gray-900">Description</TableHead>
+                                            <TableHead className="font-bold text-gray-900">Staff</TableHead>
+                                            <TableHead className="text-right font-bold text-gray-900">Actions</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {services.map((service) => (
-                                            <TableRow key={service.id}>
-                                                <TableCell className="font-medium">{service.name}</TableCell>
-                                                <TableCell>{service.duration} min</TableCell>
-                                                <TableCell>${service.price.toFixed(2)}</TableCell>
-                                                <TableCell>
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                        {service.category}
-                                                    </span>
+                                            <TableRow key={service.id} className={(!service.staff || service.staff.length === 0) ? "bg-yellow-50/50 hover:bg-yellow-50" : ""}>
+                                                <TableCell className="font-medium">
+                                                    <div className="flex items-center gap-2">
+                                                        {(!service.staff || service.staff.length === 0) && (
+                                                            <div className="w-4 h-4 rounded-full bg-yellow-400 flex items-center justify-center text-[10px] font-bold text-white">!</div>
+                                                        )}
+                                                        {service.name}
+                                                    </div>
                                                 </TableCell>
+                                                <TableCell>{service.duration_minutes} min</TableCell>
+                                                <TableCell>${parseFloat(service.price).toFixed(2)}</TableCell>
                                                 <TableCell className="max-w-xs truncate">
                                                     {service.description || "-"}
                                                 </TableCell>
                                                 <TableCell>
-                                                    {service.staff.length > 0 ? service.staff.join(", ") : "-"}
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                        {service.category || "General"}
+                                                    </span>
+                                                </TableCell>
+                                                <TableCell>
+                                                    {(!service.staff || service.staff.length === 0) ? (
+                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+                                                            <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full mr-1.5"></span>
+                                                            Not Assigned
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-sm text-gray-600">{service.staff.length} staff</span>
+                                                    )}
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => handleDeleteService(service.id)}
-                                                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </Button>
+                                                    <div className="flex items-center justify-end gap-1">
+                                                        {(!service.staff || service.staff.length === 0) && (
+                                                            <Button
+                                                                size="sm"
+                                                                className="bg-yellow-400 hover:bg-yellow-500 text-black border-0 text-xs font-semibold h-7"
+                                                            >
+                                                                + Assign Now
+                                                            </Button>
+                                                        )}
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => handleEditClick(service)}
+                                                            className="h-8 px-2 text-gray-500 hover:text-blue-600"
+                                                        >
+                                                            <Edit2 className="w-3 h-3" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => handleDeleteService(service.id)}
+                                                            className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-50 text-xs font-medium"
+                                                        >
+                                                            <Trash2 className="w-3 h-3  mr-1" />
+
+                                                        </Button>
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                         ))}
