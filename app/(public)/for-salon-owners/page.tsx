@@ -268,9 +268,11 @@ export default function ForSalonOwnersPage() {
                                     </li>
                                 ))}
                             </ul>
-                            <Button className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg">
-                                Get Started
-                            </Button>
+                            <Link href="/signup/">
+                                <Button className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg">
+                                    Get Started
+                                </Button>
+                            </Link>
                         </div>
 
                         {/* Enterprise Plan */}
@@ -302,10 +304,12 @@ export default function ForSalonOwnersPage() {
                                     </li>
                                 ))}
                             </ul>
-                            <Button className="w-full h-12 bg-gray-50 hover:bg-gray-100 text-gray-900 font-semibold rounded-lg border border-gray-200 flex items-center justify-center">
-                                <Mail className="w-4 h-4 mr-2" />
-                                Contact Sales
-                            </Button>
+                            <Link href="/contact">
+                                <Button className="w-full h-12 bg-gray-50 hover:bg-gray-100 text-gray-900 font-semibold rounded-lg border border-gray-200 flex items-center justify-center">
+                                    <Mail className="w-4 h-4 mr-2" />
+                                    Contact Sales
+                                </Button>
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -351,15 +355,19 @@ export default function ForSalonOwnersPage() {
 
                         {/* Main CTAs */}
                         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-                            <Button className="h-14 px-8 bg-yellow-400 hover:bg-yellow-500 text-gray-900 text-lg font-bold rounded-xl shadow-lg shadow-yellow-400/20 flex items-center gap-2">
-                                <Rocket className="w-5 h-5" />
-                                Start Free Trial
-                                <span className="text-xs bg-gray-900/10 px-2 py-0.5 rounded-full ml-1">INSTANT ACCESS</span>
-                            </Button>
-                            <Button className="h-14 px-8 bg-white/10 hover:bg-white/20 text-white text-lg font-semibold rounded-xl backdrop-blur-sm border border-white/20 flex items-center gap-2">
-                                <Phone className="w-5 h-5" />
-                                Schedule Demo Call
-                            </Button>
+                            <Link href="/signup/">
+                                <Button className="h-14 px-8 bg-yellow-400 hover:bg-yellow-500 text-gray-900 text-lg font-bold rounded-xl shadow-lg shadow-yellow-400/20 flex items-center gap-2">
+                                    <Rocket className="w-5 h-5" />
+                                    Start Free Trial
+                                    <span className="text-xs bg-gray-900/10 px-2 py-0.5 rounded-full ml-1">INSTANT ACCESS</span>
+                                </Button>
+                            </Link>
+                            <Link href="/contact/">
+                                <Button className="h-14 px-8 bg-white/10 hover:bg-white/20 text-white text-lg font-semibold rounded-xl backdrop-blur-sm border border-white/20 flex items-center gap-2">
+                                    <Phone className="w-5 h-5" />
+                                    Schedule Demo Call
+                                </Button>
+                            </Link>
                         </div>
 
                         {/* Orange Banner */}

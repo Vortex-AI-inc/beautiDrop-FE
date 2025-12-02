@@ -34,13 +34,19 @@ export async function fetchServices(
     token: string
 ): Promise<Service[]> {
     try {
+        const headers: HeadersInit = {
+            'Content-Type': 'application/json',
+        }
+
+        // Only add Authorization header if token is provided
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`
+        }
+
         // Assuming the endpoint to list services filters by shop_id via query param
         const response = await fetch(`${API_BASE_URL}/api/v1/services/?shop_id=${shopId}`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-            },
+            headers,
         })
 
         if (!response.ok) {
@@ -141,6 +147,42 @@ export async function deleteService(
         }
     } catch (error) {
         console.error('Error deleting service:', error)
+        throw error
+    }
+}
+
+export async function fetchPublicServices(shopId: string): Promise<Service[]> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/services/?shop_id=${shopId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch services: ${response.statusText}`)
+        }
+
+        const data = await response.json()
+
+        // Handle different response structures
+        if (Array.isArray(data)) {
+            return data
+        }
+
+        if (data.data && Array.isArray(data.data)) {
+            return data.data
+        }
+
+        if (data.results && Array.isArray(data.results)) {
+            return data.results
+        }
+
+        console.warn('Unexpected API response format for services:', data)
+        return []
+    } catch (error) {
+        console.error('Error fetching public services:', error)
         throw error
     }
 }

@@ -98,24 +98,29 @@ export default function ContactPage() {
               </p>
 
               <div className="flex flex-wrap gap-4 mb-10">
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4 min-w-[200px]">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Phone className="w-5 h-5 text-blue-600" />
+                <Link href="tel:9152681877">
+                  <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4 min-w-[200px]">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Phone className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+
+                      <div className="text-sm font-bold text-gray-900">Call Us</div>
+                      <div className="text-sm text-blue-600 font-medium">915-268-1877</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-sm font-bold text-gray-900">Call Us</div>
-                    <div className="text-sm text-blue-600 font-medium">1-800-BEAUTY-AI</div>
+                </Link>
+                <Link href="mailto:hello@beautydrop.ai">
+                  <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4 min-w-[200px]">
+                    <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                      <Mail className="w-5 h-5 text-orange-600" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-gray-900">Email Us</div>
+                      <div className="text-sm text-blue-600 font-medium">hello@beautydrop.ai</div>
+                    </div>
                   </div>
-                </div>
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4 min-w-[200px]">
-                  <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                    <Mail className="w-5 h-5 text-orange-600" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-gray-900">Email Us</div>
-                    <div className="text-sm text-blue-600 font-medium">hello@beautydrop.ai</div>
-                  </div>
-                </div>
+                </Link>
               </div>
 
               <div className="grid grid-cols-2 gap-y-3 gap-x-6">
@@ -520,10 +525,12 @@ export default function ContactPage() {
                   <p className="text-gray-600 text-sm mb-4">
                     Call us anytime, day or night. Our US-based support team is always ready to help with urgent issues or questions.
                   </p>
-                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                    <Phone className="w-4 h-4 mr-2" />
-                    Call Support
-                  </Button>
+                  <Link href="tel:9152681877">
+                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                      <Phone className="w-4 h-4 mr-2" />
+                      915-268-1877
+                    </Button>
+                  </Link>
                 </div>
               </div>
 
@@ -536,10 +543,12 @@ export default function ContactPage() {
                   <p className="text-gray-600 text-sm mb-4">
                     Send us a detailed email for complex issues. We typically respond within 2 hours with a comprehensive solution.
                   </p>
-                  <Button size="sm" className="bg-orange-500 hover:bg-orange-600">
-                    <Mail className="w-4 h-4 mr-2" />
-                    Email Us
-                  </Button>
+                  <Link href="mailto:hi@beautydropai.com">
+                    <Button size="sm" className="bg-orange-500 hover:bg-orange-600">
+                      <Mail className="w-4 h-4 mr-2" />
+                      hi@beautydropai.com
+                    </Button>
+                  </Link>
                 </div>
               </div>
 

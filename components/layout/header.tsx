@@ -5,10 +5,15 @@ import { Button } from "@/components/ui/button"
 import { Menu, X, Rocket, UserCircle } from "lucide-react"
 import { useState } from "react"
 import { Logo } from "@/components/ui/logo"
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
+import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/nextjs"
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { user } = useUser()
+  const userRole = user?.unsafeMetadata?.role as string | undefined
+
+  const dashboardLink = userRole === 'customer' ? '/customer-dashboard' : '/portal'
+  const dashboardText = userRole === 'customer' ? 'Dashboard' : 'Business Portal'
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
@@ -47,10 +52,10 @@ export function Header() {
               </Link>
             </SignedOut>
             <SignedIn>
-              <Link href="/portal">
+              <Link href={dashboardLink}>
                 <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50 font-medium px-4 rounded-lg flex items-center gap-2">
                   <UserCircle className="w-4 h-4" />
-                  Customer Portal
+                  {dashboardText}
                 </Button>
               </Link>
               <UserButton
@@ -118,12 +123,12 @@ export function Header() {
               </SignedOut>
               <SignedIn>
                 <Link
-                  href="/portal"
+                  href={dashboardLink}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <Button variant="outline" className="w-full border-blue-600 text-blue-600 hover:bg-blue-50 font-medium px-4 rounded-lg flex items-center justify-center gap-2">
                     <UserCircle className="w-4 h-4" />
-                    Customer Portal
+                    {dashboardText}
                   </Button>
                 </Link>
                 <div className="py-2">

@@ -35,12 +35,18 @@ export async function fetchShop(
     token: string
 ): Promise<Shop | null> {
     try {
+        const headers: HeadersInit = {
+            'Content-Type': 'application/json',
+        }
+
+        // Only add Authorization header if token is provided
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`
+        }
+
         const response = await fetch(`${API_BASE_URL}/api/v1/shops/${shopId}/`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-            },
+            headers,
         })
 
         if (!response.ok) {
@@ -154,6 +160,59 @@ export async function generateTimeSlots(
         }
     } catch (error) {
         console.error('Error generating time slots:', error)
+        throw error
+    }
+}
+export async function fetchPublicShops(): Promise<Shop[]> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/shops/`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch shops: ${response.statusText}`)
+        }
+
+        const data = await response.json()
+
+        if (Array.isArray(data)) {
+            return data
+        } else if (data.results && Array.isArray(data.results)) {
+            return data.results
+        } else if (data.data && Array.isArray(data.data)) {
+            return data.data
+        }
+
+        return []
+    } catch (error) {
+        console.error('Error fetching public shops:', error)
+        throw error
+    }
+}
+
+export async function fetchPublicShop(shopId: string): Promise<Shop | null> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/shops/${shopId}/`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+
+        if (!response.ok) {
+            if (response.status === 404) {
+                return null
+            }
+            throw new Error(`Failed to fetch shop: ${response.statusText}`)
+        }
+
+        const data: Shop = await response.json()
+        return data
+    } catch (error) {
+        console.error('Error fetching public shop:', error)
         throw error
     }
 }

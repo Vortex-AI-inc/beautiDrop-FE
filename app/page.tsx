@@ -63,9 +63,12 @@ export default function Home() {
               </div>
 
               <div className="flex flex-wrap gap-4 pt-4">
-                <Button className="h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold rounded-lg shadow-lg shadow-blue-200 transition-all hover:scale-105">
-                  Start Free Trial
-                </Button>
+                <Link href="/signup">
+                  <Button className="h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold rounded-lg shadow-lg shadow-blue-200 transition-all hover:scale-105">
+                    Start Free Trial
+                  </Button>
+                </Link>
+
                 <Button variant="outline" className="h-14 px-8 border-2 border-blue-100 text-blue-600 hover:bg-blue-50 text-lg font-semibold rounded-lg transition-all">
                   <Play className="w-5 h-5 mr-2 fill-current" />
                   Watch Demo
@@ -79,7 +82,7 @@ export default function Home() {
                 {/* Main Image Container */}
                 <div className="bg-white p-4 rounded-3xl shadow-2xl relative z-10">
                   <img
-                    src="/hero.avif"
+                    src="/hero.webp"
                     alt="AI Booking Assistant"
                     className="w-full h-auto rounded-2xl object-cover aspect-[4/3]"
                   />
@@ -223,9 +226,11 @@ export default function Home() {
                   </li>
                 ))}
               </ul>
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold">
-                Get Started
-              </Button>
+              <Link href="/signup/">
+                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold">
+                  Get Started
+                </Button>
+              </Link>
             </div>
 
             {/* Professional Plan */}
@@ -258,9 +263,11 @@ export default function Home() {
                   </li>
                 ))}
               </ul>
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-12 text-lg shadow-lg shadow-blue-200">
-                Get Started
-              </Button>
+              <Link href="/signup/">
+                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-12 text-lg shadow-lg shadow-blue-200">
+                  Get Started
+                </Button>
+              </Link>
             </div>
 
             {/* Enterprise Plan */}
@@ -290,9 +297,11 @@ export default function Home() {
                   </li>
                 ))}
               </ul>
-              <Button variant="outline" className="w-full border-2 border-gray-200 hover:border-blue-600 hover:text-blue-600 font-semibold">
-                Contact Sales
-              </Button>
+              <Link href="/contact">
+                <Button variant="outline" className="w-full border-2 border-gray-200 hover:border-blue-600 hover:text-blue-600 font-semibold">
+                  Contact Sales
+                </Button>
+              </Link>
             </div>
           </div>
 
@@ -311,9 +320,11 @@ export default function Home() {
                 Plus, eliminate credit card fees by passing them to customers.
               </p>
             </div>
-            <Button className="whitespace-nowrap px-8 bg-gray-900 hover:bg-gray-800 text-white font-semibold">
-              Learn More
-            </Button>
+            <Link href="/credit-card-processing">
+              <Button className="whitespace-nowrap px-8 bg-gray-900 hover:bg-gray-800 text-white font-semibold">
+                Learn More
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -442,7 +453,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-      {/* CTA Section */}
       <section className="py-24 bg-[#111827] relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -470,12 +480,16 @@ export default function Home() {
               </ul>
 
               <div className="flex flex-wrap gap-4 pt-4">
-                <Button className="h-14 px-8 bg-amber-400 hover:bg-amber-500 text-gray-900 text-lg font-bold rounded-lg shadow-lg">
-                  Start Your Free Trial
-                </Button>
-                <Button className="h-14 px-8 bg-white/10 hover:bg-white/20 text-white border border-white/20 text-lg font-semibold rounded-lg backdrop-blur-sm">
-                  Book Live Demo
-                </Button>
+                <Link href="/signup/">
+                  <Button className="h-14 px-8 bg-amber-400 hover:bg-amber-500 text-gray-900 text-lg font-bold rounded-lg shadow-lg">
+                    Start Your Free Trial
+                  </Button>
+                </Link>
+                <Link href="/contact">
+                  <Button className="h-14 px-8 bg-white/10 hover:bg-white/20 text-white border border-white/20 text-lg font-semibold rounded-lg backdrop-blur-sm">
+                    Book Live Demo
+                  </Button>
+                </Link>
               </div>
 
               <p className="text-gray-400 text-sm">

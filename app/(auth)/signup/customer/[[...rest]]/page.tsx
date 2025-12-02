@@ -32,6 +32,7 @@ export default function CustomerSignUpPage() {
                                     routing="path"
                                     path="/signup/customer"
                                     signInUrl="/login"
+                                    afterSignUpUrl="/customer-dashboard"
                                     unsafeMetadata={{ role: 'customer' }}
                                 />
                             </div>
