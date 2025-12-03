@@ -1,9 +1,42 @@
+"use client"
+
+import { useEffect } from 'react'
+import { useAuth, useUser } from '@clerk/nextjs'
+import { useRouter } from 'next/navigation'
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Building2, User } from "lucide-react"
 import Link from "next/link"
+import { getUserRole } from '@/lib/utils/roleManager'
 
 export default function SignUpSelectionPage() {
+  const { isSignedIn, isLoaded } = useAuth()
+  const { user } = useUser()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn && user) {
+      const role = getUserRole()
+
+      // Redirect based on role
+      if (role === 'customer') {
+        router.push('/customer-dashboard')
+      } else if (role === 'client') {
+        router.push('/portal')
+      }
+    }
+  }, [isLoaded, isSignedIn, user, router])
+
+  // Show loading while checking auth status
+  if (!isLoaded) {
+    return null
+  }
+
+  // Don't show signup selection if already signed in
+  if (isSignedIn) {
+    return null
+  }
+
   return (
     <main className="min-h-screen bg-slate-50 flex flex-col pt-20">
       <Header />

@@ -1,9 +1,38 @@
-import { SignUp } from '@clerk/nextjs'
+"use client"
+
+import { useEffect } from 'react'
+import { useAuth, useUser, SignUp } from '@clerk/nextjs'
+import { useRouter } from 'next/navigation'
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Star, Heart, Calendar, Clock } from "lucide-react"
+import { getUserRole } from '@/lib/utils/roleManager'
 
 export default function CustomerSignUpPage() {
+    const { isSignedIn, isLoaded } = useAuth()
+    const { user } = useUser()
+    const router = useRouter()
+
+    useEffect(() => {
+        if (isLoaded && isSignedIn && user) {
+            const role = getUserRole()
+
+            if (role === 'customer') {
+                router.push('/customer-dashboard')
+            } else if (role === 'client') {
+                router.push('/portal')
+            }
+        }
+    }, [isLoaded, isSignedIn, user, router])
+
+    if (!isLoaded) {
+        return null
+    }
+
+    if (isSignedIn) {
+        return null
+    }
+
     return (
         <main className="min-h-screen bg-slate-50 flex flex-col pt-20">
             <Header />
@@ -11,7 +40,6 @@ export default function CustomerSignUpPage() {
             <div className="flex-grow py-12 px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-12rem)]">
                 <div className="max-w-7xl mx-auto">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-                        {/* Left: Clerk SignUp Form */}
                         <div className="flex items-center justify-center">
                             <div className="w-full max-w-md">
                                 <SignUp
@@ -38,7 +66,6 @@ export default function CustomerSignUpPage() {
                             </div>
                         </div>
 
-                        {/* Right: Benefits Card */}
                         <div className="hidden lg:block space-y-8">
                             <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-8">
                                 <div className="inline-block bg-purple-400 text-white px-4 py-1 rounded-full text-sm font-bold mb-6">
@@ -70,7 +97,7 @@ export default function CustomerSignUpPage() {
                                     ))}
                                 </div>
 
-                                {/* Testimonial */}
+
                                 <div className="mt-8 bg-white rounded-xl p-6 shadow-sm">
                                     <div className="flex items-center gap-3 mb-4">
                                         <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold">

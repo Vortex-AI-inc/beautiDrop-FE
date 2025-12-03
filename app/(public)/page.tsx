@@ -4,10 +4,8 @@ import { Phone, Calendar, Zap, Bell, TrendingUp, Users, CreditCard, Play, Info, 
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-white text-gray-900">
-      {/* Hero Section */}
       <section className="bg-blue-50 px-4 py-16 md:py-24">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-          {/* Left Content */}
           <div className="space-y-8">
             <div>
               <span className="text-blue-600 font-semibold">AI Assistant</span>
@@ -177,7 +175,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-16 px-4 bg-blue-50">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-8">
           <div className="flex items-center gap-4">
