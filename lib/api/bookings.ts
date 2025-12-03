@@ -28,7 +28,6 @@ export async function fetchMyBookings(token: string): Promise<CustomerBooking[]>
 
         return []
     } catch (error) {
-        console.error('Error fetching bookings:', error)
         throw error
     }
 }
@@ -59,7 +58,6 @@ export async function fetchAllBookings(token: string): Promise<CustomerBooking[]
 
         return []
     } catch (error) {
-        console.error('Error fetching bookings:', error)
         throw error
     }
 }
@@ -93,7 +91,6 @@ export async function fetchShopBookings(
 
         return []
     } catch (error) {
-        console.error('Error fetching shop bookings:', error)
         throw error
     }
 }
@@ -121,7 +118,6 @@ export async function createBooking(
         const responseData = await response.json()
         return responseData.data || responseData
     } catch (error) {
-        console.error('Error creating booking:', error)
         throw error
     }
 }

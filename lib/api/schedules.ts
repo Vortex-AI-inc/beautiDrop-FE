@@ -30,13 +30,11 @@ export async function fetchShopSchedules(
         } else if (data.results && Array.isArray(data.results)) {
             schedules = data.results
         } else {
-            console.warn('Unexpected API response format for schedules:', data)
             return []
         }
 
         return schedules.filter(schedule => schedule.shop === shopId)
     } catch (error) {
-        console.error('Error fetching schedules:', error)
         throw error
     }
 }
@@ -71,7 +69,6 @@ export async function fetchPublicShopSchedules(
 
         return schedules
     } catch (error) {
-        console.error('Error fetching public schedules:', error)
         return []
     }
 }
@@ -98,7 +95,6 @@ export async function createSchedule(
         const responseData = await response.json()
         return responseData.data || responseData
     } catch (error) {
-        console.error('Error creating schedule:', error)
         throw error
     }
 }

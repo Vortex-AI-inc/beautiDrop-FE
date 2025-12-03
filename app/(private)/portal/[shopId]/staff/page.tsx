@@ -59,7 +59,6 @@ export default function StaffManagementPage() {
             const data = await fetchShopStaff(shopId, token)
             setStaffMembers(data)
         } catch (error) {
-            console.error("Failed to fetch staff:", error)
             toast({
                 title: "Error",
                 description: "Failed to load staff members.",
@@ -118,7 +117,6 @@ export default function StaffManagementPage() {
             fetchStaff()
 
         } catch (error) {
-            console.error("Failed to add staff:", error)
             toast({
                 title: "Error",
                 description: "Failed to add staff member. Please try again.",
@@ -143,7 +141,6 @@ export default function StaffManagementPage() {
                 description: `${name} has been removed from your team.`,
             })
         } catch (error) {
-            console.error("Failed to delete staff:", error)
             toast({
                 title: "Error",
                 description: "Failed to remove staff member.",
@@ -166,7 +163,6 @@ export default function StaffManagementPage() {
                 description: `${name} is now ${updatedStaff.is_active ? 'available' : 'unavailable'} for bookings.`,
             })
         } catch (error) {
-            console.error("Failed to toggle availability:", error)
             toast({
                 title: "Error",
                 description: "Failed to update availability.",
@@ -181,7 +177,6 @@ export default function StaffManagementPage() {
 
             <div className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-4xl mx-auto">
-                    {/* Header Section */}
                     <div className="flex items-center justify-between mb-8">
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900">Staff Management</h1>
@@ -192,7 +187,6 @@ export default function StaffManagementPage() {
                         </Link>
                     </div>
 
-                    {/* AI Auto-Fill Banner */}
                     <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-8 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -210,7 +204,6 @@ export default function StaffManagementPage() {
                         </Button>
                     </div>
 
-                    {/* Add New Staff Member Card */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
                         <div className="flex items-center gap-2 mb-6">
                             <UserPlus className="w-5 h-5 text-blue-600" />
@@ -299,7 +292,6 @@ export default function StaffManagementPage() {
                         </div>
                     </div>
 
-                    {/* Team Members Card */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                         <div className="flex items-center gap-2 mb-6">
                             <Users className="w-5 h-5 text-blue-600" />

@@ -42,5 +42,5 @@ export interface UpdateStaffData {
 }
 
 export interface AssignServicesData {
-    service_ids: number[]
+    service_ids: string[]
 }

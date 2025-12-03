@@ -25,7 +25,6 @@ export async function fetchShopDashboard(
         const data: ShopDashboardData = await response.json()
         return data
     } catch (error) {
-        console.error('Error fetching shop dashboard:', error)
         throw error
     }
 }
@@ -58,7 +57,6 @@ export async function fetchShop(
         const data: Shop = await response.json()
         return data
     } catch (error) {
-        console.error('Error fetching shop:', error)
         throw error
     }
 }
@@ -85,7 +83,6 @@ export async function createShop(
         const data: ApiResponse<ShopDashboardData> = await response.json()
         return data.data
     } catch (error) {
-        console.error('Error creating shop:', error)
         throw error
     }
 }
@@ -107,7 +104,6 @@ export async function updateShop(shopId: string, data: Partial<Shop>, token: str
 
         return await response.json()
     } catch (error) {
-        console.error('Error updating shop:', error)
         throw error
     }
 }
@@ -129,7 +125,6 @@ export async function fetchMyShops(token: string): Promise<Shop[]> {
         const data: Shop[] = await response.json()
         return data
     } catch (error) {
-        console.error('Error fetching my shops:', error)
         throw error
     }
 }
@@ -158,7 +153,6 @@ export async function generateTimeSlots(
             throw new Error(`Failed to generate time slots: ${response.statusText}`)
         }
     } catch (error) {
-        console.error('Error generating time slots:', error)
         throw error
     }
 }
@@ -187,7 +181,6 @@ export async function fetchPublicShops(): Promise<Shop[]> {
 
         return []
     } catch (error) {
-        console.error('Error fetching public shops:', error)
         throw error
     }
 }
@@ -211,7 +204,6 @@ export async function fetchPublicShop(shopId: string): Promise<Shop | null> {
         const data: Shop = await response.json()
         return data
     } catch (error) {
-        console.error('Error fetching public shop:', error)
         throw error
     }
 }
@@ -236,7 +228,6 @@ export async function toggleShopActive(
         const data: Shop = await response.json()
         return data
     } catch (error) {
-        console.error('Error toggling shop status:', error)
         throw error
     }
 }

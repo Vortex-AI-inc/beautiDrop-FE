@@ -53,7 +53,6 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
             const staff = await fetchAvailableStaffForService(service.id.toString(), shopId)
             setAvailableStaff(staff.filter(s => s.is_active))
         } catch (error) {
-            console.error('Failed to fetch available staff:', error)
             setAvailableStaff([])
         }
     }
@@ -66,7 +65,6 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
                     const bookingData = JSON.parse(pendingBooking)
                     processPendingBooking(bookingData)
                 } catch (error) {
-                    console.error('Failed to parse pending booking:', error)
                     localStorage.removeItem('pendingBooking')
                 }
             }
@@ -86,7 +84,6 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
             const allSlots = await fetchPublicTimeSlots(shopId, formattedDate)
             setTimeSlots(allSlots)
         } catch (error) {
-            console.error('Failed to fetch time slots:', error)
             setTimeSlots([])
         } finally {
             setIsLoadingSlots(false)
@@ -141,7 +138,6 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
             localStorage.removeItem('pendingBooking')
 
         } catch (error) {
-            console.error('Pending booking failed:', error)
             toast({
                 title: "Booking Failed",
                 description: error instanceof Error ? error.message : "Failed to create booking. Please try again.",
@@ -174,7 +170,6 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
                 onClose()
             }, 1000)
         } catch (error) {
-            console.error('Booking failed:', error)
             toast({
                 title: "Booking Failed",
                 description: error instanceof Error ? error.message : "Failed to create booking. Please try again.",

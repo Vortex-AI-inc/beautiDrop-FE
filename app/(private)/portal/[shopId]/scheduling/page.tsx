@@ -91,7 +91,6 @@ export default function SchedulingPage() {
             setTimeSlots(timeSlotsData)
 
         } catch (error) {
-            console.error("Failed to load time slots", error)
             toast({
                 title: "Error",
                 description: "Failed to load time slots. Please try again.",
@@ -110,7 +109,11 @@ export default function SchedulingPage() {
             const staffData = await fetchShopStaff(shopId, token)
             setStaffMembers(staffData.filter(s => s.is_active))
         } catch (error) {
-            console.error("Failed to load staff", error)
+            toast({
+                title: "Error",
+                description: "Failed to load staff members. Please try again.",
+                variant: "destructive"
+            })
         }
     }
 
@@ -127,7 +130,6 @@ export default function SchedulingPage() {
             setBookingsLoaded(true)
 
         } catch (error) {
-            console.error("Failed to load bookings", error)
             toast({
                 title: "Error",
                 description: "Failed to load bookings. Please try again.",
@@ -206,7 +208,6 @@ export default function SchedulingPage() {
 
             await loadTimeSlots()
         } catch (error: any) {
-            console.error("Failed to generate slots", error)
             toast({
                 title: "Error",
                 description: error.message || "Failed to generate slots. Please try again.",

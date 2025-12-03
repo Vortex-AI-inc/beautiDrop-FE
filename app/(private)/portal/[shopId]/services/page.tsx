@@ -92,7 +92,6 @@ export default function ServicesManagementPage() {
             const data = await fetchServices(shopId, token)
             setServices(data)
         } catch (error) {
-            console.error("Failed to load services", error)
             toast({
                 title: "Error",
                 description: "Failed to load services. Please try again.",
@@ -183,7 +182,6 @@ export default function ServicesManagementPage() {
                 })
             }
         } catch (error: any) {
-            console.error("Failed to save service", error)
             toast({
                 title: "Error",
                 description: error.message || "Failed to save service. Please try again.",
@@ -231,7 +229,6 @@ export default function ServicesManagementPage() {
                 description: `Service is now ${!currentStatus ? 'active' : 'inactive'}.`,
             })
         } catch (error) {
-            console.error("Failed to toggle service status", error)
             setServices(prev => prev.map(s => s.id === id ? { ...s, is_active: currentStatus } : s))
             toast({
                 title: "Error",
@@ -254,7 +251,6 @@ export default function ServicesManagementPage() {
                 description: "The service has been removed successfully.",
             })
         } catch (error) {
-            console.error("Failed to delete service", error)
             toast({
                 title: "Error",
                 description: "Failed to delete service. Please try again.",
@@ -278,7 +274,6 @@ export default function ServicesManagementPage() {
             const staff = await fetchShopStaff(shopId, token)
             setAvailableStaff(staff)
         } catch (error) {
-            console.error("Failed to load staff", error)
             toast({
                 title: "Error",
                 description: "Failed to load staff members.",
@@ -325,7 +320,6 @@ export default function ServicesManagementPage() {
             setSelectedServiceForStaff(null)
             setSelectedStaffIds([])
         } catch (error) {
-            console.error("Failed to assign staff", error)
             toast({
                 title: "Error",
                 description: "Failed to assign staff. Please try again.",
@@ -342,7 +336,6 @@ export default function ServicesManagementPage() {
 
             <div className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-6xl mx-auto">
-                    {/* Header Section */}
                     <div className="flex items-center justify-between mb-8">
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900">Services Management</h1>
@@ -353,7 +346,6 @@ export default function ServicesManagementPage() {
                         </Link>
                     </div>
 
-                    {/* AI Auto-Fill Banner */}
                     <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-8 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -371,7 +363,6 @@ export default function ServicesManagementPage() {
                         </Button>
                     </div>
 
-                    {/* Action Required Banner */}
                     {services.some(s => !s.assigned_staff || s.assigned_staff.length === 0) && (
                         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-8 flex items-center justify-between">
                             <div className="flex items-center gap-3">
@@ -389,7 +380,6 @@ export default function ServicesManagementPage() {
                         </div>
                     )}
 
-                    {/* Add New Service Card */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-2">
@@ -478,7 +468,6 @@ export default function ServicesManagementPage() {
                         </div>
                     </div>
 
-                    {/* Edit Modal */}
                     <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
                         <DialogContent className="sm:max-w-[600px]">
                             <DialogHeader>
@@ -552,7 +541,6 @@ export default function ServicesManagementPage() {
                         </DialogContent>
                     </Dialog>
 
-                    {/* Staff Assignment Modal */}
                     <Dialog open={isStaffModalOpen} onOpenChange={setIsStaffModalOpen}>
                         <DialogContent className="sm:max-w-[500px]">
                             <DialogHeader>
@@ -629,7 +617,6 @@ export default function ServicesManagementPage() {
                         </DialogContent>
                     </Dialog>
 
-                    {/* Your Services Card */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                         <div className="bg-teal-500 px-6 py-4 flex items-center gap-2">
                             <Scissors className="w-5 h-5 text-white" />

@@ -57,7 +57,6 @@ export default function ShopDashboardPage() {
                 setDashboardData(data)
                 setSelectedShop(shop)
             } catch (error) {
-                console.error("Failed to load shop dashboard", error)
                 router.push('/portal')
             } finally {
                 setIsLoading(false)
@@ -97,7 +96,6 @@ export default function ShopDashboardPage() {
 
             <div className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-5xl mx-auto">
-                    {/* Back to Shops Link */}
                     <Link
                         href="/portal"
                         className="mb-6 text-sm text-gray-500 hover:text-gray-900 flex items-center gap-1 inline-flex"
@@ -105,7 +103,6 @@ export default function ShopDashboardPage() {
                         ← Back to all shops
                     </Link>
 
-                    {/* Dashboard View */}
                     <div className="space-y-6">
                         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                             <div className="flex items-center justify-between mb-6">
@@ -140,7 +137,6 @@ export default function ShopDashboardPage() {
                             </div>
                         </div>
 
-                        {/* Quick Actions Grid */}
                         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                             <Link href={`/portal/${shopId}/company`} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-center group">
                                 <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
@@ -180,7 +176,6 @@ export default function ShopDashboardPage() {
                             </Link>
                         </div>
 
-                        {/* Bottom Actions */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4 opacity-50 pointer-events-none">
                                 <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0">

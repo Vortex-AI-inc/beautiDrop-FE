@@ -24,7 +24,6 @@ export async function createService(
         const responseData = await response.json()
         return responseData.data || responseData
     } catch (error) {
-        console.error('Error creating service:', error)
         throw error
     }
 }
@@ -65,16 +64,14 @@ export async function fetchServices(
             return data.results
         }
 
-        console.warn('Unexpected API response format for services:', data)
         return []
     } catch (error) {
-        console.error('Error fetching services:', error)
         throw error
     }
 }
 
 export async function updateService(
-    serviceId: number,
+    serviceId: string,
     data: Partial<CreateServiceData>,
     token: string
 ): Promise<Service> {
@@ -96,13 +93,12 @@ export async function updateService(
         const responseData = await response.json()
         return responseData.data || responseData
     } catch (error) {
-        console.error('Error updating service:', error)
         throw error
     }
 }
 
 export async function toggleServiceActive(
-    serviceId: number,
+    serviceId: string,
     token: string
 ): Promise<Service> {
     try {
@@ -121,13 +117,12 @@ export async function toggleServiceActive(
         const responseData = await response.json()
         return responseData.data || responseData
     } catch (error) {
-        console.error('Error toggling service status:', error)
         throw error
     }
 }
 
 export async function deleteService(
-    serviceId: number,
+    serviceId: string,
     token: string
 ): Promise<void> {
     try {
@@ -143,7 +138,6 @@ export async function deleteService(
             throw new Error(`Failed to delete service: ${response.statusText}`)
         }
     } catch (error) {
-        console.error('Error deleting service:', error)
         throw error
     }
 }
@@ -175,10 +169,8 @@ export async function fetchPublicServices(shopId: string): Promise<Service[]> {
             return data.results
         }
 
-        console.warn('Unexpected API response format for services:', data)
         return []
     } catch (error) {
-        console.error('Error fetching public services:', error)
         throw error
     }
 }

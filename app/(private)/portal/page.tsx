@@ -57,7 +57,6 @@ export default function PortalPage() {
             const myShops = await fetchMyShops(token)
             setShops(myShops)
         } catch (error) {
-            console.error("Failed to load shops", error)
         } finally {
             setIsLoading(false)
         }
@@ -86,7 +85,6 @@ export default function PortalPage() {
                 description: `Shop ${updatedShop.is_active ? 'activated' : 'deactivated'} successfully.`,
             })
         } catch (error) {
-            console.error("Failed to toggle shop status", error)
             toast({
                 title: "Error",
                 description: "Failed to update shop status. Please try again.",

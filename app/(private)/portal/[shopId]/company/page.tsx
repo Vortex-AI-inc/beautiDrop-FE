@@ -74,7 +74,6 @@ export default function CompanyProfilePage() {
 
                 setSelectedShop(shop)
             } catch (error) {
-                console.error("Failed to load shop data", error)
                 router.push('/portal')
             } finally {
                 setIsLoading(false)
@@ -126,7 +125,6 @@ export default function CompanyProfilePage() {
             const data = await fetchShopSchedules(shopId, token)
             setSchedules(data)
         } catch (error) {
-            console.error("Failed to load schedules", error)
             toast({
                 title: "Error",
                 description: "Failed to load schedules. Please try again.",
@@ -185,7 +183,6 @@ export default function CompanyProfilePage() {
             })
             setIsAddModalOpen(false)
         } catch (error: any) {
-            console.error("Failed to add time slot", error)
             toast({
                 title: "Error",
                 description: error.message || "Failed to add time slot. Please try again.",
@@ -223,7 +220,6 @@ export default function CompanyProfilePage() {
             setIsEditModalOpen(false)
             setEditingSchedule(null)
         } catch (error: any) {
-            console.error("Failed to update time slot", error)
             toast({
                 title: "Error",
                 description: error.message || "Failed to update time slot. Please try again.",
@@ -245,7 +241,6 @@ export default function CompanyProfilePage() {
                 description: "Time slot deleted successfully.",
             })
         } catch (error) {
-            console.error("Failed to delete schedule", error)
             toast({
                 title: "Error",
                 description: "Failed to delete time slot. Please try again.",
@@ -314,7 +309,6 @@ export default function CompanyProfilePage() {
 
             await loadSchedules()
         } catch (error: any) {
-            console.error("Failed to apply hours to all days", error)
             toast({
                 title: "Error",
                 description: error.message || "Failed to apply hours. Please try again.",
@@ -358,7 +352,6 @@ export default function CompanyProfilePage() {
                 description: "Your business information has been updated successfully.",
             })
         } catch (error) {
-            console.error("Failed to save shop:", error)
             toast({
                 title: "Error",
                 description: "Failed to save changes. Please try again.",

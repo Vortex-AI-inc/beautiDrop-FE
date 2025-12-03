@@ -53,7 +53,6 @@ export default function CustomerDashboardPage() {
             const data = await fetchMyBookings(token)
             setBookings(data)
         } catch (error) {
-            console.error("Failed to load bookings", error)
             toast({
                 title: "Error",
                 description: "Failed to load your bookings. Please try again.",
@@ -83,7 +82,6 @@ export default function CustomerDashboardPage() {
 
             await loadBookings()
         } catch (error: any) {
-            console.error("Failed to cancel booking", error)
             toast({
                 title: "Error",
                 description: error.message || "Failed to cancel booking. Please try again.",
@@ -145,7 +143,6 @@ export default function CustomerDashboardPage() {
 
             <div className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-7xl mx-auto">
-                    {/* Welcome Section */}
                     <div className="mb-8">
                         <h1 className="text-3xl font-bold text-gray-900 mb-2">
                             Welcome back, {user?.firstName || 'there'}! 👋
@@ -155,7 +152,6 @@ export default function CustomerDashboardPage() {
                         </p>
                     </div>
 
-                    {/* Quick Stats */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -271,7 +267,6 @@ export default function CustomerDashboardPage() {
                         )}
                     </div>
 
-                    {/* Past Bookings */}
                     {pastBookings.length > 0 && (
                         <div>
                             <h2 className="text-2xl font-bold text-gray-900 mb-4">Past Bookings</h2>
@@ -310,7 +305,6 @@ export default function CustomerDashboardPage() {
                 </div>
             </div>
 
-            {/* Reschedule Modal */}
             <Dialog open={isRescheduleModalOpen} onOpenChange={setIsRescheduleModalOpen}>
                 <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>

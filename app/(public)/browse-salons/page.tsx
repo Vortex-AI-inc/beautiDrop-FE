@@ -29,7 +29,6 @@ export default function BrowseSalonsPage() {
             const data = await fetchPublicShops()
             setShops(data)
         } catch (error) {
-            console.error("Failed to load shops", error)
             toast({
                 title: "Error",
                 description: "Failed to load salons. Please try again.",

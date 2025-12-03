@@ -57,7 +57,6 @@ export async function createStaff(
         const responseData = await response.json()
         return responseData.data || responseData
     } catch (error) {
-        console.error('Error creating staff member:', error)
         throw error
     }
 }
@@ -85,7 +84,6 @@ export async function updateStaff(
         const responseData = await response.json()
         return responseData.data || responseData
     } catch (error) {
-        console.error('Error updating staff member:', error)
         throw error
     }
 }
@@ -106,7 +104,6 @@ export async function deleteStaff(
             throw new Error(`Failed to delete staff member: ${response.statusText}`)
         }
     } catch (error) {
-        console.error('Error deleting staff member:', error)
         throw error
     }
 }
@@ -131,14 +128,13 @@ export async function assignServices(
             throw new Error(errorData.error || `Failed to assign services: ${response.statusText}`)
         }
     } catch (error) {
-        console.error('Error assigning services:', error)
         throw error
     }
 }
 
 export async function removeService(
     staffId: string,
-    serviceId: number,
+    serviceId: string,
     token: string
 ): Promise<void> {
     try {
@@ -155,7 +151,6 @@ export async function removeService(
             throw new Error(`Failed to remove service: ${response.statusText}`)
         }
     } catch (error) {
-        console.error('Error removing service:', error)
         throw error
     }
 }
@@ -179,7 +174,6 @@ export async function toggleAvailability(
         const responseData = await response.json()
         return responseData.data || responseData
     } catch (error) {
-        console.error('Error toggling availability:', error)
         throw error
     }
 }
@@ -212,7 +206,6 @@ export async function fetchAvailableStaffForService(
 
         return []
     } catch (error) {
-        console.error('Error fetching available staff:', error)
         throw error
     }
 }

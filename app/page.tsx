@@ -21,11 +21,9 @@ export default function Home() {
     <main className="min-h-screen bg-white">
       <Header />
 
-      {/* Hero Section */}
       <section className="pt-32 pb-20 bg-gradient-to-br from-blue-50 via-white to-blue-50 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left Content */}
             <div className="space-y-8 relative z-10">
               <div className="space-y-2">
                 <h1 className="text-5xl lg:text-7xl font-bold font-heading tracking-tight leading-[1.1]">
@@ -116,7 +114,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Decorative Elements */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-blue-100/50 rounded-full blur-3xl -z-10" />
               </div>
             </div>
@@ -124,7 +121,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
       <section className="py-24 bg-white" id="features">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
