@@ -44,7 +44,6 @@ export default function ShopDashboardPage() {
                     return
                 }
 
-                // Fetch both dashboard data and complete shop details
                 const [data, shop] = await Promise.all([
                     fetchShopDashboard(shopId, token),
                     fetchShop(shopId, token)

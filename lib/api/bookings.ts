@@ -146,7 +146,6 @@ export async function fetchBookingDetails(
         const data = await response.json()
         return data.data || data
     } catch (error) {
-        console.error('Error fetching booking details:', error)
         throw error
     }
 }
@@ -172,7 +171,6 @@ export async function cancelBooking(
             throw new Error(errorMessage)
         }
     } catch (error) {
-        console.error('Error cancelling booking:', error)
         throw error
     }
 }
@@ -201,7 +199,6 @@ export async function rescheduleBooking(
         const responseData = await response.json()
         return responseData.data || responseData
     } catch (error) {
-        console.error('Error rescheduling booking:', error)
         throw error
     }
 }

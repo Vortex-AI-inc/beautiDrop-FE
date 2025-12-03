@@ -47,7 +47,7 @@ export interface TimeSlot {
     is_available: boolean
     created_at: string
     updated_at: string
-    staff_member?: string  // Staff member ID
+    staff_member?: string
     staff_member_name?: string
     staff_name?: string
 }

@@ -57,7 +57,6 @@ export default function ContactPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Form submitted:", formData)
     toast({
       title: "Request Received",
       description: "We'll be in touch shortly to schedule your consultation!",

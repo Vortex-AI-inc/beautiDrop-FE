@@ -83,7 +83,6 @@ export default function BrowseSalonsPage() {
                             {filteredShops.map((shop) => (
                                 <Card key={shop.id} className="hover:shadow-lg transition-shadow duration-300 overflow-hidden border-gray-100">
                                     <div className="h-48 bg-gray-200 relative">
-                                        {/* Placeholder for shop image - using a gradient for now */}
                                         <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white text-4xl font-bold opacity-80">
                                             {shop.name.charAt(0)}
                                         </div>

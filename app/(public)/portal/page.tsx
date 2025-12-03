@@ -41,7 +41,6 @@ export default function PortalPage() {
     const { toast } = useToast()
     const { isAuthorized, isLoading: isCheckingRole } = useRoleProtection({ requiredRole: 'client' })
 
-    // Global State
     const { selectedShop, setSelectedShop, dashboardData, setDashboardData } = useShopStore()
 
     const [isLoading, setIsLoading] = useState(true)
@@ -69,7 +68,7 @@ export default function PortalPage() {
     }
 
     const handleToggleActive = async (shopId: string, currentStatus: boolean, e: React.MouseEvent) => {
-        e.stopPropagation() // Prevent card click
+        e.stopPropagation()
 
         try {
             setTogglingShopId(shopId)
@@ -78,7 +77,6 @@ export default function PortalPage() {
 
             const updatedShop = await toggleShopActive(shopId, token)
 
-            // Update local state
             setShops(prev => prev.map(shop =>
                 shop.id === shopId ? updatedShop : shop
             ))
@@ -107,7 +105,6 @@ export default function PortalPage() {
         }
     }, [isLoaded, isSignedIn, router])
 
-    // Show loading while checking role
     if (isCheckingRole || !isAuthorized) {
         return (
             <main className="min-h-screen bg-slate-50">
@@ -123,7 +120,6 @@ export default function PortalPage() {
         return null
     }
 
-    // View: Loading
     if (isLoading) {
         return (
             <main className="min-h-screen bg-slate-50">
@@ -144,7 +140,6 @@ export default function PortalPage() {
         )
     }
 
-    // View: Shop Selection (if shops exist)
     if (shops.length > 0) {
         return (
             <main className="min-h-screen bg-slate-50">
@@ -193,7 +188,6 @@ export default function PortalPage() {
                                 </div>
                             ))}
 
-                            {/* Add New Shop Card */}
                             <div
                                 onClick={() => setIsCreateDialogOpen(true)}
                                 className="bg-slate-50 rounded-xl p-6 border-2 border-dashed border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 transition-all cursor-pointer flex flex-col items-center justify-center text-center min-h-[200px]"
@@ -219,7 +213,6 @@ export default function PortalPage() {
         )
     }
 
-    // View: Empty State (if no shops exist)
     return (
         <main className="min-h-screen bg-slate-50">
             <Header />
@@ -238,9 +231,7 @@ export default function PortalPage() {
                         </p>
                     </div>
 
-                    {/* Empty State / Create Agent View */}
                     <div className="space-y-6">
-                        {/* Welcome Card */}
                         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
                             <h2 className="text-2xl font-bold text-gray-900 mb-2">
                                 Welcome back, {user?.primaryEmailAddress?.emailAddress}!
@@ -250,7 +241,6 @@ export default function PortalPage() {
                                 {user?.primaryEmailAddress?.emailAddress}
                             </div>
 
-                            {/* Create Agent CTA */}
                             <div className="mt-8 bg-gradient-to-r from-blue-500 to-teal-400 rounded-xl p-8 text-white relative overflow-hidden">
                                 <div className="relative z-10">
                                     <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
@@ -270,7 +260,6 @@ export default function PortalPage() {
                                 </div>
                             </div>
 
-                            {/* Auto Import CTA */}
                             <div className="mt-6 bg-purple-50 rounded-xl p-6 border border-purple-100 flex flex-col md:flex-row items-center justify-between gap-6">
                                 <div className="flex items-start gap-4 text-left">
                                     <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">

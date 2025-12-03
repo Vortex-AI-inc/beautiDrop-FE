@@ -126,7 +126,6 @@ export async function updateSchedule(
         const responseData = await response.json()
         return responseData.data || responseData
     } catch (error) {
-        console.error('Error updating schedule:', error)
         throw error
     }
 }
@@ -147,7 +146,6 @@ export async function deleteSchedule(
             throw new Error(`Failed to delete schedule: ${response.statusText}`)
         }
     } catch (error) {
-        console.error('Error deleting schedule:', error)
         throw error
     }
 }
@@ -175,7 +173,6 @@ export async function generateTimeSlots(
         const responseData = await response.json()
         return { message: responseData.message || responseData.detail || 'Time slots generated successfully' }
     } catch (error) {
-        console.error('Error generating time slots:', error)
         throw error
     }
 }
@@ -214,7 +211,6 @@ export async function fetchTimeSlots(
 
         return []
     } catch (error) {
-        console.error('Error fetching time slots:', error)
         throw error
     }
 }
@@ -233,7 +229,7 @@ export async function checkTimeSlotAvailability(
             body: JSON.stringify({
                 shop_id: shopId,
                 service_id: serviceId,
-                date: date, // Format: YYYY-MM-DD
+                date: date,
             }),
         })
 
@@ -253,7 +249,6 @@ export async function checkTimeSlotAvailability(
 
         return []
     } catch (error) {
-        console.error('Error checking time slot availability:', error)
         throw error
     }
 }
@@ -292,7 +287,6 @@ export async function fetchPublicTimeSlots(
 
         return []
     } catch (error) {
-        console.error('Error fetching public time slots:', error)
         throw error
     }
 }

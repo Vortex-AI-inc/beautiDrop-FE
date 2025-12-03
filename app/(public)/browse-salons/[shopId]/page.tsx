@@ -94,7 +94,6 @@ export default function SalonLandingPage() {
 
     return (
         <div className="min-h-screen relative bg-black">
-            {/* Fixed DarkVeil Background - Covers Entire Page */}
             <div className="fixed inset-0 z-0">
                 <DarkVeil
                     hueShift={33}
@@ -106,7 +105,6 @@ export default function SalonLandingPage() {
                 />
             </div>
 
-            {/* Header Navigation */}
             <header className="relative z-20 py-6 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-7xl mx-auto">
                     <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-full px-6 py-4 flex items-center justify-between">
@@ -114,13 +112,11 @@ export default function SalonLandingPage() {
                             <span className="text-white font-semibold text-lg">{shop.name}</span>
                         </div>
 
-                        {/* Desktop Navigation */}
                         <nav className="hidden md:flex items-center gap-8">
                             <a href="#services" className="text-white/80 hover:text-white transition-colors text-sm">Services</a>
                             <a href="#contact" className="text-white/80 hover:text-white transition-colors text-sm">Contact</a>
                         </nav>
 
-                        {/* Mobile Menu Button */}
                         <button
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                             className="md:hidden text-white p-2 hover:bg-white/10 rounded-lg transition-colors"
@@ -130,7 +126,6 @@ export default function SalonLandingPage() {
                         </button>
                     </div>
 
-                    {/* Mobile Menu Dropdown */}
                     {isMobileMenuOpen && (
                         <div className="md:hidden mt-4 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
                             <nav className="flex flex-col">
@@ -271,7 +266,6 @@ export default function SalonLandingPage() {
                 </div>
             </section>
 
-            {/* Business Hours Section */}
             <section className="relative z-10 py-20 px-4 sm:px-6 lg:px-8 bg-white/5 border-y border-white/10">
                 <div className="max-w-3xl mx-auto text-center">
                     <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-12">Business Hours</h2>
@@ -284,7 +278,6 @@ export default function SalonLandingPage() {
                                 const schedule = schedules.find(s => s.day_of_week.toLowerCase() === day.toLowerCase())
                                 const isActive = schedule?.is_active
 
-                                // Convert 24-hour time to 12-hour format
                                 const formatTime = (time: string) => {
                                     const [hours, minutes] = time.split(':').map(Number)
                                     const period = hours >= 12 ? 'PM' : 'AM'
@@ -310,7 +303,6 @@ export default function SalonLandingPage() {
                 </div>
             </section>
 
-            {/* Footer Section */}
             <footer id="contact" className="relative z-10 py-12 px-4 sm:px-6 lg:px-8 border-t border-white/10">
                 <div className="max-w-7xl mx-auto">
                     <div className="flex flex-col sm:flex-row justify-between items-center gap-6 text-white/60">
@@ -331,7 +323,6 @@ export default function SalonLandingPage() {
                 </div>
             </footer>
 
-            {/* Booking Modal */}
             <BookingModal
                 isOpen={isBookingModalOpen}
                 onClose={() => setIsBookingModalOpen(false)}

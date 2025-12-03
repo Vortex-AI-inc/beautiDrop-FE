@@ -39,10 +39,8 @@ export default function StaffManagementPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [isSubmitting, setIsSubmitting] = useState(false)
 
-    // Form State
     const [newStaffName, setNewStaffName] = useState("")
     const [canBookAppointments, setCanBookAppointments] = useState(true)
-    // Note: Languages are not currently supported by the backend API, keeping UI for future use
     const [selectedLanguages, setSelectedLanguages] = useState<string[]>(["English"])
 
     const AVAILABLE_LANGUAGES = [
@@ -79,7 +77,6 @@ export default function StaffManagementPage() {
     const toggleLanguage = (language: string) => {
         setSelectedLanguages(prev => {
             if (prev.includes(language)) {
-                // Don't allow removing all languages
                 if (prev.length === 1) return prev
                 return prev.filter(l => l !== language)
             } else {
@@ -108,7 +105,6 @@ export default function StaffManagementPage() {
                 shop_id: shopId,
                 name: newStaffName,
                 is_active: canBookAppointments,
-                // languages: selectedLanguages // API doesn't support this yet
             }, token)
 
             toast({
@@ -116,7 +112,6 @@ export default function StaffManagementPage() {
                 description: `${newStaffName} has been added to your team.`,
             })
 
-            // Reset form and refresh list
             setNewStaffName("")
             setCanBookAppointments(true)
             setSelectedLanguages(["English"])

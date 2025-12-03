@@ -31,7 +31,6 @@ export async function fetchShopStaff(
 
         return []
     } catch (error) {
-        console.error('Error fetching staff:', error)
         throw error
     }
 }

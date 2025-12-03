@@ -21,7 +21,7 @@ export const useShopStore = create<ShopState>()(
         }),
         {
             name: 'shop-storage',
-            partialize: (state) => ({ selectedShop: state.selectedShop }), // Only persist selectedShop
+            partialize: (state) => ({ selectedShop: state.selectedShop }),
         }
     )
 )

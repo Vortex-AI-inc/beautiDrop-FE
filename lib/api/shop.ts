@@ -39,7 +39,6 @@ export async function fetchShop(
             'Content-Type': 'application/json',
         }
 
-        // Only add Authorization header if token is provided
         if (token) {
             headers['Authorization'] = `Bearer ${token}`
         }

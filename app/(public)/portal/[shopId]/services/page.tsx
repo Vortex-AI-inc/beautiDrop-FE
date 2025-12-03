@@ -61,7 +61,6 @@ export default function ServicesManagementPage() {
         description: ""
     })
 
-    // Staff assignment modal state
     const [isStaffModalOpen, setIsStaffModalOpen] = useState(false)
     const [selectedServiceForStaff, setSelectedServiceForStaff] = useState<Service | null>(null)
     const [availableStaff, setAvailableStaff] = useState<StaffMember[]>([])
@@ -174,7 +173,6 @@ export default function ServicesManagementPage() {
                     title: "Success",
                     description: `${newService.name} has been added to your services.`,
                 })
-                // Reset form only on create
                 setFormData({
                     name: "",
                     duration: "",
@@ -216,7 +214,6 @@ export default function ServicesManagementPage() {
             category: "",
             description: ""
         })
-        // No modal for create, it's inline as per design
     }
 
     const handleToggleActive = async (id: number, currentStatus: boolean) => {
@@ -224,7 +221,6 @@ export default function ServicesManagementPage() {
             const token = await getToken()
             if (!token) return
 
-            // Optimistic update
             setServices(prev => prev.map(s => s.id === id ? { ...s, is_active: !currentStatus } : s))
 
             await toggleServiceActive(id, token)
@@ -235,7 +231,6 @@ export default function ServicesManagementPage() {
             })
         } catch (error) {
             console.error("Failed to toggle service status", error)
-            // Revert on error
             setServices(prev => prev.map(s => s.id === id ? { ...s, is_active: currentStatus } : s))
             toast({
                 title: "Error",
@@ -272,7 +267,6 @@ export default function ServicesManagementPage() {
         setIsStaffModalOpen(true)
         setIsLoadingStaff(true)
 
-        // Pre-select already assigned staff
         const assignedStaffIds = service.assigned_staff?.map(s => s.staff_id) || []
         setSelectedStaffIds(assignedStaffIds)
 
@@ -313,15 +307,12 @@ export default function ServicesManagementPage() {
             const token = await getToken()
             if (!token) throw new Error("No authentication token")
 
-            // Convert string IDs to numbers for the API
             const serviceIds = [selectedServiceForStaff.id]
 
-            // Assign service to each selected staff member
             for (const staffId of selectedStaffIds) {
                 await assignServices(staffId, { service_ids: serviceIds }, token)
             }
 
-            // Refresh services to get updated staff assignments
             await loadServices()
 
             toast({

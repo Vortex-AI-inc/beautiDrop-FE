@@ -269,12 +269,10 @@ export default function CompanyProfilePage() {
             const token = await getToken()
             if (!token) return
 
-            // For each day, check if schedule exists
             const promises = DAYS.map(async (day) => {
                 const daySchedules = getDaySchedules(day)
 
                 if (daySchedules.length > 0) {
-                    // Update existing schedule using PATCH
                     const existingSchedule = daySchedules[0]
                     const payload = {
                         start_time: newSlotTime.start_time,
@@ -282,7 +280,6 @@ export default function CompanyProfilePage() {
                     }
                     return updateSchedule(existingSchedule.id, payload, token)
                 } else {
-                    // Create new schedule using POST
                     const payload = {
                         shop_id: shopId,
                         day_of_week: day.toLowerCase(),
@@ -296,7 +293,6 @@ export default function CompanyProfilePage() {
 
             const updatedSchedules = await Promise.all(promises)
 
-            // Update local state
             setSchedules(prev => {
                 const newSchedules = [...prev]
                 updatedSchedules.forEach(updated => {
@@ -316,7 +312,6 @@ export default function CompanyProfilePage() {
             })
             setIsApplyAllModalOpen(false)
 
-            // Reload schedules to show updated hours
             await loadSchedules()
         } catch (error: any) {
             console.error("Failed to apply hours to all days", error)
@@ -345,9 +340,6 @@ export default function CompanyProfilePage() {
                 return
             }
 
-            // Prepare data for API
-            // Note: schedule is not yet part of the shop update API based on the provided schema
-            // We will only update the fields present in the schema for now
             const updateData = {
                 name: formData.name,
                 website: formData.website,
@@ -355,12 +347,10 @@ export default function CompanyProfilePage() {
                 city: formData.city,
                 state: formData.state,
                 postal_code: formData.postal_code,
-                // Add other fields as they become available in the form/schema
             }
 
             const updatedShop = await updateShop(selectedShop.id, updateData, token)
 
-            // Update local store
             setSelectedShop(updatedShop)
 
             toast({
@@ -697,7 +687,6 @@ export default function CompanyProfilePage() {
                                 </DialogContent>
                             </Dialog>
 
-                            {/* Apply to All Days Modal */}
                             <Dialog open={isApplyAllModalOpen} onOpenChange={setIsApplyAllModalOpen}>
                                 <DialogContent className="sm:max-w-[425px]">
                                     <DialogHeader>

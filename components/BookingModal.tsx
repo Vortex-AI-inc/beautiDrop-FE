@@ -37,7 +37,6 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [showSignInModal, setShowSignInModal] = useState(false)
 
-    // Auto-select today's date and fetch slots when modal opens
     useEffect(() => {
         if (isOpen && service) {
             const today = new Date()
@@ -59,14 +58,12 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
         }
     }
 
-    // Check for pending booking after login
     useEffect(() => {
         if (isSignedIn && user) {
             const pendingBooking = localStorage.getItem('pendingBooking')
             if (pendingBooking) {
                 try {
                     const bookingData = JSON.parse(pendingBooking)
-                    // Process the pending booking
                     processPendingBooking(bookingData)
                 } catch (error) {
                     console.error('Failed to parse pending booking:', error)
@@ -81,7 +78,7 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
 
         setSelectedDate(date)
         setSelectedSlot(null)
-        setSelectedStaff(null) // Reset staff filter when date changes
+        setSelectedStaff(null)
         setIsLoadingSlots(true)
 
         try {
@@ -99,7 +96,6 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
     const handleBooking = async () => {
         if (!selectedSlot || !selectedDate || !service) return
 
-        // If user is not signed in, save booking data and show sign-in modal
         if (!isSignedIn) {
             const bookingData = {
                 serviceId: service.id.toString(),
@@ -119,12 +115,9 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
                 description: "Please sign in to complete your booking.",
             })
 
-            // Show sign-in modal instead of navigating
             setShowSignInModal(true)
             return
         }
-
-        // User is signed in, proceed with booking
         await processBooking(selectedSlot, selectedDate, service)
     }
 
@@ -145,7 +138,6 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
                 description: `Your appointment for ${bookingData.serviceName} has been scheduled.`,
             })
 
-            // Clear pending booking from localStorage
             localStorage.removeItem('pendingBooking')
 
         } catch (error) {
@@ -170,7 +162,7 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
                 service_id: svc.id.toString(),
                 time_slot_id: slot.id,
                 staff_member_id: (!slot.staff_member_name && !slot.staff_name) ? selectedStaff?.id : undefined,
-                notes: "" // Optional: Add notes field later if needed
+                notes: ""
             }, token)
 
             toast({
@@ -178,7 +170,6 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
                 description: `Your appointment for ${svc.name} has been scheduled.`,
             })
 
-            // Add a small delay before closing to ensure toast is seen/processed
             setTimeout(() => {
                 onClose()
             }, 1000)
@@ -238,9 +229,7 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
                         </div>
                     </div>
 
-                    {/* Content Grid - Equal Width Columns */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
-                        {/* Calendar Section */}
                         <div className="p-10 border-b lg:border-b-0 lg:border-r border-white/5">
                             <div className="flex items-center gap-2 mb-6">
                                 <CalendarIcon className="w-5 h-5 text-purple-400" />
@@ -277,7 +266,6 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
                             </div>
                         </div>
 
-                        {/* Time Slots Section */}
                         <div className="p-10 bg-gradient-to-br from-white/[0.02] to-transparent">
                             <div className="flex items-center gap-2 mb-6">
                                 <Clock className="w-5 h-5 text-purple-400" />
@@ -298,19 +286,15 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
                                     <p className="text-sm font-medium">No slots available for this date</p>
                                 </div>
                             ) : (() => {
-                                // Check if ANY slots are without staff assignments
                                 const hasUnassignedSlots = timeSlots.some(slot =>
                                     !slot.staff_member_name && !slot.staff_name
                                 )
 
-                                // When all slots are unassigned and a staff is selected, show all slots
-                                // (since we can't filter by staff name that doesn't exist)
-                                // Otherwise show all slots normally
+
                                 const filteredSlots = timeSlots
 
                                 return (
                                     <>
-                                        {/* Only show staff dropdown if there are unassigned slots */}
                                         {hasUnassignedSlots && availableStaff.length > 0 && (
                                             <div className="mb-4">
                                                 <label className="block text-sm font-medium text-white/70 mb-2">
@@ -348,7 +332,6 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
                                                 {filteredSlots.map((slot) => {
                                                     const isAvailable = slot.is_available
                                                     const isSelected = selectedSlot?.id === slot.id
-                                                    // Extract time without timezone conversion
                                                     const timeStr = slot.start_datetime.split('T')[1]?.substring(0, 5) || ''
                                                     const [hours, minutes] = timeStr.split(':').map(Number)
                                                     const period = hours >= 12 ? 'PM' : 'AM'
@@ -388,7 +371,6 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
                         </div>
                     </div>
 
-                    {/* Footer */}
                     <div className="flex justify-between items-center px-10 py-6 bg-white/[0.02] border-t border-white/5">
                         <div className="text-sm text-white/40">
                             {selectedDate && selectedSlot ? (
@@ -433,7 +415,6 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
                 </BookingDialogContent>
             </BookingDialog>
 
-            {/* Sign-In Modal */}
             <Dialog open={showSignInModal} onOpenChange={setShowSignInModal}>
                 <DialogContent className="sm:max-w-[425px] bg-white p-0 gap-0">
                     <div className="flex flex-col items-center justify-center p-6">

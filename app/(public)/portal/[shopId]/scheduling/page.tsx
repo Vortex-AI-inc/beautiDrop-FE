@@ -49,15 +49,13 @@ export default function SchedulingPage() {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [activeTab, setActiveTab] = useState("generated")
 
-    // Get current date and time for defaults
     const getCurrentDateTime = () => {
         const now = new Date()
-        const date = now.toISOString().split('T')[0] // YYYY-MM-DD
+        const date = now.toISOString().split('T')[0]
         const hours = now.getHours().toString().padStart(2, '0')
         const minutes = now.getMinutes().toString().padStart(2, '0')
         const startTime = `${hours}:${minutes}`
 
-        // Add 30 minutes for end time
         const endDate = new Date(now.getTime() + 30 * 60000)
         const endHours = endDate.getHours().toString().padStart(2, '0')
         const endMinutes = endDate.getMinutes().toString().padStart(2, '0')
@@ -86,11 +84,9 @@ export default function SchedulingPage() {
             const token = await getToken()
             if (!token) return
 
-            // Fetch schedules
             const schedulesData = await fetchShopSchedules(shopId, token)
             setSchedules(schedulesData)
 
-            // Fetch real time slots
             const timeSlotsData = await fetchTimeSlots(shopId, token)
             setTimeSlots(timeSlotsData)
 
@@ -119,7 +115,7 @@ export default function SchedulingPage() {
     }
 
     const loadBookings = async () => {
-        if (bookingsLoaded) return // Don't reload if already loaded
+        if (bookingsLoaded) return
 
         try {
             setIsLoadingBookings(true)
@@ -192,8 +188,6 @@ export default function SchedulingPage() {
             if (slotFormData.staff_member_id) {
                 payload.staff_member_id = slotFormData.staff_member_id
             }
-
-            console.log('Payload being sent:', payload) // Debug log
 
             const result = await generateTimeSlots(payload, token)
 

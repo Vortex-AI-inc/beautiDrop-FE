@@ -53,7 +53,6 @@ export default function CustomerDashboardPage() {
         }
     }
 
-    // Show loading while checking role
     if (isCheckingRole || !isAuthorized) {
         return (
             <main className="min-h-screen bg-slate-50">

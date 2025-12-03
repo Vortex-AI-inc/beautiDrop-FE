@@ -38,12 +38,10 @@ export async function fetchServices(
             'Content-Type': 'application/json',
         }
 
-        // Only add Authorization header if token is provided
         if (token) {
             headers['Authorization'] = `Bearer ${token}`
         }
 
-        // Assuming the endpoint to list services filters by shop_id via query param
         const response = await fetch(`${API_BASE_URL}/api/v1/services/?shop_id=${shopId}`, {
             method: 'GET',
             headers,
@@ -55,7 +53,6 @@ export async function fetchServices(
 
         const data = await response.json()
 
-        // Handle different response structures
         if (Array.isArray(data)) {
             return data
         }
@@ -166,7 +163,6 @@ export async function fetchPublicServices(shopId: string): Promise<Service[]> {
 
         const data = await response.json()
 
-        // Handle different response structures
         if (Array.isArray(data)) {
             return data
         }
