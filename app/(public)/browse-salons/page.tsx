@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, MapPin, Star, Loader2 } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 import { useToast } from "@/hooks/use-toast"
 
 export default function BrowseSalonsPage() {
@@ -81,38 +82,42 @@ export default function BrowseSalonsPage() {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {filteredShops.map((shop) => (
-                                <Card key={shop.id} className="hover:shadow-lg transition-shadow duration-300 overflow-hidden border-gray-100">
-                                    <div className="h-48 bg-gray-200 relative">
-                                        <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white text-4xl font-bold opacity-80">
-                                            {shop.name.charAt(0)}
-                                        </div>
-                                    </div>
-                                    <CardHeader>
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <CardTitle className="text-xl mb-1">{shop.name}</CardTitle>
-                                                <div className="flex items-center text-gray-500 text-sm">
-                                                    <MapPin className="w-4 h-4 mr-1" />
-                                                    {shop.address || "Location not available"}
+                                <Link href={`/browse-salons/${shop.id}`} key={shop.id}>
+                                    <Card className="hover:shadow-lg transition-shadow duration-300 overflow-hidden border-gray-100 h-[400px] relative">
+                                        <Image
+                                            src={shop.cover_image_url || "/saloon-bg.jpg"}
+                                            alt={shop.name}
+                                            fill
+                                            className="object-cover"
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col justify-between p-6">
+                                            <div className="flex justify-end">
+                                                <div className="flex items-center bg-yellow-400/90 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                                                    <Star className="w-4 h-4 text-white mr-1 fill-white" />
+                                                    <span className="font-bold text-white">5.0</span>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center bg-yellow-50 px-2 py-1 rounded-md">
-                                                <Star className="w-4 h-4 text-yellow-500 mr-1 fill-yellow-500" />
-                                                <span className="font-medium text-yellow-700">5.0</span>
+                                            <div className="space-y-3">
+                                                <h3 className="text-white text-3xl font-bold">
+                                                    {shop.name}
+                                                </h3>
+                                                <div className="flex items-center text-white/90 text-sm">
+                                                    <MapPin className="w-4 h-4 mr-2" />
+                                                    {shop.address || "Location not available"}
+                                                </div>
+                                                {shop.description && (
+                                                    <p className="text-white/80 text-sm line-clamp-2">
+                                                        {shop.description}
+                                                    </p>
+                                                )}
+                                                <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold">
+                                                    View Services
+                                                </Button>
                                             </div>
                                         </div>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <CardDescription className="line-clamp-2 mb-4">
-                                            {shop.description || "No description available."}
-                                        </CardDescription>
-                                        <Link href={`/browse-salons/${shop.id}`}>
-                                            <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
-                                                View Services
-                                            </Button>
-                                        </Link>
-                                    </CardContent>
-                                </Card>
+                                    </Card>
+                                </Link>
                             ))}
                         </div>
                     )}

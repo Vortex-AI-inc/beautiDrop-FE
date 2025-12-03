@@ -8,7 +8,7 @@ import { Calendar, Clock, MapPin, Loader2, Star, Heart } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
 import { useRoleProtection } from "@/hooks/useRoleProtection"
-import { fetchMyBookings } from "@/lib/api/bookings"
+import { fetchMyBookings, cancelBooking } from "@/lib/api/bookings"
 import type { CustomerBooking } from "@/types/booking"
 import {
     Card,
@@ -17,6 +17,14 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "@/components/ui/dialog"
 
 export default function CustomerDashboardPage() {
     const { user, isLoaded } = useUser()
@@ -26,6 +34,9 @@ export default function CustomerDashboardPage() {
 
     const [bookings, setBookings] = useState<CustomerBooking[]>([])
     const [isLoading, setIsLoading] = useState(true)
+    const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null)
+    const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false)
+    const [selectedBookingForReschedule, setSelectedBookingForReschedule] = useState<CustomerBooking | null>(null)
 
     useEffect(() => {
         if (isLoaded && user) {
@@ -51,6 +62,41 @@ export default function CustomerDashboardPage() {
         } finally {
             setIsLoading(false)
         }
+    }
+
+    const handleCancelBooking = async (bookingId: string, shopName: string) => {
+        if (!confirm(`Are you sure you want to cancel your booking at ${shopName}?`)) {
+            return
+        }
+
+        try {
+            setCancellingBookingId(bookingId)
+            const token = await getToken()
+            if (!token) return
+
+            await cancelBooking(bookingId, { cancellation_reason: "Customer requested cancellation" }, token)
+
+            toast({
+                title: "Booking Cancelled",
+                description: "Your booking has been cancelled successfully.",
+            })
+
+            await loadBookings()
+        } catch (error: any) {
+            console.error("Failed to cancel booking", error)
+            toast({
+                title: "Error",
+                description: error.message || "Failed to cancel booking. Please try again.",
+                variant: "destructive"
+            })
+        } finally {
+            setCancellingBookingId(null)
+        }
+    }
+
+    const handleReschedule = (booking: CustomerBooking) => {
+        setSelectedBookingForReschedule(booking)
+        setIsRescheduleModalOpen(true)
     }
 
     if (isCheckingRole || !isAuthorized) {
@@ -192,11 +238,29 @@ export default function CustomerDashboardPage() {
                                                     View Location
                                                 </div>
                                                 <div className="pt-4 flex gap-2">
-                                                    <Button variant="outline" size="sm" className="flex-1">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="flex-1"
+                                                        onClick={() => handleReschedule(booking)}
+                                                    >
                                                         Reschedule
                                                     </Button>
-                                                    <Button variant="outline" size="sm" className="flex-1 text-red-600 hover:text-red-700">
-                                                        Cancel
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="flex-1 text-red-600 hover:text-red-700"
+                                                        onClick={() => handleCancelBooking(booking.id, booking.shop_name)}
+                                                        disabled={cancellingBookingId === booking.id}
+                                                    >
+                                                        {cancellingBookingId === booking.id ? (
+                                                            <>
+                                                                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                                                Cancelling...
+                                                            </>
+                                                        ) : (
+                                                            "Cancel"
+                                                        )}
                                                     </Button>
                                                 </div>
                                             </div>
@@ -245,6 +309,47 @@ export default function CustomerDashboardPage() {
                     )}
                 </div>
             </div>
+
+            {/* Reschedule Modal */}
+            <Dialog open={isRescheduleModalOpen} onOpenChange={setIsRescheduleModalOpen}>
+                <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                        <DialogTitle>Reschedule Appointment</DialogTitle>
+                        <DialogDescription>
+                            Reschedule your appointment at {selectedBookingForReschedule?.shop_name}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                        {selectedBookingForReschedule && (
+                            <div className="space-y-4">
+                                <div className="bg-gray-50 p-4 rounded-lg">
+                                    <h4 className="font-semibold text-gray-900 mb-2">Current Booking</h4>
+                                    <div className="space-y-1 text-sm text-gray-600">
+                                        <p><strong>Service:</strong> {selectedBookingForReschedule.service_name}</p>
+                                        <p><strong>Date & Time:</strong> {new Date(selectedBookingForReschedule.booking_datetime).toLocaleString()}</p>
+                                        {selectedBookingForReschedule.staff_member_name && (
+                                            <p><strong>Staff:</strong> {selectedBookingForReschedule.staff_member_name}</p>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="text-center py-6">
+                                    <p className="text-gray-600 mb-4">
+                                        To reschedule your appointment, please contact the salon directly or book a new appointment and cancel this one.
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                        Full reschedule feature with time slot selection coming soon!
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsRescheduleModalOpen(false)}>
+                            Close
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </main>
     )
 }

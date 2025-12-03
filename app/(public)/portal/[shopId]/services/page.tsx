@@ -155,6 +155,7 @@ export default function ServicesManagementPage() {
                 description: formData.description,
                 price: formData.price,
                 duration_minutes: parseInt(formData.duration),
+                category: formData.category || "General",
                 is_active: true
             }
 
