@@ -83,7 +83,7 @@ export default function BrowseSalonsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {filteredShops.map((shop) => (
                                 <Link href={`/browse-salons/${shop.id}`} key={shop.id}>
-                                    <Card className="hover:shadow-lg transition-shadow duration-300 overflow-hidden border-gray-100 h-[400px] relative">
+                                    <Card className="hover:shadow-lg transition-shadow duration-300 overflow-hidden border-gray-100 h-[400px] relative hover:cursor-pointer hover:translate-y-[-5px] hover:scale-[1.01] hover:z-10 hover:shadow-purple-500 hover:border-purple-500 hover:ring-2 hover:ring-purple-500 hover:ring-offset-2 hover:ring-offset-gray-50 hover:translate-y-[-5px] hover:scale-[1.01] hover:z-10 hover:shadow-purple-500 hover:border-purple-500 hover:ring-2 hover:ring-purple-500 hover:ring-offset-2 hover:ring-offset-gray-50 duration-500 delay-100">
                                         <Image
                                             src={shop.cover_image_url || "/saloon-bg.jpg"}
                                             alt={shop.name}
