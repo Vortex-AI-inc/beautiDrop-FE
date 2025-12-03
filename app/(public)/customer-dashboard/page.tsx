@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Calendar, Clock, MapPin, Loader2, Star, Heart } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
+import { useRoleProtection } from "@/hooks/useRoleProtection"
 import { fetchMyBookings } from "@/lib/api/bookings"
 import type { CustomerBooking } from "@/types/booking"
 import {
@@ -21,6 +22,7 @@ export default function CustomerDashboardPage() {
     const { user, isLoaded } = useUser()
     const { getToken } = useAuth()
     const { toast } = useToast()
+    const { isAuthorized, isLoading: isCheckingRole } = useRoleProtection({ requiredRole: 'customer' })
 
     const [bookings, setBookings] = useState<CustomerBooking[]>([])
     const [isLoading, setIsLoading] = useState(true)
@@ -49,6 +51,18 @@ export default function CustomerDashboardPage() {
         } finally {
             setIsLoading(false)
         }
+    }
+
+    // Show loading while checking role
+    if (isCheckingRole || !isAuthorized) {
+        return (
+            <main className="min-h-screen bg-slate-50">
+                <Header />
+                <div className="flex items-center justify-center min-h-[60vh]">
+                    <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                </div>
+            </main>
+        )
     }
 
     const getStatusColor = (status: string) => {

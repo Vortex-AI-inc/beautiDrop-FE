@@ -25,7 +25,10 @@ import {
     ArrowRight
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { fetchMyShops, fetchShopDashboard } from "@/lib/api/shop"
+import { Switch } from "@/components/ui/switch"
+import { useToast } from "@/hooks/use-toast"
+import { useRoleProtection } from "@/hooks/useRoleProtection"
+import { fetchMyShops, fetchShopDashboard, toggleShopActive } from "@/lib/api/shop"
 import type { ShopDashboardData, Shop } from "@/types/shop"
 import { CreateAgentDialog } from "@/components/portal/create-agent-dialog"
 
@@ -35,6 +38,8 @@ export default function PortalPage() {
     const { isLoaded, isSignedIn, user } = useUser()
     const { getToken } = useAuth()
     const router = useRouter()
+    const { toast } = useToast()
+    const { isAuthorized, isLoading: isCheckingRole } = useRoleProtection({ requiredRole: 'client' })
 
     // Global State
     const { selectedShop, setSelectedShop, dashboardData, setDashboardData } = useShopStore()
@@ -42,6 +47,7 @@ export default function PortalPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [shops, setShops] = useState<Shop[]>([])
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+    const [togglingShopId, setTogglingShopId] = useState<string | null>(null)
 
     const loadShops = async () => {
         try {
@@ -62,6 +68,37 @@ export default function PortalPage() {
         router.push(`/portal/${shop.id}`)
     }
 
+    const handleToggleActive = async (shopId: string, currentStatus: boolean, e: React.MouseEvent) => {
+        e.stopPropagation() // Prevent card click
+
+        try {
+            setTogglingShopId(shopId)
+            const token = await getToken()
+            if (!token) return
+
+            const updatedShop = await toggleShopActive(shopId, token)
+
+            // Update local state
+            setShops(prev => prev.map(shop =>
+                shop.id === shopId ? updatedShop : shop
+            ))
+
+            toast({
+                title: "Success",
+                description: `Shop ${updatedShop.is_active ? 'activated' : 'deactivated'} successfully.`,
+            })
+        } catch (error) {
+            console.error("Failed to toggle shop status", error)
+            toast({
+                title: "Error",
+                description: "Failed to update shop status. Please try again.",
+                variant: "destructive"
+            })
+        } finally {
+            setTogglingShopId(null)
+        }
+    }
+
     useEffect(() => {
         if (isLoaded && !isSignedIn) {
             router.push('/login')
@@ -69,6 +106,18 @@ export default function PortalPage() {
             loadShops()
         }
     }, [isLoaded, isSignedIn, router])
+
+    // Show loading while checking role
+    if (isCheckingRole || !isAuthorized) {
+        return (
+            <main className="min-h-screen bg-slate-50">
+                <Header />
+                <div className="flex items-center justify-center min-h-[60vh]">
+                    <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                </div>
+            </main>
+        )
+    }
 
     if (!isLoaded || !isSignedIn) {
         return null
@@ -124,8 +173,22 @@ export default function PortalPage() {
                                     </div>
                                     <h3 className="text-xl font-bold text-gray-900 mb-2">{shop.name}</h3>
                                     <p className="text-sm text-gray-500 mb-4 line-clamp-2">{shop.description}</p>
-                                    <div className="flex items-center text-blue-600 text-sm font-medium group-hover:translate-x-1 transition-transform">
-                                        Manage Shop <ArrowRight className="w-4 h-4 ml-1" />
+
+                                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                                        <div className="flex items-center gap-2">
+                                            <Switch
+                                                checked={shop.is_active}
+                                                onCheckedChange={(checked) => handleToggleActive(shop.id, shop.is_active, event as any)}
+                                                disabled={togglingShopId === shop.id}
+                                                onClick={(e) => e.stopPropagation()}
+                                            />
+                                            <span className="text-sm text-gray-600">
+                                                {togglingShopId === shop.id ? 'Updating...' : shop.is_active ? 'Active' : 'Inactive'}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center text-blue-600 text-sm font-medium group-hover:translate-x-1 transition-transform">
+                                            Manage <ArrowRight className="w-4 h-4 ml-1" />
+                                        </div>
                                     </div>
                                 </div>
                             ))}
@@ -201,8 +264,8 @@ export default function PortalPage() {
                                         onClick={() => setIsCreateDialogOpen(true)}
                                         className="bg-white text-blue-600 hover:bg-blue-50 font-semibold px-8"
                                     >
-                                        <Plus className="w-4 h-4 mr-2" />
-                                        Create Agent
+                                        <Plus className="w-4 h-4" />
+                                        Create Shop
                                     </Button>
                                 </div>
                             </div>

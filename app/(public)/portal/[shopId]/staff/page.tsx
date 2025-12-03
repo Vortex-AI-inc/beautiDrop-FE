@@ -1,15 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Header } from "@/components/layout/header"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ArrowLeft, Users, Sparkles, UserPlus, Trash2 } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
+import { ArrowLeft, Users, Sparkles, UserPlus, Trash2, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@clerk/nextjs"
+import { fetchShopStaff, createStaff, deleteStaff, toggleAvailability } from "@/lib/api/staff"
+import type { StaffMember } from "@/types/staff"
 import {
     Select,
     SelectContent,
@@ -26,20 +30,19 @@ import {
     TableRow,
 } from "@/components/ui/table"
 
-interface StaffMember {
-    id: string
-    name: string
-    canBook: boolean
-    languages: string[]
-}
-
 export default function StaffManagementPage() {
     const params = useParams()
     const shopId = params.shopId as string
     const { toast } = useToast()
+    const { getToken } = useAuth()
     const [staffMembers, setStaffMembers] = useState<StaffMember[]>([])
+    const [isLoading, setIsLoading] = useState(true)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+
+    // Form State
     const [newStaffName, setNewStaffName] = useState("")
     const [canBookAppointments, setCanBookAppointments] = useState(true)
+    // Note: Languages are not currently supported by the backend API, keeping UI for future use
     const [selectedLanguages, setSelectedLanguages] = useState<string[]>(["English"])
 
     const AVAILABLE_LANGUAGES = [
@@ -50,6 +53,28 @@ export default function StaffManagementPage() {
         "Italian",
         "German",
     ]
+
+    const fetchStaff = async () => {
+        try {
+            const token = await getToken()
+            if (!token) return
+            const data = await fetchShopStaff(shopId, token)
+            setStaffMembers(data)
+        } catch (error) {
+            console.error("Failed to fetch staff:", error)
+            toast({
+                title: "Error",
+                description: "Failed to load staff members.",
+                variant: "destructive",
+            })
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        fetchStaff()
+    }, [shopId, getToken])
 
     const toggleLanguage = (language: string) => {
         setSelectedLanguages(prev => {
@@ -63,7 +88,7 @@ export default function StaffManagementPage() {
         })
     }
 
-    const handleAddStaffMember = () => {
+    const handleAddStaffMember = async () => {
         if (!newStaffName.trim()) {
             toast({
                 title: "Error",
@@ -73,34 +98,86 @@ export default function StaffManagementPage() {
             return
         }
 
-        const newMember: StaffMember = {
-            id: Date.now().toString(),
-            name: newStaffName,
-            canBook: canBookAppointments,
-            languages: selectedLanguages
+        setIsSubmitting(true)
+
+        try {
+            const token = await getToken()
+            if (!token) throw new Error("No authentication token")
+
+            await createStaff({
+                shop_id: shopId,
+                name: newStaffName,
+                is_active: canBookAppointments,
+                // languages: selectedLanguages // API doesn't support this yet
+            }, token)
+
+            toast({
+                title: "Success",
+                description: `${newStaffName} has been added to your team.`,
+            })
+
+            // Reset form and refresh list
+            setNewStaffName("")
+            setCanBookAppointments(true)
+            setSelectedLanguages(["English"])
+            fetchStaff()
+
+        } catch (error) {
+            console.error("Failed to add staff:", error)
+            toast({
+                title: "Error",
+                description: "Failed to add staff member. Please try again.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsSubmitting(false)
         }
-
-        setStaffMembers(prev => [...prev, newMember])
-
-        // Reset form
-        setNewStaffName("")
-        setCanBookAppointments(true)
-        setSelectedLanguages(["English"])
-
-        toast({
-            title: "Success",
-            description: `${newStaffName} has been added to your team.`,
-        })
     }
 
-    const handleDeleteStaffMember = (id: string) => {
-        const member = staffMembers.find(m => m.id === id)
-        setStaffMembers(prev => prev.filter(m => m.id !== id))
+    const handleDeleteStaffMember = async (id: string, name: string) => {
+        try {
+            const token = await getToken()
+            if (!token) throw new Error("No authentication token")
 
-        toast({
-            title: "Staff member removed",
-            description: `${member?.name} has been removed from your team.`,
-        })
+            await deleteStaff(id, token)
+
+            setStaffMembers(prev => prev.filter(m => m.id !== id))
+
+            toast({
+                title: "Staff member removed",
+                description: `${name} has been removed from your team.`,
+            })
+        } catch (error) {
+            console.error("Failed to delete staff:", error)
+            toast({
+                title: "Error",
+                description: "Failed to remove staff member.",
+                variant: "destructive"
+            })
+        }
+    }
+
+    const handleToggleAvailability = async (id: string, currentStatus: boolean, name: string) => {
+        try {
+            const token = await getToken()
+            if (!token) throw new Error("No authentication token")
+
+            const updatedStaff = await toggleAvailability(id, token)
+
+            setStaffMembers(prev => prev.map(m => m.id === id ? updatedStaff : m))
+
+            toast({
+                title: "Availability updated",
+                description: `${name} is now ${updatedStaff.is_active ? 'available' : 'unavailable'} for bookings.`,
+            })
+        } catch (error) {
+            console.error("Failed to toggle availability:", error)
+            toast({
+                title: "Error",
+                description: "Failed to update availability.",
+                variant: "destructive"
+            })
+        }
     }
 
     return (
@@ -210,9 +287,19 @@ export default function StaffManagementPage() {
                             <Button
                                 className="bg-gradient-to-r from-blue-600 to-teal-400 hover:from-blue-700 hover:to-teal-500 text-white"
                                 onClick={handleAddStaffMember}
+                                disabled={isSubmitting || !newStaffName.trim()}
                             >
-                                <UserPlus className="w-4 h-4 mr-2" />
-                                Add Staff Member
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        Adding...
+                                    </>
+                                ) : (
+                                    <>
+                                        <UserPlus className="w-4 h-4 mr-2" />
+                                        Add Staff Member
+                                    </>
+                                )}
                             </Button>
                         </div>
                     </div>
@@ -224,7 +311,11 @@ export default function StaffManagementPage() {
                             <h2 className="text-lg font-bold text-gray-900">Team Members</h2>
                         </div>
 
-                        {staffMembers.length === 0 ? (
+                        {isLoading ? (
+                            <div className="flex justify-center py-12">
+                                <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                            </div>
+                        ) : staffMembers.length === 0 ? (
                             <div className="text-center py-12">
                                 <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No Staff Members</h3>
@@ -245,22 +336,20 @@ export default function StaffManagementPage() {
                                         <TableRow key={member.id}>
                                             <TableCell className="font-medium">{member.name}</TableCell>
                                             <TableCell>
-                                                {member.canBook ? (
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                        Yes
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                                        No
-                                                    </span>
-                                                )}
+                                                <Switch
+                                                    checked={member.is_active}
+                                                    onCheckedChange={() => handleToggleAvailability(member.id, member.is_active, member.name)}
+                                                />
                                             </TableCell>
-                                            <TableCell>{member.languages.join(", ")}</TableCell>
+                                            <TableCell>
+                                                {/* Placeholder for languages as API doesn't return them yet */}
+                                                <span className="text-gray-400 text-sm">English</span>
+                                            </TableCell>
                                             <TableCell className="text-right">
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    onClick={() => handleDeleteStaffMember(member.id)}
+                                                    onClick={() => handleDeleteStaffMember(member.id, member.name)}
                                                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                                 >
                                                     <Trash2 className="w-4 h-4" />

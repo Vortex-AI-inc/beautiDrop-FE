@@ -3,19 +3,26 @@
 import { useEffect, useState } from "react"
 import { fetchPublicShop } from "@/lib/api/shop"
 import { fetchPublicServices } from "@/lib/api/services"
+import { fetchPublicShopSchedules } from "@/lib/api/schedules"
 import type { Shop } from "@/types/shop"
 import type { Service } from "@/types/service"
+import type { Schedule } from "@/types/schedule"
 import { Button } from "@/components/ui/button"
-import { MapPin, Star, Clock, Phone, Mail, Globe, Loader2 } from "lucide-react"
+import { MapPin, Star, Clock, Phone, Mail, Globe, Loader2, Menu, X } from "lucide-react"
 import { useParams } from "next/navigation"
 import DarkVeil from "@/components/DarkVeil"
+import BookingModal from "@/components/BookingModal"
 
 export default function SalonLandingPage() {
     const params = useParams()
     const shopId = params.shopId as string
     const [shop, setShop] = useState<Shop | null>(null)
     const [services, setServices] = useState<Service[]>([])
+    const [schedules, setSchedules] = useState<Schedule[]>([])
     const [isLoading, setIsLoading] = useState(true)
+    const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
+    const [selectedService, setSelectedService] = useState<Service | null>(null)
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
     useEffect(() => {
         if (shopId) {
@@ -30,8 +37,12 @@ export default function SalonLandingPage() {
             setShop(shopData)
 
             if (shopData) {
-                const servicesData = await fetchPublicServices(shopId)
+                const [servicesData, schedulesData] = await Promise.all([
+                    fetchPublicServices(shopId),
+                    fetchPublicShopSchedules(shopId)
+                ])
                 setServices(servicesData)
+                setSchedules(schedulesData)
             }
         } catch (error) {
             console.error("Failed to load shop details", error)
@@ -100,14 +111,46 @@ export default function SalonLandingPage() {
                 <div className="max-w-7xl mx-auto">
                     <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-full px-6 py-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-
                             <span className="text-white font-semibold text-lg">{shop.name}</span>
                         </div>
+
+                        {/* Desktop Navigation */}
                         <nav className="hidden md:flex items-center gap-8">
                             <a href="#services" className="text-white/80 hover:text-white transition-colors text-sm">Services</a>
                             <a href="#contact" className="text-white/80 hover:text-white transition-colors text-sm">Contact</a>
                         </nav>
+
+                        {/* Mobile Menu Button */}
+                        <button
+                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                            className="md:hidden text-white p-2 hover:bg-white/10 rounded-lg transition-colors"
+                            aria-label="Toggle menu"
+                        >
+                            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                        </button>
                     </div>
+
+                    {/* Mobile Menu Dropdown */}
+                    {isMobileMenuOpen && (
+                        <div className="md:hidden mt-4 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
+                            <nav className="flex flex-col">
+                                <a
+                                    href="#services"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="text-white/80 hover:text-white hover:bg-white/10 transition-colors px-6 py-4 border-b border-white/10"
+                                >
+                                    Services
+                                </a>
+                                <a
+                                    href="#contact"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="text-white/80 hover:text-white hover:bg-white/10 transition-colors px-6 py-4"
+                                >
+                                    Contact
+                                </a>
+                            </nav>
+                        </div>
+                    )}
                 </div>
             </header>
 
@@ -145,6 +188,12 @@ export default function SalonLandingPage() {
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                         <Button
                             size="lg"
+                            onClick={() => {
+                                const servicesSection = document.getElementById('services')
+                                if (servicesSection) {
+                                    servicesSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                                }
+                            }}
                             className="bg-white hover:bg-white/90 text-black px-10 py-6 text-lg font-medium rounded-xl shadow-lg border-0"
                         >
                             Book Appointment
@@ -171,7 +220,6 @@ export default function SalonLandingPage() {
                 </div>
             </section>
 
-            {/* Services Section */}
             <section id="services" className="relative z-10 py-20 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-7xl mx-auto">
                     <div className="flex items-center gap-6 mb-16">
@@ -207,6 +255,10 @@ export default function SalonLandingPage() {
                                         </div>
                                         <Button
                                             size="lg"
+                                            onClick={() => {
+                                                setSelectedService(service)
+                                                setIsBookingModalOpen(true)
+                                            }}
                                             className="bg-white hover:bg-white/90 text-black px-6 py-2 rounded-lg font-medium"
                                         >
                                             Book Now
@@ -214,6 +266,45 @@ export default function SalonLandingPage() {
                                     </div>
                                 </div>
                             ))}
+                        </div>
+                    )}
+                </div>
+            </section>
+
+            {/* Business Hours Section */}
+            <section className="relative z-10 py-20 px-4 sm:px-6 lg:px-8 bg-white/5 border-y border-white/10">
+                <div className="max-w-3xl mx-auto text-center">
+                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-12">Business Hours</h2>
+
+                    {schedules.length === 0 ? (
+                        <p className="text-white/60">Hours not available</p>
+                    ) : (
+                        <div className="grid gap-4 bg-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/10">
+                            {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => {
+                                const schedule = schedules.find(s => s.day_of_week.toLowerCase() === day.toLowerCase())
+                                const isActive = schedule?.is_active
+
+                                // Convert 24-hour time to 12-hour format
+                                const formatTime = (time: string) => {
+                                    const [hours, minutes] = time.split(':').map(Number)
+                                    const period = hours >= 12 ? 'PM' : 'AM'
+                                    const displayHours = hours % 12 || 12
+                                    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`
+                                }
+
+                                return (
+                                    <div key={day} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
+                                        <span className="text-white/80 font-medium">{day}</span>
+                                        <span className={`font-medium ${isActive ? 'text-white' : 'text-white/40'}`}>
+                                            {isActive && schedule ? (
+                                                `${formatTime(schedule.start_time)} - ${formatTime(schedule.end_time)}`
+                                            ) : (
+                                                'Closed'
+                                            )}
+                                        </span>
+                                    </div>
+                                )
+                            })}
                         </div>
                     )}
                 </div>
@@ -239,6 +330,14 @@ export default function SalonLandingPage() {
                     </div>
                 </div>
             </footer>
+
+            {/* Booking Modal */}
+            <BookingModal
+                isOpen={isBookingModalOpen}
+                onClose={() => setIsBookingModalOpen(false)}
+                service={selectedService}
+                shopId={shopId}
+            />
         </div>
     )
 }

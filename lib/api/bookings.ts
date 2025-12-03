@@ -64,6 +64,40 @@ export async function fetchAllBookings(token: string): Promise<CustomerBooking[]
     }
 }
 
+export async function fetchShopBookings(
+    shopId: string,
+    token: string
+): Promise<CustomerBooking[]> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/bookings/shop/${shopId}/`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        })
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch shop bookings: ${response.statusText}`)
+        }
+
+        const data = await response.json()
+
+        if (Array.isArray(data)) {
+            return data
+        } else if (data.results && Array.isArray(data.results)) {
+            return data.results
+        } else if (data.data && Array.isArray(data.data)) {
+            return data.data
+        }
+
+        return []
+    } catch (error) {
+        console.error('Error fetching shop bookings:', error)
+        throw error
+    }
+}
+
 export async function createBooking(
     data: CreateBookingData,
     token: string

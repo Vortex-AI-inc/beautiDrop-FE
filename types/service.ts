@@ -1,13 +1,20 @@
+export interface AssignedStaff {
+    staff_id: string
+    staff_name: string
+    is_primary: boolean
+}
+
 export interface Service {
-    id: number
-    shop_id: string
+    id: string
+    shop: string
+    shop_name: string
     name: string
     description: string
     price: string
     category?: string
     duration_minutes: number
     is_active: boolean
-    staff?: { id: number; name: string }[]
+    assigned_staff?: AssignedStaff[]
     created_at?: string
     updated_at?: string
 }

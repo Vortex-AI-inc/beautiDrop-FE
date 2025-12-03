@@ -13,7 +13,11 @@ import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@clerk/nextjs"
 import { createService, fetchServices, deleteService, updateService, toggleServiceActive } from "@/lib/api/services"
 import type { Service } from "@/types/service"
+import type { StaffMember } from "@/types/staff"
+import { fetchShopStaff } from "@/lib/api/staff"
+import { assignServices } from "@/lib/api/staff"
 import { Switch } from "@/components/ui/switch"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
     Dialog,
     DialogContent,
@@ -56,6 +60,14 @@ export default function ServicesManagementPage() {
         category: "",
         description: ""
     })
+
+    // Staff assignment modal state
+    const [isStaffModalOpen, setIsStaffModalOpen] = useState(false)
+    const [selectedServiceForStaff, setSelectedServiceForStaff] = useState<Service | null>(null)
+    const [availableStaff, setAvailableStaff] = useState<StaffMember[]>([])
+    const [selectedStaffIds, setSelectedStaffIds] = useState<string[]>([])
+    const [isLoadingStaff, setIsLoadingStaff] = useState(false)
+    const [isAssigningStaff, setIsAssigningStaff] = useState(false)
 
     const CATEGORIES = [
         "Haircut",
@@ -255,6 +267,83 @@ export default function ServicesManagementPage() {
         }
     }
 
+    const handleAssignStaffClick = async (service: Service) => {
+        setSelectedServiceForStaff(service)
+        setIsStaffModalOpen(true)
+        setIsLoadingStaff(true)
+
+        // Pre-select already assigned staff
+        const assignedStaffIds = service.assigned_staff?.map(s => s.staff_id) || []
+        setSelectedStaffIds(assignedStaffIds)
+
+        try {
+            const token = await getToken()
+            if (!token) return
+
+            const staff = await fetchShopStaff(shopId, token)
+            setAvailableStaff(staff)
+        } catch (error) {
+            console.error("Failed to load staff", error)
+            toast({
+                title: "Error",
+                description: "Failed to load staff members.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsLoadingStaff(false)
+        }
+    }
+
+    const handleStaffToggle = (staffId: string) => {
+        setSelectedStaffIds(prev => {
+            if (prev.includes(staffId)) {
+                return prev.filter(id => id !== staffId)
+            } else {
+                return [...prev, staffId]
+            }
+        })
+    }
+
+    const handleAssignStaff = async () => {
+        if (!selectedServiceForStaff) return
+
+        setIsAssigningStaff(true)
+
+        try {
+            const token = await getToken()
+            if (!token) throw new Error("No authentication token")
+
+            // Convert string IDs to numbers for the API
+            const serviceIds = [selectedServiceForStaff.id]
+
+            // Assign service to each selected staff member
+            for (const staffId of selectedStaffIds) {
+                await assignServices(staffId, { service_ids: serviceIds }, token)
+            }
+
+            // Refresh services to get updated staff assignments
+            await loadServices()
+
+            toast({
+                title: "Staff assigned",
+                description: `${selectedStaffIds.length} staff member(s) assigned to ${selectedServiceForStaff.name}.`,
+            })
+
+            setIsStaffModalOpen(false)
+            setSelectedServiceForStaff(null)
+            setSelectedStaffIds([])
+        } catch (error) {
+            console.error("Failed to assign staff", error)
+            toast({
+                title: "Error",
+                description: "Failed to assign staff. Please try again.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsAssigningStaff(false)
+        }
+    }
+
     return (
         <main className="min-h-screen bg-slate-50">
             <Header />
@@ -291,7 +380,7 @@ export default function ServicesManagementPage() {
                     </div>
 
                     {/* Action Required Banner */}
-                    {services.some(s => !s.staff || s.staff.length === 0) && (
+                    {services.some(s => !s.assigned_staff || s.assigned_staff.length === 0) && (
                         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-8 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -385,7 +474,7 @@ export default function ServicesManagementPage() {
                             <Button
                                 className="bg-blue-600 hover:bg-blue-700 text-white"
                                 onClick={handleSubmit}
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || !formData.name.trim() || !formData.duration || parseFloat(formData.duration) <= 0 || !formData.price || parseFloat(formData.price) <= 0}
                             >
                                 {isSubmitting ? (
                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -471,6 +560,83 @@ export default function ServicesManagementPage() {
                         </DialogContent>
                     </Dialog>
 
+                    {/* Staff Assignment Modal */}
+                    <Dialog open={isStaffModalOpen} onOpenChange={setIsStaffModalOpen}>
+                        <DialogContent className="sm:max-w-[500px]">
+                            <DialogHeader>
+                                <DialogTitle>Assign Staff to {selectedServiceForStaff?.name}</DialogTitle>
+                                <DialogDescription>
+                                    Select staff members who can perform this service.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="py-4">
+                                {isLoadingStaff ? (
+                                    <div className="flex justify-center py-8">
+                                        <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+                                    </div>
+                                ) : availableStaff.length === 0 ? (
+                                    <div className="text-center py-8">
+                                        <p className="text-gray-500 mb-4">No staff members available.</p>
+                                        <Link href={`/portal/${shopId}/staff`}>
+                                            <Button variant="outline" size="sm">
+                                                Add Staff Members
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                                        {availableStaff.map((staff) => (
+                                            <div
+                                                key={staff.id}
+                                                className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
+                                                onClick={() => handleStaffToggle(staff.id)}
+                                            >
+                                                <Checkbox
+                                                    checked={selectedStaffIds.includes(staff.id)}
+                                                    onCheckedChange={() => handleStaffToggle(staff.id)}
+                                                />
+                                                <div className="flex-1">
+                                                    <p className="font-medium text-gray-900">{staff.name}</p>
+                                                    {staff.email && (
+                                                        <p className="text-sm text-gray-500">{staff.email}</p>
+                                                    )}
+                                                </div>
+                                                {staff.is_active ? (
+                                                    <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">
+                                                        Active
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
+                                                        Inactive
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setIsStaffModalOpen(false)}>
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={handleAssignStaff}
+                                    disabled={isAssigningStaff || selectedStaffIds.length === 0}
+                                    className="bg-blue-600 text-white"
+                                >
+                                    {isAssigningStaff ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            Assigning...
+                                        </>
+                                    ) : (
+                                        `Assign ${selectedStaffIds.length} Staff`
+                                    )}
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+
                     {/* Your Services Card */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                         <div className="bg-teal-500 px-6 py-4 flex items-center gap-2">
@@ -497,18 +663,18 @@ export default function ServicesManagementPage() {
                                             <TableHead className="font-bold text-gray-900">Service</TableHead>
                                             <TableHead className="font-bold text-gray-900">Duration</TableHead>
                                             <TableHead className="font-bold text-gray-900">Price</TableHead>
-                                            <TableHead className="font-bold text-gray-900">Category</TableHead>
                                             <TableHead className="font-bold text-gray-900">Description</TableHead>
+                                            <TableHead className="font-bold text-gray-900"> Category</TableHead>
                                             <TableHead className="font-bold text-gray-900">Staff</TableHead>
                                             <TableHead className="text-right font-bold text-gray-900">Actions</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {services.map((service) => (
-                                            <TableRow key={service.id} className={(!service.staff || service.staff.length === 0) ? "bg-yellow-50/50 hover:bg-yellow-50" : ""}>
+                                            <TableRow key={service.id} className={(!service.assigned_staff || service.assigned_staff.length === 0) ? "bg-yellow-50/50 hover:bg-yellow-50" : ""}>
                                                 <TableCell className="font-medium">
                                                     <div className="flex items-center gap-2">
-                                                        {(!service.staff || service.staff.length === 0) && (
+                                                        {(!service.assigned_staff || service.assigned_staff.length === 0) && (
                                                             <div className="w-4 h-4 rounded-full bg-yellow-400 flex items-center justify-center text-[10px] font-bold text-white">!</div>
                                                         )}
                                                         {service.name}
@@ -525,21 +691,34 @@ export default function ServicesManagementPage() {
                                                     </span>
                                                 </TableCell>
                                                 <TableCell>
-                                                    {(!service.staff || service.staff.length === 0) ? (
+                                                    {(!service.assigned_staff || service.assigned_staff.length === 0) ? (
                                                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
                                                             <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full mr-1.5"></span>
                                                             Not Assigned
                                                         </span>
                                                     ) : (
-                                                        <span className="text-sm text-gray-600">{service.staff.length} staff</span>
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {service.assigned_staff.map((staff, index) => (
+                                                                <span
+                                                                    key={staff.staff_id}
+                                                                    className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200"
+                                                                >
+                                                                    {staff.staff_name}
+                                                                    {staff.is_primary && (
+                                                                        <span className="ml-1 text-[10px]">★</span>
+                                                                    )}
+                                                                </span>
+                                                            ))}
+                                                        </div>
                                                     )}
                                                 </TableCell>
                                                 <TableCell className="text-right">
                                                     <div className="flex items-center justify-end gap-1">
-                                                        {(!service.staff || service.staff.length === 0) && (
+                                                        {(!service.assigned_staff || service.assigned_staff.length === 0) && (
                                                             <Button
                                                                 size="sm"
                                                                 className="bg-yellow-400 hover:bg-yellow-500 text-black border-0 text-xs font-semibold h-7"
+                                                                onClick={() => handleAssignStaffClick(service)}
                                                             >
                                                                 + Assign Now
                                                             </Button>

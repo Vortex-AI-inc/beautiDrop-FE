@@ -216,3 +216,28 @@ export async function fetchPublicShop(shopId: string): Promise<Shop | null> {
         throw error
     }
 }
+
+export async function toggleShopActive(
+    shopId: string,
+    token: string
+): Promise<Shop> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/shops/${shopId}/toggle_active/`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        })
+
+        if (!response.ok) {
+            throw new Error(`Failed to toggle shop status: ${response.statusText}`)
+        }
+
+        const data: Shop = await response.json()
+        return data
+    } catch (error) {
+        console.error('Error toggling shop status:', error)
+        throw error
+    }
+}

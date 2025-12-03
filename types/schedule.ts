@@ -38,11 +38,16 @@ export interface TimeSlotGenerateData {
 
 export interface TimeSlot {
     id: string
-    shop: string
-    date: string
-    start_time: string
-    end_time: string
-    is_booked: boolean
+    schedule: string
+    shop_name: string
+    start_datetime: string
+    end_datetime: string
+    duration_minutes: number
+    status: string
+    is_available: boolean
     created_at: string
     updated_at: string
+    staff_member?: string  // Staff member ID
+    staff_member_name?: string
+    staff_name?: string
 }

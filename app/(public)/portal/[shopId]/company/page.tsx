@@ -105,6 +105,8 @@ export default function CompanyProfilePage() {
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+    const [isApplyAllModalOpen, setIsApplyAllModalOpen] = useState(false)
+    const [isApplyingToAll, setIsApplyingToAll] = useState(false)
     const [selectedDay, setSelectedDay] = useState<string>("")
     const [newSlotTime, setNewSlotTime] = useState({ start_time: "09:00", end_time: "17:00" })
     const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null)
@@ -249,6 +251,82 @@ export default function CompanyProfilePage() {
                 description: "Failed to delete time slot. Please try again.",
                 variant: "destructive"
             })
+        }
+    }
+
+    const handleApplyToAllDays = async () => {
+        if (!newSlotTime.start_time || !newSlotTime.end_time) {
+            toast({
+                title: "Error",
+                description: "Please fill in all fields.",
+                variant: "destructive"
+            })
+            return
+        }
+
+        try {
+            setIsApplyingToAll(true)
+            const token = await getToken()
+            if (!token) return
+
+            // For each day, check if schedule exists
+            const promises = DAYS.map(async (day) => {
+                const daySchedules = getDaySchedules(day)
+
+                if (daySchedules.length > 0) {
+                    // Update existing schedule using PATCH
+                    const existingSchedule = daySchedules[0]
+                    const payload = {
+                        start_time: newSlotTime.start_time,
+                        end_time: newSlotTime.end_time,
+                    }
+                    return updateSchedule(existingSchedule.id, payload, token)
+                } else {
+                    // Create new schedule using POST
+                    const payload = {
+                        shop_id: shopId,
+                        day_of_week: day.toLowerCase(),
+                        start_time: newSlotTime.start_time,
+                        end_time: newSlotTime.end_time,
+                        is_active: true
+                    }
+                    return createSchedule(payload, token)
+                }
+            })
+
+            const updatedSchedules = await Promise.all(promises)
+
+            // Update local state
+            setSchedules(prev => {
+                const newSchedules = [...prev]
+                updatedSchedules.forEach(updated => {
+                    const index = newSchedules.findIndex(s => s.id === updated.id)
+                    if (index !== -1) {
+                        newSchedules[index] = updated
+                    } else {
+                        newSchedules.push(updated)
+                    }
+                })
+                return newSchedules
+            })
+
+            toast({
+                title: "Success",
+                description: "Business hours applied to all days successfully.",
+            })
+            setIsApplyAllModalOpen(false)
+
+            // Reload schedules to show updated hours
+            await loadSchedules()
+        } catch (error: any) {
+            console.error("Failed to apply hours to all days", error)
+            toast({
+                title: "Error",
+                description: error.message || "Failed to apply hours. Please try again.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsApplyingToAll(false)
         }
     }
 
@@ -455,9 +533,22 @@ export default function CompanyProfilePage() {
                         </div>
 
                         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-                            <div className="flex items-center gap-2 mb-6">
-                                <Clock className="w-5 h-5 text-blue-600" />
-                                <h2 className="text-lg font-bold text-gray-900">Business Hours</h2>
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center gap-2">
+                                    <Clock className="w-5 h-5 text-blue-600" />
+                                    <h2 className="text-lg font-bold text-gray-900">Business Hours</h2>
+                                </div>
+                                <Button
+                                    size="sm"
+                                    onClick={() => {
+                                        setNewSlotTime({ start_time: "09:00", end_time: "17:00" })
+                                        setIsApplyAllModalOpen(true)
+                                    }}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                                >
+                                    <Clock className="w-3 h-3 mr-1" />
+                                    Apply to All Days
+                                </Button>
                             </div>
 
                             {isLoadingSchedules ? (
@@ -605,9 +696,61 @@ export default function CompanyProfilePage() {
                                     </DialogFooter>
                                 </DialogContent>
                             </Dialog>
+
+                            {/* Apply to All Days Modal */}
+                            <Dialog open={isApplyAllModalOpen} onOpenChange={setIsApplyAllModalOpen}>
+                                <DialogContent className="sm:max-w-[425px]">
+                                    <DialogHeader>
+                                        <DialogTitle>Apply Hours to All Days</DialogTitle>
+                                        <DialogDescription>
+                                            Set the same business hours for all days of the week.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="grid gap-4 py-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="all-start-time">Start Time</Label>
+                                                <Input
+                                                    id="all-start-time"
+                                                    type="time"
+                                                    value={newSlotTime.start_time}
+                                                    onChange={(e) => setNewSlotTime(prev => ({ ...prev, start_time: e.target.value }))}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="all-end-time">End Time</Label>
+                                                <Input
+                                                    id="all-end-time"
+                                                    type="time"
+                                                    value={newSlotTime.end_time}
+                                                    onChange={(e) => setNewSlotTime(prev => ({ ...prev, end_time: e.target.value }))}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                            <p className="text-sm text-blue-800">
+                                                ℹ️ This will update existing schedules and create new ones for days without hours set.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <DialogFooter>
+                                        <Button variant="outline" onClick={() => setIsApplyAllModalOpen(false)} disabled={isApplyingToAll}>Cancel</Button>
+                                        <Button onClick={handleApplyToAllDays} className="bg-blue-600 text-white" disabled={isApplyingToAll}>
+                                            {isApplyingToAll ? (
+                                                <>
+                                                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                                    Applying...
+                                                </>
+                                            ) : (
+                                                "Apply to All Days"
+                                            )}
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
                         </div>
 
-                        show
+
                     </div>
                 </div>
             )}

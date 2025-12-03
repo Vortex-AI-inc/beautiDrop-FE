@@ -241,14 +241,14 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess }: CreateAgent
                         </div>
                     </div>
 
-                    {/* <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2">
                         <Switch
                             id="is_active"
                             checked={formData.is_active}
                             onCheckedChange={(checked) => updateField("is_active", checked)}
                         />
-                        <Label htmlFor="is_active">Activate agent immediately</Label>
-                    </div> */}
+                        <Label htmlFor="is_active">Activate Shop immediately</Label>
+                    </div>
 
                     <div className="flex gap-3 justify-end pt-4 border-t">
                         <Button
@@ -266,7 +266,7 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess }: CreateAgent
                                     Creating...
                                 </>
                             ) : (
-                                "Create Agent"
+                                "Create Shop"
                             )}
                         </Button>
                     </div>

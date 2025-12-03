@@ -41,6 +41,41 @@ export async function fetchShopSchedules(
     }
 }
 
+export async function fetchPublicShopSchedules(
+    shopId: string
+): Promise<Schedule[]> {
+    try {
+        const queryParams = new URLSearchParams({ shop_id: shopId })
+        const response = await fetch(`${API_BASE_URL}/api/v1/schedules/shop-schedules/?${queryParams.toString()}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch schedules: ${response.statusText}`)
+        }
+
+        const data = await response.json()
+
+        let schedules: Schedule[] = []
+
+        if (Array.isArray(data)) {
+            schedules = data
+        } else if (data.data && Array.isArray(data.data)) {
+            schedules = data.data
+        } else if (data.results && Array.isArray(data.results)) {
+            schedules = data.results
+        }
+
+        return schedules
+    } catch (error) {
+        console.error('Error fetching public schedules:', error)
+        return []
+    }
+}
+
 export async function createSchedule(
     data: CreateScheduleData,
     token: string
@@ -180,6 +215,84 @@ export async function fetchTimeSlots(
         return []
     } catch (error) {
         console.error('Error fetching time slots:', error)
+        throw error
+    }
+}
+
+export async function checkTimeSlotAvailability(
+    shopId: string,
+    serviceId: string,
+    date: string
+): Promise<TimeSlot[]> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/schedules/time-slots/check_availability/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                shop_id: shopId,
+                service_id: serviceId,
+                date: date, // Format: YYYY-MM-DD
+            }),
+        })
+
+        if (!response.ok) {
+            throw new Error(`Failed to check availability: ${response.statusText}`)
+        }
+
+        const data = await response.json()
+
+        if (Array.isArray(data)) {
+            return data
+        } else if (data.results && Array.isArray(data.results)) {
+            return data.results
+        } else if (data.data && Array.isArray(data.data)) {
+            return data.data
+        }
+
+        return []
+    } catch (error) {
+        console.error('Error checking time slot availability:', error)
+        throw error
+    }
+}
+
+export async function fetchPublicTimeSlots(
+    shopId: string,
+    date: string
+): Promise<TimeSlot[]> {
+    try {
+        const queryParams = new URLSearchParams({
+            shop_id: shopId,
+            date: date,
+            status: 'available'
+        })
+
+        const response = await fetch(`${API_BASE_URL}/api/v1/schedules/time-slots/?${queryParams.toString()}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch time slots: ${response.statusText}`)
+        }
+
+        const data = await response.json()
+
+        if (Array.isArray(data)) {
+            return data
+        } else if (data.results && Array.isArray(data.results)) {
+            return data.results
+        } else if (data.data && Array.isArray(data.data)) {
+            return data.data
+        }
+
+        return []
+    } catch (error) {
+        console.error('Error fetching public time slots:', error)
         throw error
     }
 }
