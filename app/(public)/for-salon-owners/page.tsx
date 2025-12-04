@@ -34,13 +34,55 @@ import { Button } from "@/components/ui/button"
 import { Header } from "../../../components/layout/header"
 import { Footer } from "../../../components/layout/footer"
 import { useState } from "react"
+import { usePricingPlans } from "@/hooks/use-pricing-plans"
+import { useAuth } from "@clerk/nextjs"
+import { useToast } from "@/hooks/use-toast"
+import { createCheckoutSession } from "@/lib/api/subscriptions"
+import { useRouter } from "next/navigation"
+import { Loader2 } from "lucide-react"
 
 export default function ForSalonOwnersPage() {
+    const { getPlanByName, isLoading } = usePricingPlans()
+    const { getToken, isSignedIn } = useAuth()
+    const { toast } = useToast()
+    const router = useRouter()
+    const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
+
+    const handleCheckout = async (stripePriceId: string) => {
+        if (!isSignedIn) {
+            toast({
+                title: "Authentication Required",
+                description: "Please sign in As Saloon Owner to subscribe to a plan.",
+                variant: "destructive",
+            })
+            router.push('/login')
+            return
+        }
+
+        setCheckoutLoading(stripePriceId)
+
+        try {
+            const checkoutUrl = await createCheckoutSession(stripePriceId, getToken)
+            window.location.href = checkoutUrl
+        } catch (error) {
+            console.error('Checkout error:', error)
+            toast({
+                title: "Checkout Failed",
+                description: error instanceof Error ? error.message : "Failed to create checkout session. Please try again.",
+                variant: "destructive",
+            })
+            setCheckoutLoading(null)
+        }
+    }
+
+    const starterPlan = getPlanByName('Starter')
+    const professionalPlan = getPlanByName('Professional')
+    const enterprisePlan = getPlanByName('Enterprise')
+
     return (
         <main className="min-h-screen bg-white">
             <Header />
 
-            {/* Hero Section */}
             <section className="relative pt-20 pb-32 overflow-hidden min-h-[90dvh]">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-purple-900 to-orange-900 opacity-90"></div>
                 <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1560066984-138dadb4c035?ixlib=rb-4.0.3&auto=format&fit=crop&w=2074&q=80')] bg-cover bg-center mix-blend-overlay"></div>
@@ -62,12 +104,24 @@ export default function ForSalonOwnersPage() {
                                 Streamline operations, boost client satisfaction, and increase revenue with our comprehensive salon management platform designed specifically for beauty professionals.
                             </p>
                             <div className="flex flex-wrap gap-4">
-                                <Link href="/contact">
-                                    <Button variant="outline" className="h-12 px-6 border-2 border-gray-200 hover:border-blue-600 hover:text-blue-600 font-semibold rounded-lg flex items-center gap-2">
-                                        <Mail className="w-4 h-4" />
-                                        Contact Sales
-                                    </Button>
-                                </Link>
+                                <Button
+                                    variant="outline"
+                                    className="h-12 px-6 border-2 border-gray-200 hover:border-blue-600 hover:text-blue-600 font-semibold rounded-lg flex items-center gap-2"
+                                    onClick={() => handleCheckout(enterprisePlan?.stripe_price_id || '')}
+                                    disabled={!!checkoutLoading}
+                                >
+                                    {checkoutLoading === enterprisePlan?.stripe_price_id ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Mail className="w-4 h-4" />
+                                            Contact Sales
+                                        </>
+                                    )}
+                                </Button>
                                 <Link href="/features">
                                     <Button className="h-14 px-8 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg backdrop-blur-sm border border-white/20 flex items-center gap-2">
                                         <Play className="w-5 h-5 fill-current" />
@@ -104,7 +158,6 @@ export default function ForSalonOwnersPage() {
                 </div>
             </section>
 
-            {/* Features Grid */}
             <section className="py-20 bg-gray-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-16">
@@ -184,7 +237,6 @@ export default function ForSalonOwnersPage() {
                 </div>
             </section>
 
-            {/* Pricing Section */}
             <section className="py-20 bg-white">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-12">
@@ -199,125 +251,177 @@ export default function ForSalonOwnersPage() {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                        {/* Starter Plan */}
-                        <div className="bg-white rounded-2xl p-8 border-2 border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-xl">
-                            <div className="w-12 h-12 bg-cyan-100 rounded-xl flex items-center justify-center mb-4">
-                                <Sparkles className="w-6 h-6 text-cyan-600" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-2">Starter</h3>
-                            <p className="text-gray-600 mb-6">Perfect for independent stylists</p>
-                            <div className="mb-6">
-                                <span className="text-5xl font-bold text-gray-900">$88</span>
-                                <span className="text-gray-600">/month</span>
-                            </div>
-                            <div className="text-sm text-blue-600 font-semibold mb-6">
-                                14-Day Free Trial
-                            </div>
-                            <ul className="space-y-3 mb-8">
-                                {[
-                                    "Up to 100 appointments/mo",
-                                    "Basic Client Profiles",
-                                    "Email Reminders",
-                                    "1 Staff Login",
-                                    "Basic Reports"
-                                ].map((feature, i) => (
-                                    <li key={i} className="flex items-center gap-2 text-gray-700">
-                                        <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                                        <span>{feature}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                            <Link href="/signup">
-                                <Button className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg flex items-center justify-center">
-                                    Get Started
-                                    <ArrowRight className="w-4 h-4 ml-2" />
-                                </Button>
-                            </Link>
+                    {isLoading ? (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                            {[1, 2, 3].map((i) => (
+                                <div key={i} className="bg-white rounded-2xl p-8 border-2 border-gray-200 shadow-sm animate-pulse">
+                                    <div className="h-12 bg-gray-200 rounded-xl w-12 mb-4"></div>
+                                    <div className="h-8 bg-gray-200 rounded w-32 mb-2"></div>
+                                    <div className="h-4 bg-gray-200 rounded w-40 mb-6"></div>
+                                    <div className="h-12 bg-gray-200 rounded w-24 mb-6"></div>
+                                    <div className="h-4 bg-gray-200 rounded w-32 mb-6"></div>
+                                    <div className="space-y-3 mb-8">
+                                        {[1, 2, 3, 4, 5].map((j) => (
+                                            <div key={j} className="h-4 bg-gray-200 rounded"></div>
+                                        ))}
+                                    </div>
+                                    <div className="h-12 bg-gray-200 rounded"></div>
+                                </div>
+                            ))}
                         </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                            <div className="bg-white rounded-2xl p-8 border-2 border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-xl">
+                                <div className="w-12 h-12 bg-cyan-100 rounded-xl flex items-center justify-center mb-4">
+                                    <Sparkles className="w-6 h-6 text-cyan-600" />
+                                </div>
+                                <h3 className="text-2xl font-bold text-gray-900 mb-2">{starterPlan?.name}</h3>
+                                <p className="text-gray-600 mb-6">Perfect for independent stylists</p>
+                                <div className="mb-6">
+                                    <span className="text-5xl font-bold text-gray-900">
+                                        ${starterPlan?.amount ? parseFloat(starterPlan.amount).toFixed(0) : '88'}
+                                    </span>
+                                    <span className="text-gray-600">/month</span>
+                                </div>
+                                <div className="text-sm text-blue-600 font-semibold mb-6">
+                                    14-Day Free Trial
+                                </div>
+                                <ul className="space-y-3 mb-8">
+                                    {[
+                                        "Up to 100 appointments/mo",
+                                        "Basic Client Profiles",
+                                        "Email Reminders",
+                                        "1 Staff Login",
+                                        "Basic Reports"
+                                    ].map((feature, i) => (
+                                        <li key={i} className="flex items-center gap-2 text-gray-700">
+                                            <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                                            <span>{feature}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <Button
+                                    className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg flex items-center justify-center"
+                                    onClick={() => handleCheckout(starterPlan?.stripe_price_id || '')}
+                                    disabled={!!checkoutLoading}
+                                >
+                                    {checkoutLoading === starterPlan?.stripe_price_id ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            Get Started
+                                            <ArrowRight className="w-4 h-4 ml-2" />
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
 
-                        {/* Professional Plan - Popular */}
-                        <div className="bg-white rounded-2xl p-8 border-2 border-blue-600 relative shadow-2xl transform scale-105 z-10">
-                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-6 py-1.5 rounded-full text-sm font-bold uppercase tracking-wide">
-                                Most Popular
-                            </div>
-                            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
-                                <Store className="w-6 h-6 text-blue-600" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-2">Professional</h3>
-                            <p className="text-gray-600 mb-6">Best for growing salons</p>
-                            <div className="mb-6">
-                                <span className="text-5xl font-bold text-gray-900">$188</span>
-                                <span className="text-gray-600">/month</span>
-                            </div>
-                            <div className="text-sm text-blue-600 font-semibold mb-6">
-                                Everything in Starter +
-                            </div>
-                            <ul className="space-y-3 mb-8">
-                                {[
-                                    "Unlimited Appointments",
-                                    "SMS & Email Reminders",
-                                    "Inventory Management",
-                                    "Up to 5 Staff Logins",
-                                    "Advanced Analytics",
-                                    "Marketing Suite"
-                                ].map((feature, i) => (
-                                    <li key={i} className="flex items-center gap-2 text-gray-700">
-                                        <Check className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                                        <span>{feature}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                            <Link href="/signup/">
-                                <Button className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg">
-                                    Get Started
+                            <div className="bg-white rounded-2xl p-8 border-2 border-blue-600 relative shadow-2xl transform scale-105 z-10">
+                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-6 py-1.5 rounded-full text-sm font-bold uppercase tracking-wide">
+                                    Most Popular
+                                </div>
+                                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
+                                    <Store className="w-6 h-6 text-blue-600" />
+                                </div>
+                                <h3 className="text-2xl font-bold text-gray-900 mb-2">{professionalPlan?.name}</h3>
+                                <p className="text-gray-600 mb-6">Best for growing salons</p>
+                                <div className="mb-6">
+                                    <span className="text-5xl font-bold text-gray-900">
+                                        ${professionalPlan?.amount ? parseFloat(professionalPlan.amount).toFixed(0) : '188'}
+                                    </span>
+                                    <span className="text-gray-600">/month</span>
+                                </div>
+                                <div className="text-sm text-blue-600 font-semibold mb-6">
+                                    Everything in Starter +
+                                </div>
+                                <ul className="space-y-3 mb-8">
+                                    {[
+                                        "Unlimited Appointments",
+                                        "SMS & Email Reminders",
+                                        "Inventory Management",
+                                        "Up to 5 Staff Logins",
+                                        "Advanced Analytics",
+                                        "Marketing Suite"
+                                    ].map((feature, i) => (
+                                        <li key={i} className="flex items-center gap-2 text-gray-700">
+                                            <Check className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                                            <span>{feature}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <Button
+                                    className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg"
+                                    onClick={() => handleCheckout(professionalPlan?.stripe_price_id || '')}
+                                    disabled={!!checkoutLoading}
+                                >
+                                    {checkoutLoading === professionalPlan?.stripe_price_id ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        "Get Started"
+                                    )}
                                 </Button>
-                            </Link>
-                        </div>
+                            </div>
 
-                        {/* Enterprise Plan */}
-                        <div className="bg-white rounded-2xl p-8 border-2 border-gray-200 hover:border-orange-300 transition-all duration-300 hover:shadow-xl">
-                            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-4">
-                                <Building2 className="w-6 h-6 text-orange-600" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
-                            <p className="text-gray-600 mb-6">For multi-location salons</p>
-                            <div className="mb-6">
-                                <span className="text-5xl font-bold text-gray-900">$388</span>
-                                <span className="text-gray-600">/month</span>
-                            </div>
-                            <div className="text-sm text-blue-600 font-semibold mb-6">
-                                Everything in Professional +
-                            </div>
-                            <ul className="space-y-3 mb-8">
-                                {[
-                                    "Multi-Location Support",
-                                    "Dedicated Account Manager",
-                                    "Custom API Access",
-                                    "Unlimited Staff",
-                                    "White-label Options",
-                                    "Priority Support"
-                                ].map((feature, i) => (
-                                    <li key={i} className="flex items-center gap-2 text-gray-700">
-                                        <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                                        <span>{feature}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                            <Link href="/contact">
-                                <Button className="w-full h-12 bg-gray-50 hover:bg-gray-100 text-gray-900 font-semibold rounded-lg border border-gray-200 flex items-center justify-center">
-                                    <Mail className="w-4 h-4 mr-2" />
-                                    Contact Sales
+                            <div className="bg-white rounded-2xl p-8 border-2 border-gray-200 hover:border-orange-300 transition-all duration-300 hover:shadow-xl">
+                                <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-4">
+                                    <Building2 className="w-6 h-6 text-orange-600" />
+                                </div>
+                                <h3 className="text-2xl font-bold text-gray-900 mb-2">{enterprisePlan?.name}</h3>
+                                <p className="text-gray-600 mb-6">For multi-location salons</p>
+                                <div className="mb-6">
+                                    <span className="text-5xl font-bold text-gray-900">
+                                        ${enterprisePlan?.amount ? parseFloat(enterprisePlan.amount).toFixed(0) : '388'}
+                                    </span>
+                                    <span className="text-gray-600">/month</span>
+                                </div>
+                                <div className="text-sm text-blue-600 font-semibold mb-6">
+                                    Everything in Professional +
+                                </div>
+                                <ul className="space-y-3 mb-8">
+                                    {[
+                                        "Multi-Location Support",
+                                        "Dedicated Account Manager",
+                                        "Custom API Access",
+                                        "Unlimited Staff",
+                                        "White-label Options",
+                                        "Priority Support"
+                                    ].map((feature, i) => (
+                                        <li key={i} className="flex items-center gap-2 text-gray-700">
+                                            <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                                            <span>{feature}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <Button
+                                    className="w-full h-12 bg-gray-50 hover:bg-gray-100 text-gray-900 font-semibold rounded-lg border border-gray-200 flex items-center justify-center"
+                                    onClick={() => handleCheckout(enterprisePlan?.stripe_price_id || '')}
+                                    disabled={!!checkoutLoading}
+                                >
+                                    {checkoutLoading === enterprisePlan?.stripe_price_id ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Mail className="w-4 h-4 mr-2" />
+                                            Contact Sales
+                                        </>
+                                    )}
                                 </Button>
-                            </Link>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </section>
 
-            {/* Final CTA Section */}
             <section className="py-24 bg-gradient-to-br from-blue-900 via-purple-900 to-purple-800 relative overflow-hidden">
-                {/* Background Elements */}
                 <div className="absolute top-0 left-0 w-full h-full bg-[url('https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')] bg-cover bg-center opacity-10 mix-blend-overlay"></div>
                 <div className="absolute top-20 left-10 w-4 h-4 bg-yellow-400 rounded-full blur-[2px]"></div>
                 <div className="absolute top-40 right-10 w-6 h-6 bg-green-400 rounded-full blur-[2px]"></div>
@@ -336,7 +440,6 @@ export default function ForSalonOwnersPage() {
                             Join thousands of successful salon owners who have increased their revenue by an average of 45% with our platform. Start your 14-day free trial today!
                         </p>
 
-                        {/* Feature Cards */}
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto">
                             {[
                                 { icon: Rocket, title: "Quick Setup", desc: "Get started in minutes", color: "text-yellow-400", bg: "bg-yellow-400/20" },
@@ -353,15 +456,25 @@ export default function ForSalonOwnersPage() {
                             ))}
                         </div>
 
-                        {/* Main CTAs */}
                         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-                            <Link href="/signup/">
-                                <Button className="h-14 px-8 bg-yellow-400 hover:bg-yellow-500 text-gray-900 text-lg font-bold rounded-xl shadow-lg shadow-yellow-400/20 flex items-center gap-2">
-                                    <Rocket className="w-5 h-5" />
-                                    Start Free Trial
-                                    <span className="text-xs bg-gray-900/10 px-2 py-0.5 rounded-full ml-1">INSTANT ACCESS</span>
-                                </Button>
-                            </Link>
+                            <Button
+                                className="h-14 px-8 bg-yellow-400 hover:bg-yellow-500 text-gray-900 text-lg font-bold rounded-xl shadow-lg shadow-yellow-400/20 flex items-center gap-2"
+                                onClick={() => handleCheckout(starterPlan?.stripe_price_id || '')}
+                                disabled={!!checkoutLoading}
+                            >
+                                {checkoutLoading === starterPlan?.stripe_price_id ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                        Processing...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Rocket className="w-5 h-5" />
+                                        Start Free Trial
+                                        <span className="text-xs bg-gray-900/10 px-2 py-0.5 rounded-full ml-1">INSTANT ACCESS</span>
+                                    </>
+                                )}
+                            </Button>
                             <Link href="/contact/">
                                 <Button className="h-14 px-8 bg-white/10 hover:bg-white/20 text-white text-lg font-semibold rounded-xl backdrop-blur-sm border border-white/20 flex items-center gap-2">
                                     <Phone className="w-5 h-5" />
@@ -370,7 +483,6 @@ export default function ForSalonOwnersPage() {
                             </Link>
                         </div>
 
-                        {/* Orange Banner */}
                         <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-xl p-4 max-w-3xl mx-auto shadow-xl transform hover:scale-105 transition-transform duration-300">
                             <p className="text-white font-bold text-lg flex items-center justify-center gap-2">
                                 <Zap className="w-5 h-5 fill-current" />

@@ -52,7 +52,7 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess }: CreateAgent
 
             toast({
                 title: "Success!",
-                description: "Your AI agent has been created successfully.",
+                description: "Your shop has been created successfully.",
             })
 
             onSuccess()
@@ -75,7 +75,7 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess }: CreateAgent
         } catch (error) {
             toast({
                 title: "Error",
-                description: error instanceof Error ? error.message : "Failed to create agent",
+                description: error instanceof Error ? error.message : "Failed to create shop",
                 variant: "destructive",
             })
         } finally {

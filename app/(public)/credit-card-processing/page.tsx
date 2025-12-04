@@ -22,10 +22,51 @@ import {
     Phone,
     Gift,
     X,
-    MessageCircle
+    MessageCircle,
+    Loader2
 } from "lucide-react"
+import { useAuth } from "@clerk/nextjs"
+import { useToast } from "@/hooks/use-toast"
+import { createCheckoutSession } from "@/lib/api/subscriptions"
+import { useRouter } from "next/navigation"
+import { usePricingPlans } from "@/hooks/use-pricing-plans"
 
 export default function CreditCardProcessingPage() {
+    const { getToken, isSignedIn } = useAuth()
+    const { toast } = useToast()
+    const router = useRouter()
+    const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
+    const { getPlanByName } = usePricingPlans()
+
+    const professionalPlan = getPlanByName('Professional')
+
+    const handleCheckout = async (stripePriceId: string) => {
+        if (!isSignedIn) {
+            toast({
+                title: "Authentication Required",
+                description: "Please sign in As Saloon Owner to subscribe to a plan.",
+                variant: "destructive",
+            })
+            router.push('/login')
+            return
+        }
+
+        setCheckoutLoading(stripePriceId)
+
+        try {
+            const checkoutUrl = await createCheckoutSession(stripePriceId, getToken)
+            window.location.href = checkoutUrl
+        } catch (error) {
+            console.error('Checkout error:', error)
+            toast({
+                title: "Checkout Failed",
+                description: error instanceof Error ? error.message : "Failed to create checkout session. Please try again.",
+                variant: "destructive",
+            })
+            setCheckoutLoading(null)
+        }
+    }
+
     const [formData, setFormData] = useState({
         businessName: "",
         businessType: "",
@@ -73,7 +114,6 @@ export default function CreditCardProcessingPage() {
         <main className="min-h-screen bg-slate-50 flex flex-col">
             <Header />
 
-            {/* Hero Section */}
             <section className="bg-gradient-to-br from-blue-50 to-purple-50 pt-32 pb-20 px-4">
                 <div className="max-w-7xl mx-auto">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -117,12 +157,23 @@ export default function CreditCardProcessingPage() {
                             </div>
 
                             <div className="flex gap-4">
-                                <Link href="/signup">
-                                    <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-6 text-lg rounded-lg shadow-lg shadow-blue-600/20 flex items-center gap-2">
-                                        <Rocket className="w-5 h-5" />
-                                        Get Started Today
-                                    </Button>
-                                </Link>
+                                <Button
+                                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-6 text-lg rounded-lg shadow-lg shadow-blue-600/20 flex items-center gap-2"
+                                    onClick={() => handleCheckout(professionalPlan?.stripe_price_id || '')}
+                                    disabled={!!checkoutLoading}
+                                >
+                                    {checkoutLoading === professionalPlan?.stripe_price_id ? (
+                                        <>
+                                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Rocket className="w-5 h-5" />
+                                            Get Started Today
+                                        </>
+                                    )}
+                                </Button>
                                 <Link href="tel:916-268-1877">
                                     <Button variant="outline" className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold px-8 py-6 text-lg rounded-lg flex items-center gap-2">
                                         <Phone className="w-5 h-5" />
@@ -175,7 +226,6 @@ export default function CreditCardProcessingPage() {
                 </div>
             </section>
 
-            {/* Pricing Comparison Section */}
             <section className="py-20 px-4 bg-white">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-12">
@@ -188,7 +238,6 @@ export default function CreditCardProcessingPage() {
                     </div>
 
                     <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-                        {/* Header */}
                         <div className="grid grid-cols-5 bg-blue-600 text-white">
                             <div className="col-span-1 p-6 font-bold flex items-center">Feature</div>
                             <div className="col-span-1 p-6 text-center bg-blue-700/50 flex flex-col justify-center">
@@ -200,9 +249,7 @@ export default function CreditCardProcessingPage() {
                             <div className="col-span-1 p-6 text-center flex items-center justify-center font-semibold">Traditional Processors</div>
                         </div>
 
-                        {/* Rows */}
                         <div className="divide-y divide-gray-100">
-                            {/* Processing Rate */}
                             <div className="grid grid-cols-5 hover:bg-gray-50 transition-colors">
                                 <div className="col-span-1 p-6 font-semibold text-gray-900">Processing Rate</div>
                                 <div className="col-span-1 p-6 text-center font-bold text-blue-600 bg-blue-50/30">2.6% + 10¢</div>
@@ -211,7 +258,6 @@ export default function CreditCardProcessingPage() {
                                 <div className="col-span-1 p-6 text-center text-gray-600">3.5% + fees</div>
                             </div>
 
-                            {/* Monthly Fee */}
                             <div className="grid grid-cols-5 hover:bg-gray-50 transition-colors">
                                 <div className="col-span-1 p-6 font-semibold text-gray-900">Monthly Fee</div>
                                 <div className="col-span-1 p-6 text-center font-bold text-green-600 bg-blue-50/30">$0</div>
@@ -220,7 +266,6 @@ export default function CreditCardProcessingPage() {
                                 <div className="col-span-1 p-6 text-center text-gray-600">$15-50+</div>
                             </div>
 
-                            {/* Setup Fee */}
                             <div className="grid grid-cols-5 hover:bg-gray-50 transition-colors">
                                 <div className="col-span-1 p-6 font-semibold text-gray-900">Setup Fee</div>
                                 <div className="col-span-1 p-6 text-center font-bold text-green-600 bg-blue-50/30">$0</div>
@@ -229,7 +274,6 @@ export default function CreditCardProcessingPage() {
                                 <div className="col-span-1 p-6 text-center text-gray-600">$99-500+</div>
                             </div>
 
-                            {/* Card Reader */}
                             <div className="grid grid-cols-5 hover:bg-gray-50 transition-colors">
                                 <div className="col-span-1 p-6 font-semibold text-gray-900">Card Reader</div>
                                 <div className="col-span-1 p-6 text-center font-bold text-blue-600 bg-blue-50/30">Free with signup</div>
@@ -238,7 +282,6 @@ export default function CreditCardProcessingPage() {
                                 <div className="col-span-1 p-6 text-center text-gray-600">$200-800+</div>
                             </div>
 
-                            {/* Integration */}
                             <div className="grid grid-cols-5 bg-green-50/50">
                                 <div className="col-span-1 p-6 font-semibold text-gray-900">Beauty Drop AI Integration</div>
                                 <div className="col-span-1 p-6 text-center bg-green-100/50">
@@ -257,7 +300,6 @@ export default function CreditCardProcessingPage() {
                                 </div>
                             </div>
 
-                            {/* Contract */}
                             <div className="grid grid-cols-5 hover:bg-gray-50 transition-colors">
                                 <div className="col-span-1 p-6 font-semibold text-gray-900">Contract Required</div>
                                 <div className="col-span-1 p-6 text-center font-bold text-green-600 bg-blue-50/30">No</div>
@@ -266,7 +308,6 @@ export default function CreditCardProcessingPage() {
                                 <div className="col-span-1 p-6 text-center text-gray-600">Usually</div>
                             </div>
 
-                            {/* Support */}
                             <div className="grid grid-cols-5 hover:bg-gray-50 transition-colors">
                                 <div className="col-span-1 p-6 font-semibold text-gray-900">Support</div>
                                 <div className="col-span-1 p-6 text-center font-bold text-blue-600 bg-blue-50/30">24/7 Phone & Email</div>
@@ -279,11 +320,9 @@ export default function CreditCardProcessingPage() {
                 </div>
             </section>
 
-            {/* Calculator & Features Split */}
             <section className="py-20 px-4 bg-slate-50">
                 <div className="max-w-7xl mx-auto">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                        {/* Calculator */}
                         <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
                             <div className="flex items-center gap-3 mb-6">
                                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -332,7 +371,6 @@ export default function CreditCardProcessingPage() {
                                 </Button>
                             </div>
                         </div>
-                        {/* Why Choose Us */}
                         <div className="space-y-8 pt-4">
                             <h3 className="text-3xl font-bold text-gray-900 mb-8">Why Salons Choose Our Processing</h3>
 
@@ -359,17 +397,14 @@ export default function CreditCardProcessingPage() {
                 </div>
             </section>
 
-            {/* Application Section */}
             <section id="application-form" className="py-20 px-4 bg-white">
                 <div className="max-w-7xl mx-auto">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                        {/* Form Column */}
                         <div className="lg:col-span-2">
                             <h2 className="text-5xl font-bold text-gray-900 mb-3">Start Processing Payments <br /> <span className=" font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-[#980ffa]">Today</span></h2>
                             <p className="text-gray-600 text-lg mb-4 px-3">Get approved for payment processing in minutes and start accepting payments securely. Plus, get your free Beauty Drop AI subscription when you sign up.</p>
                             <div className="bg-slate-50 rounded-2xl p-8 border border-gray-100">
                                 <form onSubmit={handleSubmit} className="space-y-8">
-                                    {/* Business Information */}
                                     <div>
                                         <div className="flex items-center gap-3 mb-6">
                                             <Building2 className="w-5 h-5 text-blue-600" />
@@ -429,7 +464,6 @@ export default function CreditCardProcessingPage() {
                                         </div>
                                     </div>
 
-                                    {/* Contact Information */}
                                     <div>
                                         <div className="flex items-center gap-3 mb-6">
                                             <User className="w-5 h-5 text-blue-600" />
@@ -497,7 +531,6 @@ export default function CreditCardProcessingPage() {
                                         </div>
                                     </div>
 
-                                    {/* Current Payment Setup */}
                                     <div>
                                         <div className="flex items-center gap-3 mb-6">
                                             <CreditCard className="w-5 h-5 text-blue-600" />
@@ -600,9 +633,7 @@ export default function CreditCardProcessingPage() {
                             </div>
                         </div>
 
-                        {/* Sidebar Column */}
                         <div className="space-y-8">
-                            {/* What You Get When You Sign Up */}
                             <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
                                 <h3 className="font-bold text-xl text-gray-900 mb-6">What You Get When You Sign Up</h3>
                                 <div className="space-y-6">
@@ -636,7 +667,6 @@ export default function CreditCardProcessingPage() {
                                 </div>
                             </div>
 
-                            {/* Limited Time Offer */}
                             <div className="bg-gradient-to-b from-cyan-400 to-blue-500 rounded-2xl p-8 text-white text-center shadow-lg">
                                 <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6">
                                     <Gift className="w-8 h-8 text-white" />
@@ -655,7 +685,6 @@ export default function CreditCardProcessingPage() {
                                 </p>
                             </div>
 
-                            {/* Contact */}
                             <div className="bg-blue-50 rounded-2xl p-8 border border-blue-100">
                                 <h3 className="font-bold text-gray-900 mb-4">Available To Talk Right Now?</h3>
                                 <p className="text-sm text-gray-600 mb-6">

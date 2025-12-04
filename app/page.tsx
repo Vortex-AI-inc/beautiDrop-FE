@@ -1,3 +1,5 @@
+'use client'
+
 import {
   ArrowRight,
   MessageCircle,
@@ -9,14 +11,58 @@ import {
   Bot,
   Check,
   Star,
-  Play
+  Play,
+  Loader2
 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Header } from "../components/layout/header"
 import { Footer } from "../components/layout/footer"
+import { usePricingPlans } from "@/hooks/use-pricing-plans"
+import { useAuth } from "@clerk/nextjs"
+import { useToast } from "@/hooks/use-toast"
+import { createCheckoutSession } from "@/lib/api/subscriptions"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 export default function Home() {
+  const { getPlanByName, isLoading } = usePricingPlans()
+  const { getToken, isSignedIn } = useAuth()
+  const { toast } = useToast()
+  const router = useRouter()
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
+
+  const starterPlan = getPlanByName('Starter')
+  const professionalPlan = getPlanByName('Professional')
+  const enterprisePlan = getPlanByName('Enterprise')
+
+  const handleCheckout = async (stripePriceId: string) => {
+    if (!isSignedIn) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in As Saloon Owner to subscribe to a plan.",
+        variant: "destructive",
+      })
+      router.push('/login')
+      return
+    }
+
+    setCheckoutLoading(stripePriceId)
+
+    try {
+      const checkoutUrl = await createCheckoutSession(stripePriceId, getToken)
+      window.location.href = checkoutUrl
+    } catch (error) {
+      console.error('Checkout error:', error)
+      toast({
+        title: "Checkout Failed",
+        description: error instanceof Error ? error.message : "Failed to create checkout session. Please try again.",
+        variant: "destructive",
+      })
+      setCheckoutLoading(null)
+    }
+  }
+
   return (
     <main className="min-h-screen bg-white">
       <Header />
@@ -61,11 +107,20 @@ export default function Home() {
               </div>
 
               <div className="flex flex-wrap gap-4 pt-4">
-                <Link href="/signup">
-                  <Button className="h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold rounded-lg shadow-lg shadow-blue-200 transition-all hover:scale-105">
-                    Start Free Trial
-                  </Button>
-                </Link>
+                <Button
+                  className="h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold rounded-lg shadow-lg shadow-blue-200 transition-all hover:scale-105"
+                  onClick={() => handleCheckout(starterPlan?.stripe_price_id || '')}
+                  disabled={!!checkoutLoading}
+                >
+                  {checkoutLoading === starterPlan?.stripe_price_id ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Start Free Trial"
+                  )}
+                </Button>
 
                 <Button variant="outline" className="h-14 px-8 border-2 border-blue-100 text-blue-600 hover:bg-blue-50 text-lg font-semibold rounded-lg transition-all">
                   <Play className="w-5 h-5 mr-2 fill-current" />
@@ -74,10 +129,8 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Right Image */}
             <div className="relative lg:h-[600px] flex items-center justify-center">
               <div className="relative w-full max-w-lg mx-auto">
-                {/* Main Image Container */}
                 <div className="bg-white p-4 rounded-3xl shadow-2xl relative z-10">
                   <img
                     src="/hero.webp"
@@ -85,7 +138,6 @@ export default function Home() {
                     className="w-full h-auto rounded-2xl object-cover aspect-[4/3]"
                   />
 
-                  {/* Floating Elements */}
                   <div className="absolute -top-6 -right-6 bg-white p-4 rounded-2xl shadow-xl flex items-center gap-3 animate-bounce-slow">
                     <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
                       <Phone className="w-5 h-5 text-green-600" />
@@ -183,7 +235,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Pricing Section */}
       <section className="py-24 bg-blue-50/50" id="pricing">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -195,113 +246,172 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-            {/* Starter Plan */}
-            <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm hover:shadow-lg transition-all">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Starter</h3>
-              <p className="text-gray-500 text-sm mb-6">Perfect for solo stylists</p>
-              <div className="flex items-baseline mb-6">
-                <span className="text-4xl font-bold text-gray-900">$88</span>
-                <span className="text-gray-500">/month</span>
-              </div>
-              <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg text-sm font-semibold text-center mb-8">
-                250 Minutes Included
-              </div>
-              <ul className="space-y-4 mb-8">
-                {[
-                  "24/7 Call Answering",
-                  "Basic Appointment Booking",
-                  "SMS Reminders",
-                  "Email Support"
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 text-gray-600 text-sm">
-                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                      <Check className="w-3 h-3 text-green-600" />
-                    </div>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/signup/">
-                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold">
-                  Get Started
-                </Button>
-              </Link>
+          {/* Loading State */}
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm animate-pulse">
+                  <div className="h-8 bg-gray-200 rounded w-32 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-40 mb-6"></div>
+                  <div className="h-12 bg-gray-200 rounded w-24 mb-6"></div>
+                  <div className="h-10 bg-gray-200 rounded mb-8"></div>
+                  <div className="space-y-4 mb-8">
+                    {[1, 2, 3, 4].map((j) => (
+                      <div key={j} className="h-4 bg-gray-200 rounded"></div>
+                    ))}
+                  </div>
+                  <div className="h-12 bg-gray-200 rounded"></div>
+                </div>
+              ))}
             </div>
-
-            {/* Professional Plan */}
-            <div className="bg-white rounded-2xl p-8 border-2 border-blue-600 shadow-xl relative transform md:-translate-y-4">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg">
-                Most Popular
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Professional</h3>
-              <p className="text-gray-500 text-sm mb-6">For growing salons</p>
-              <div className="flex items-baseline mb-6">
-                <span className="text-4xl font-bold text-gray-900">$188</span>
-                <span className="text-gray-500">/month</span>
-              </div>
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold text-center mb-8 shadow-md">
-                500 Minutes Included
-              </div>
-              <ul className="space-y-4 mb-8">
-                {[
-                  "Everything in Starter",
-                  "Advanced Booking Logic",
-                  "Payment Processing",
-                  "Priority Support",
-                  "Custom AI Training"
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 text-gray-700 font-medium text-sm">
-                    <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                      <Check className="w-3 h-3 text-blue-600" />
-                    </div>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/signup/">
-                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-12 text-lg shadow-lg shadow-blue-200">
-                  Get Started
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+              {/* Starter Plan */}
+              <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm hover:shadow-lg transition-all">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                  {starterPlan?.name}
+                </h3>
+                <p className="text-gray-500 text-sm mb-6">Perfect for solo stylists</p>
+                <div className="flex items-baseline mb-6">
+                  <span className="text-4xl font-bold text-gray-900">
+                    ${starterPlan?.amount ? parseFloat(starterPlan.amount).toFixed(0) : '88'}
+                  </span>
+                  <span className="text-gray-500">/month</span>
+                </div>
+                <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg text-sm font-semibold text-center mb-8">
+                  250 Minutes Included
+                </div>
+                <ul className="space-y-4 mb-8">
+                  {[
+                    "24/7 Call Answering",
+                    "Basic Appointment Booking",
+                    "SMS Reminders",
+                    "Email Support"
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-3 text-gray-600 text-sm">
+                      <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                        <Check className="w-3 h-3 text-green-600" />
+                      </div>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                  onClick={() => handleCheckout(starterPlan?.stripe_price_id || '')}
+                  disabled={!!checkoutLoading}
+                >
+                  {checkoutLoading === starterPlan?.stripe_price_id ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Get Started"
+                  )}
                 </Button>
-              </Link>
-            </div>
+              </div>
 
-            {/* Enterprise Plan */}
-            <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm hover:shadow-lg transition-all">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
-              <p className="text-gray-500 text-sm mb-6">For multi-location salons</p>
-              <div className="flex items-baseline mb-6">
-                <span className="text-4xl font-bold text-gray-900">$388</span>
-                <span className="text-gray-500">/month</span>
-              </div>
-              <div className="bg-amber-50 text-amber-700 px-4 py-2 rounded-lg text-sm font-semibold text-center mb-8">
-                1000 Minutes Included
-              </div>
-              <ul className="space-y-4 mb-8">
-                {[
-                  "Everything in Professional",
-                  "Multi-location Support",
-                  "Dedicated Account Manager",
-                  "API Access",
-                  "White-label Options"
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 text-gray-600 text-sm">
-                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                      <Check className="w-3 h-3 text-green-600" />
-                    </div>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/contact">
-                <Button variant="outline" className="w-full border-2 border-gray-200 hover:border-blue-600 hover:text-blue-600 font-semibold">
-                  Contact Sales
+              {/* Professional Plan */}
+              <div className="bg-white rounded-2xl p-8 border-2 border-blue-600 shadow-xl relative transform md:-translate-y-4">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg">
+                  Most Popular
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                  {professionalPlan?.name}
+                </h3>
+                <p className="text-gray-500 text-sm mb-6">For growing salons</p>
+                <div className="flex items-baseline mb-6">
+                  <span className="text-4xl font-bold text-gray-900">
+                    ${professionalPlan?.amount ? parseFloat(professionalPlan.amount).toFixed(0) : '188'}
+                  </span>
+                  <span className="text-gray-500">/month</span>
+                </div>
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold text-center mb-8 shadow-md">
+                  500 Minutes Included
+                </div>
+                <ul className="space-y-4 mb-8">
+                  {[
+                    "Everything in Starter",
+                    "Advanced Booking Logic",
+                    "Payment Processing",
+                    "Priority Support",
+                    "Custom AI Training"
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-3 text-gray-700 font-medium text-sm">
+                      <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                        <Check className="w-3 h-3 text-blue-600" />
+                      </div>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-12 text-lg shadow-lg shadow-blue-200"
+                  onClick={() => handleCheckout(professionalPlan?.stripe_price_id || '')}
+                  disabled={!!checkoutLoading}
+                >
+                  {checkoutLoading === professionalPlan?.stripe_price_id ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Get Started"
+                  )}
                 </Button>
-              </Link>
-            </div>
-          </div>
+              </div>
 
-          {/* Credit Card Processing Banner */}
+              {/* Enterprise Plan */}
+              <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm hover:shadow-lg transition-all">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                  {enterprisePlan?.name}
+                </h3>
+                <p className="text-gray-500 text-sm mb-6">For multi-location salons</p>
+                <div className="flex items-baseline mb-6">
+                  <span className="text-4xl font-bold text-gray-900">
+                    ${enterprisePlan?.amount ? parseFloat(enterprisePlan.amount).toFixed(0) : '388'}
+                  </span>
+                  <span className="text-gray-500">/month</span>
+                </div>
+                <div className="bg-amber-50 text-amber-700 px-4 py-2 rounded-lg text-sm font-semibold text-center mb-8">
+                  1000 Minutes Included
+                </div>
+                <ul className="space-y-4 mb-8">
+                  {[
+                    "Everything in Professional",
+                    "Multi-location Support",
+                    "Dedicated Account Manager",
+                    "API Access",
+                    "White-label Options"
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-3 text-gray-600 text-sm">
+                      <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                        <Check className="w-3 h-3 text-green-600" />
+                      </div>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  variant="outline"
+                  className="w-full border-2 border-gray-200 hover:border-blue-600 hover:text-blue-600 font-semibold"
+                  onClick={() => handleCheckout(enterprisePlan?.stripe_price_id || '')}
+                  disabled={!!checkoutLoading}
+                >
+                  {checkoutLoading === enterprisePlan?.stripe_price_id ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Contact Sales"
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+
           <div className="mt-16 bg-white rounded-2xl p-8 border border-gray-200 shadow-lg flex flex-col md:flex-row items-center justify-between gap-8">
             <div>
               <div className="flex items-center gap-2 mb-2">
@@ -347,10 +457,8 @@ export default function Home() {
                   className="w-full object-cover h-[500px]"
                 />
 
-                {/* Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
 
-                {/* Revenue Increase Badge */}
                 <div className="absolute top-8 right-8 bg-white rounded-2xl p-4 shadow-xl flex items-center gap-3">
                   <div className="w-12 h-12 bg-teal-400 rounded-full flex items-center justify-center">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -476,11 +584,20 @@ export default function Home() {
               </ul>
 
               <div className="flex flex-wrap gap-4 pt-4">
-                <Link href="/signup/">
-                  <Button className="h-14 px-8 bg-amber-400 hover:bg-amber-500 text-gray-900 text-lg font-bold rounded-lg shadow-lg">
-                    Start Your Free Trial
-                  </Button>
-                </Link>
+                <Button
+                  className="h-14 px-8 bg-amber-400 hover:bg-amber-500 text-gray-900 text-lg font-bold rounded-lg shadow-lg"
+                  onClick={() => handleCheckout(starterPlan?.stripe_price_id || '')}
+                  disabled={!!checkoutLoading}
+                >
+                  {checkoutLoading === starterPlan?.stripe_price_id ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Start Your Free Trial"
+                  )}
+                </Button>
                 <Link href="/contact">
                   <Button className="h-14 px-8 bg-white/10 hover:bg-white/20 text-white border border-white/20 text-lg font-semibold rounded-lg backdrop-blur-sm">
                     Book Live Demo

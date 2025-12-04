@@ -25,13 +25,19 @@ import {
   Server,
   Clock as ClockIcon,
   ZapIcon,
-  ArrowRight
+  ArrowRight,
+  Loader2
 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Header } from "../../../components/layout/header"
 import { Footer } from "../../../components/layout/footer"
 import { useState } from "react"
+import { usePricingPlans } from "@/hooks/use-pricing-plans"
+import { useAuth } from "@clerk/nextjs"
+import { useToast } from "@/hooks/use-toast"
+import { createCheckoutSession } from "@/lib/api/subscriptions"
+import { useRouter } from "next/navigation"
 
 function CostCalculator() {
   const [minutes, setMinutes] = useState(1402)
@@ -178,6 +184,103 @@ function FAQAccordion() {
 }
 
 export default function PricingPage() {
+  const { plans, isLoading, error, getPlanByName } = usePricingPlans()
+  const { getToken, isSignedIn } = useAuth()
+  const { toast } = useToast()
+  const router = useRouter()
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
+
+  const starterPlan = getPlanByName('Starter')
+  const professionalPlan = getPlanByName('Professional')
+  const enterprisePlan = getPlanByName('Enterprise')
+
+  const handleCheckout = async (stripePriceId: string) => {
+    if (!isSignedIn) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in As Saloon Owner to subscribe to a plan.",
+        variant: "destructive",
+      })
+      router.push('/login')
+      return
+    }
+
+    setCheckoutLoading(stripePriceId)
+
+    try {
+      const checkoutUrl = await createCheckoutSession(stripePriceId, getToken)
+
+      window.location.href = checkoutUrl
+    } catch (error) {
+      console.error('Checkout error:', error)
+      toast({
+        title: "Checkout Failed",
+        description: error instanceof Error ? error.message : "Failed to create checkout session. Please try again.",
+        variant: "destructive",
+      })
+      setCheckoutLoading(null)
+    }
+  }
+
+  const planConfigs = {
+    starter: {
+      icon: Sparkles,
+      iconBg: "bg-cyan-100",
+      iconColor: "text-cyan-600",
+      description: "Perfect for small salons",
+      features: [
+        "Up to 100 calls/month",
+        "Basic appointment booking",
+        "Email support",
+        "1 staff member",
+        "Basic analytics"
+      ],
+      buttonText: "Get Started",
+      buttonClass: "w-full h-12 bg-white hover:bg-blue-50 text-blue-600 font-semibold rounded-lg",
+      buttonLink: "/signup",
+      cardClass: "bg-white rounded-2xl p-8 border-2 border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-xl"
+    },
+    professional: {
+      icon: Heart,
+      iconBg: "bg-white/20",
+      iconColor: "text-white",
+      description: "For growing salons",
+      features: [
+        "Up to 500 calls/month",
+        "Advanced booking features",
+        "Priority support",
+        "Up to 5 staff members",
+        "Advanced analytics",
+        "Payment processing",
+        "Custom greetings"
+      ],
+      buttonText: "Get Started",
+      buttonClass: "w-full h-12 bg-amber-400 hover:bg-amber-500 text-gray-900 font-bold rounded-lg shadow-lg",
+      buttonLink: "/signup",
+      cardClass: "bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-8 border-2 border-blue-600 relative shadow-2xl transform scale-105",
+      isPopular: true
+    },
+    enterprise: {
+      icon: TrendingUp,
+      iconBg: "bg-orange-100",
+      iconColor: "text-orange-600",
+      description: "For large salon chains",
+      features: [
+        "Unlimited calls",
+        "All Professional features",
+        "24/7 dedicated support",
+        "Unlimited staff members",
+        "Custom integrations",
+        "API access",
+        "White-label option"
+      ],
+      buttonText: "Contact Sales",
+      buttonClass: "w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg",
+      buttonLink: "/contact",
+      cardClass: "bg-white rounded-2xl p-8 border-2 border-gray-200 hover:border-orange-300 transition-all duration-300 hover:shadow-xl"
+    }
+  }
+
   return (
     <main className="min-h-screen bg-white">
       <Header />
@@ -237,111 +340,150 @@ export default function PricingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Starter Plan */}
-            <div className="bg-white rounded-2xl p-8 border-2 border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-xl">
-              <div className="w-12 h-12 bg-cyan-100 rounded-xl flex items-center justify-center mb-4">
-                <Sparkles className="w-6 h-6 text-cyan-600" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Starter</h3>
-              <p className="text-gray-600 mb-6">Perfect for small salons</p>
-              <div className="mb-6">
-                <span className="text-5xl font-bold text-gray-900">$99</span>
-                <span className="text-gray-600">/month</span>
-              </div>
-              <ul className="space-y-3 mb-8">
-                {[
-                  "Up to 100 calls/month",
-                  "Basic appointment booking",
-                  "Email support",
-                  "1 staff member",
-                  "Basic analytics"
-                ].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-2 text-gray-700">
-                    <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link href="/signup">
-                <Button className="w-full h-12 bg-white hover:bg-blue-50 text-blue-600 font-semibold rounded-lg">
-                  Get Started
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
+          {/* Loading State */}
+          {isLoading && (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              <p className="mt-4 text-gray-600">Loading pricing plans...</p>
             </div>
+          )}
 
-            {/* Professional Plan - Popular */}
-            <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-8 border-2 border-blue-600 relative shadow-2xl transform scale-105">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-400 text-gray-900 px-4 py-1 rounded-full text-sm font-bold">
-                Most Popular
-              </div>
-              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
-                <Heart className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-2">Professional</h3>
-              <p className="text-blue-100 mb-6">For growing salons</p>
-              <div className="mb-6">
-                <span className="text-5xl font-bold text-white">$199</span>
-                <span className="text-blue-100">/month</span>
-              </div>
-              <ul className="space-y-3 mb-8">
-                {[
-                  "Up to 500 calls/month",
-                  "Advanced booking features",
-                  "Priority support",
-                  "Up to 5 staff members",
-                  "Advanced analytics",
-                  "Payment processing",
-                  "Custom greetings"
-                ].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-2 text-white">
-                    <Check className="w-5 h-5 text-amber-400 flex-shrink-0" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link href="/signup">
-                <Button className="w-full h-12 bg-amber-400 hover:bg-amber-500 text-gray-900 font-bold rounded-lg shadow-lg">
-                  Get Started
-                </Button>
-              </Link>
+          {/* Error State */}
+          {error && !isLoading && (
+            <div className="text-center py-12">
+              <p className="text-red-600 mb-4">Failed to load pricing plans. Please try again later.</p>
             </div>
+          )}
 
-            {/* Enterprise Plan */}
-            <div className="bg-white rounded-2xl p-8 border-2 border-gray-200 hover:border-orange-300 transition-all duration-300 hover:shadow-xl">
-              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-4">
-                <TrendingUp className="w-6 h-6 text-orange-600" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
-              <p className="text-gray-600 mb-6">For large salon chains</p>
-              <div className="mb-6">
-                <span className="text-5xl font-bold text-gray-900">$399</span>
-                <span className="text-gray-600">/month</span>
-              </div>
-              <ul className="space-y-3 mb-8">
-                {[
-                  "Unlimited calls",
-                  "All Professional features",
-                  "24/7 dedicated support",
-                  "Unlimited staff members",
-                  "Custom integrations",
-                  "API access",
-                  "White-label option"
-                ].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-2 text-gray-700">
-                    <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link href="/contact">
-                <Button className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg">
-                  Contact Sales
+          {/* Pricing Cards */}
+          {!isLoading && !error && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {/* Starter Plan */}
+              <div className={planConfigs.starter.cardClass}>
+                <div className={`w-12 h-12 ${planConfigs.starter.iconBg} rounded-xl flex items-center justify-center mb-4`}>
+                  <planConfigs.starter.icon className={`w-6 h-6 ${planConfigs.starter.iconColor}`} />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                  {starterPlan?.name || 'Starter'}
+                </h3>
+                <p className="text-gray-600 mb-6">{planConfigs.starter.description}</p>
+                <div className="mb-6">
+                  <span className="text-5xl font-bold text-gray-900">
+                    ${starterPlan?.amount ? parseFloat(starterPlan.amount).toFixed(0) : '99'}
+                  </span>
+                  <span className="text-gray-600">/month</span>
+                </div>
+                <ul className="space-y-3 mb-8">
+                  {planConfigs.starter.features.map((feature, i) => (
+                    <li key={i} className="flex items-center gap-2 text-gray-700">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  className={planConfigs.starter.buttonClass}
+                  onClick={() => handleCheckout(starterPlan?.stripe_price_id || '')}
+                  disabled={!!checkoutLoading}
+                >
+                  {checkoutLoading === starterPlan?.stripe_price_id ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      {planConfigs.starter.buttonText}
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </>
+                  )}
                 </Button>
-              </Link>
+              </div>
+
+              {/* Professional Plan - Popular */}
+              <div className={planConfigs.professional.cardClass}>
+                {planConfigs.professional.isPopular && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-400 text-gray-900 px-4 py-1 rounded-full text-sm font-bold">
+                    Most Popular
+                  </div>
+                )}
+                <div className={`w-12 h-12 ${planConfigs.professional.iconBg} rounded-xl flex items-center justify-center mb-4`}>
+                  <planConfigs.professional.icon className={`w-6 h-6 ${planConfigs.professional.iconColor}`} />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">
+                  {professionalPlan?.name || 'Professional'}
+                </h3>
+                <p className="text-blue-100 mb-6">{planConfigs.professional.description}</p>
+                <div className="mb-6">
+                  <span className="text-5xl font-bold text-white">
+                    ${professionalPlan?.amount ? parseFloat(professionalPlan.amount).toFixed(0) : '199'}
+                  </span>
+                  <span className="text-blue-100">/month</span>
+                </div>
+                <ul className="space-y-3 mb-8">
+                  {planConfigs.professional.features.map((feature, i) => (
+                    <li key={i} className="flex items-center gap-2 text-white">
+                      <Check className="w-5 h-5 text-amber-400 flex-shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  className={planConfigs.professional.buttonClass}
+                  onClick={() => handleCheckout(professionalPlan?.stripe_price_id || '')}
+                  disabled={!!checkoutLoading}
+                >
+                  {checkoutLoading === professionalPlan?.stripe_price_id ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    planConfigs.professional.buttonText
+                  )}
+                </Button>
+              </div>
+
+              {/* Enterprise Plan */}
+              <div className={planConfigs.enterprise.cardClass}>
+                <div className={`w-12 h-12 ${planConfigs.enterprise.iconBg} rounded-xl flex items-center justify-center mb-4`}>
+                  <planConfigs.enterprise.icon className={`w-6 h-6 ${planConfigs.enterprise.iconColor}`} />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                  {enterprisePlan?.name || 'Enterprise'}
+                </h3>
+                <p className="text-gray-600 mb-6">{planConfigs.enterprise.description}</p>
+                <div className="mb-6">
+                  <span className="text-5xl font-bold text-gray-900">
+                    ${enterprisePlan?.amount ? parseFloat(enterprisePlan.amount).toFixed(0) : '399'}
+                  </span>
+                  <span className="text-gray-600">/month</span>
+                </div>
+                <ul className="space-y-3 mb-8">
+                  {planConfigs.enterprise.features.map((feature, i) => (
+                    <li key={i} className="flex items-center gap-2 text-gray-700">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  className={planConfigs.enterprise.buttonClass}
+                  onClick={() => handleCheckout(enterprisePlan?.stripe_price_id || '')}
+                  disabled={!!checkoutLoading}
+                >
+                  {checkoutLoading === enterprisePlan?.stripe_price_id ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    planConfigs.enterprise.buttonText
+                  )}
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
@@ -379,7 +521,9 @@ export default function PricingPage() {
               <h3 className="text-lg font-bold text-gray-900 mb-2">Small Business</h3>
               <p className="text-4xl font-bold text-blue-600 mb-3">180 min/mo</p>
               <p className="text-sm text-gray-600 mb-4">Customer support, basic automation</p>
-              <p className="text-sm text-gray-500">Starter Plan: <span className="font-semibold">$88/mo</span></p>
+              <p className="text-sm text-gray-500">
+                Starter Plan: <span className="font-semibold">${starterPlan?.amount ? parseFloat(starterPlan.amount).toFixed(0) : '88'}/mo</span>
+              </p>
             </div>
 
             {/* Growing Company - Popular */}
@@ -393,11 +537,20 @@ export default function PricingPage() {
               <h3 className="text-lg font-bold text-gray-900 mb-2">Growing Company</h3>
               <p className="text-4xl font-bold text-blue-600 mb-3">450 min/mo</p>
               <p className="text-sm text-gray-600 mb-4">Sales calls, customer service, workflows</p>
-              <Link href="/signup">
-                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg">
-                  Professional Plan: $188/mo
-                </Button>
-              </Link>
+              <Button
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg"
+                onClick={() => handleCheckout(professionalPlan?.stripe_price_id || '')}
+                disabled={!!checkoutLoading}
+              >
+                {checkoutLoading === professionalPlan?.stripe_price_id ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  `Professional Plan: $${professionalPlan?.amount ? parseFloat(professionalPlan.amount).toFixed(0) : '188'}/mo`
+                )}
+              </Button>
             </div>
 
             {/* Enterprise */}
@@ -408,7 +561,9 @@ export default function PricingPage() {
               <h3 className="text-lg font-bold text-gray-900 mb-2">Enterprise</h3>
               <p className="text-4xl font-bold text-blue-600 mb-3">850 min/mo</p>
               <p className="text-sm text-gray-600 mb-4">Multiple departments, high volume</p>
-              <p className="text-sm text-gray-500">Enterprise Plan: <span className="font-semibold">$388/mo</span></p>
+              <p className="text-sm text-gray-500">
+                Enterprise Plan: <span className="font-semibold">${enterprisePlan?.amount ? parseFloat(enterprisePlan.amount).toFixed(0) : '388'}/mo</span>
+              </p>
             </div>
           </div>
         </div>
@@ -549,13 +704,24 @@ export default function PricingPage() {
 
             {/* Main CTAs */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-              <Link href="/signup">
-                <Button className="h-14 px-8 bg-amber-400 hover:bg-amber-500 text-gray-900 text-lg font-bold rounded-xl shadow-lg shadow-amber-400/20 flex items-center gap-2">
-                  <Rocket className="w-5 h-5" />
-                  Start Free Trial Now
-                  <span className="text-xs bg-gray-900/10 px-2 py-0.5 rounded-full ml-1">100 Minutes Free</span>
-                </Button>
-              </Link>
+              <Button
+                className="h-14 px-8 bg-amber-400 hover:bg-amber-500 text-gray-900 text-lg font-bold rounded-xl shadow-lg shadow-amber-400/20 flex items-center gap-2"
+                onClick={() => handleCheckout(starterPlan?.stripe_price_id || '')}
+                disabled={!!checkoutLoading}
+              >
+                {checkoutLoading === starterPlan?.stripe_price_id ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Rocket className="w-5 h-5" />
+                    Start Free Trial Now
+                    <span className="text-xs bg-gray-900/10 px-2 py-0.5 rounded-full ml-1">100 Minutes Free</span>
+                  </>
+                )}
+              </Button>
               <Link href="/contact">
                 <Button className="h-14 px-8 bg-white/10 hover:bg-white/20 text-white text-lg font-semibold rounded-xl backdrop-blur-sm border border-white/20 flex items-center gap-2">
                   <Calendar className="w-5 h-5" />
@@ -569,13 +735,13 @@ export default function PricingPage() {
             </p>
             <div className="flex gap-4 justify-center mt-4 text-sm">
               <Link href="#" className="text-white/60 hover:text-white border border-white/20 px-4 py-2 rounded-lg hover:bg-white/10 transition-colors">
-                Starter Plan: $88/mo
+                Starter Plan: ${starterPlan?.amount ? parseFloat(starterPlan.amount).toFixed(0) : '88'}/mo
               </Link>
               <Link href="#" className="text-blue-300 hover:text-white border border-blue-500/30 bg-blue-500/10 px-4 py-2 rounded-lg hover:bg-blue-500/20 transition-colors">
-                Professional Plan: $188/mo
+                Professional Plan: ${professionalPlan?.amount ? parseFloat(professionalPlan.amount).toFixed(0) : '188'}/mo
               </Link>
               <Link href="#" className="text-white/60 hover:text-white border border-white/20 px-4 py-2 rounded-lg hover:bg-white/10 transition-colors">
-                Enterprise Plan: $388/mo
+                Enterprise Plan: ${enterprisePlan?.amount ? parseFloat(enterprisePlan.amount).toFixed(0) : '388'}/mo
               </Link>
             </div>
           </div>

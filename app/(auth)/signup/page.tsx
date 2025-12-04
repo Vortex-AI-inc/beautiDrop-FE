@@ -18,7 +18,6 @@ export default function SignUpSelectionPage() {
     if (isLoaded && isSignedIn && user) {
       const role = getUserRole()
 
-      // Redirect based on role
       if (role === 'customer') {
         router.push('/customer-dashboard')
       } else if (role === 'client') {
@@ -27,12 +26,10 @@ export default function SignUpSelectionPage() {
     }
   }, [isLoaded, isSignedIn, user, router])
 
-  // Show loading while checking auth status
   if (!isLoaded) {
     return null
   }
 
-  // Don't show signup selection if already signed in
   if (isSignedIn) {
     return null
   }
