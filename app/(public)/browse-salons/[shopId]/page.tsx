@@ -47,7 +47,7 @@ export default function SalonDetailPage() {
                 setSchedules(schedulesData)
             }
         } catch (error) {
-            console.error("Failed to load shop details:", error)
+
         } finally {
             setIsLoading(false)
         }

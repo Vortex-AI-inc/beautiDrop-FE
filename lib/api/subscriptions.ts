@@ -20,7 +20,6 @@ export async function fetchSubscriptionPlans(): Promise<SubscriptionPlan[]> {
 
         return data.results.sort((a, b) => a.display_order - b.display_order)
     } catch (error) {
-        console.error('Error fetching subscription plans:', error)
         throw error
     }
 }
@@ -61,7 +60,6 @@ export async function createCheckoutSession(
 
         return data.checkout_url
     } catch (error) {
-        console.error('Error creating checkout session:', error)
         throw error
     }
 }

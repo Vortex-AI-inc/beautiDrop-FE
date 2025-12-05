@@ -23,6 +23,7 @@ import {
 import { fetchShopDashboard, fetchShop } from "@/lib/api/shop"
 import type { ShopDashboardData } from "@/types/shop"
 import { useShopStore } from "@/lib/store/shop-store"
+import { PricingModal } from "@/components/PricingModal"
 
 export default function ShopDashboardPage() {
     const { getToken } = useAuth()
@@ -33,6 +34,7 @@ export default function ShopDashboardPage() {
     const { selectedShop, setSelectedShop, dashboardData, setDashboardData } = useShopStore()
 
     const [isLoading, setIsLoading] = useState(true)
+    const [showPricingModal, setShowPricingModal] = useState(false)
 
     useEffect(() => {
         const loadShopDashboard = async () => {
@@ -177,8 +179,11 @@ export default function ShopDashboardPage() {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4 opacity-50 pointer-events-none">
-                                <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <div
+                                onClick={() => setShowPricingModal(true)}
+                                className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all cursor-pointer flex items-center gap-4 group"
+                            >
+                                <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                                     <CreditCard className="w-5 h-5 text-red-600" />
                                 </div>
                                 <div>
@@ -204,9 +209,9 @@ export default function ShopDashboardPage() {
                                 <div>
                                     <h3 className="font-semibold text-gray-900">Need Help?</h3>
                                     <p className="text-xs text-gray-600 mt-1 mb-2">Our support team is here to assist you</p>
-                                    <a href="#" className="text-blue-600 text-sm font-semibold flex items-center hover:underline">
+                                    <Link href="/contact" className="text-blue-600 text-sm font-semibold flex items-center hover:underline">
                                         Contact Support <ExternalLink className="w-3 h-3 ml-1" />
-                                    </a>
+                                    </Link>
                                 </div>
                             </div>
                         </div>
@@ -215,6 +220,11 @@ export default function ShopDashboardPage() {
             </div>
 
             <Footer />
+
+            <PricingModal
+                isOpen={showPricingModal}
+                onClose={() => setShowPricingModal(false)}
+            />
         </main>
     )
 }

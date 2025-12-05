@@ -72,20 +72,14 @@ export default function SchedulingPage() {
             if (!token) return
 
             const statsData = await fetchBookingStats(shopId, token)
-            console.log('📊 Stats API Response:', statsData)
-            console.log('📊 Stats Data:', {
-                total: statsData.total_bookings,
-                upcoming: statsData.upcoming_bookings,
-                completed: statsData.completed,
-                confirmed: statsData.confirmed,
-                pending: statsData.pending,
-                cancelled: statsData.cancelled,
-                no_show: statsData.no_show
-            })
             setStats(statsData)
 
         } catch (error) {
-            console.error("❌ Failed to load stats:", error)
+            toast({
+                title: "Error",
+                description: "Failed to load stats. Please try again.",
+                variant: "destructive"
+            })
         } finally {
             setIsLoadingStats(false)
         }

@@ -65,7 +65,6 @@ export default function ForSalonOwnersPage() {
             const checkoutUrl = await createCheckoutSession(stripePriceId, getToken)
             window.location.href = checkoutUrl
         } catch (error) {
-            console.error('Checkout error:', error)
             toast({
                 title: "Checkout Failed",
                 description: error instanceof Error ? error.message : "Failed to create checkout session. Please try again.",

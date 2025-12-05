@@ -372,32 +372,47 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
                                 </div>
                             ) : (
                                 <div className="space-y-5 h-full flex flex-col">
-                                    {/* Time Slots Grid */}
                                     <div className={`grid grid-cols-2 gap-3 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent ${selectedSlot ? 'max-h-[280px]' : 'max-h-[480px]'}`}>
-                                        {availabilityData.available_slots.map((slot, index) => {
-                                            const isSelected = selectedSlot?.id === `slot-${index}`
-                                            const startTime = formatTime(slot.start_time)
+                                        {availabilityData.available_slots
+                                            .filter(slot => {
+                                                if (!selectedDate) return true
 
-                                            return (
-                                                <button
-                                                    key={index}
-                                                    onClick={() => handleSlotSelect(slot, index)}
-                                                    className={`
+                                                const today = new Date()
+                                                const slotDate = new Date(selectedDate)
+
+                                                const isToday = slotDate.getDate() === today.getDate() &&
+                                                    slotDate.getMonth() === today.getMonth() &&
+                                                    slotDate.getFullYear() === today.getFullYear()
+
+                                                if (!isToday) return true
+
+                                                const slotTime = new Date(slot.start_time)
+                                                return slotTime > today
+                                            })
+                                            .map((slot, index) => {
+                                                const isSelected = selectedSlot?.id === `slot-${index}`
+                                                const startTime = formatTime(slot.start_time)
+
+                                                return (
+                                                    <button
+                                                        key={index}
+                                                        onClick={() => handleSlotSelect(slot, index)}
+                                                        className={`
                                                         px-4 py-4 rounded-xl text-sm font-semibold transition-all duration-200 flex flex-col items-start gap-2 w-full border-2
                                                         ${isSelected
-                                                            ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white border-transparent shadow-lg'
-                                                            : 'bg-white text-gray-700 hover:bg-blue-50 hover:border-blue-300 border-gray-200 hover:shadow-md'
-                                                        }
+                                                                ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white border-transparent shadow-lg'
+                                                                : 'bg-white text-gray-700 hover:bg-blue-50 hover:border-blue-300 border-gray-200 hover:shadow-md'
+                                                            }
                                                     `}
-                                                >
-                                                    <span className="text-lg font-bold">{startTime}</span>
-                                                    <div className={`flex items-center gap-1.5 text-xs ${isSelected ? 'text-white/90' : 'text-purple-600'}`}>
-                                                        <Users className="w-3.5 h-3.5" />
-                                                        <span className="font-semibold">{slot.available_staff_count} available</span>
-                                                    </div>
-                                                </button>
-                                            )
-                                        })}
+                                                    >
+                                                        <span className="text-lg font-bold">{startTime}</span>
+                                                        <div className={`flex items-center gap-1.5 text-xs ${isSelected ? 'text-white/90' : 'text-purple-600'}`}>
+                                                            <Users className="w-3.5 h-3.5" />
+                                                            <span className="font-semibold">{slot.available_staff_count} available</span>
+                                                        </div>
+                                                    </button>
+                                                )
+                                            })}
                                     </div>
 
                                     {/* Staff Selection */}
@@ -432,7 +447,6 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
                         </div>
                     </div>
 
-                    {/* Footer */}
                     <div className="flex justify-between items-center px-8 py-6 bg-gray-50 border-t-2 border-gray-200">
                         <div className="text-sm text-gray-600">
                             {selectedDate && selectedSlot && selectedStaffId ? (
