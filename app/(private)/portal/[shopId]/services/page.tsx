@@ -568,12 +568,12 @@ export default function ServicesManagementPage() {
                                         {availableStaff.map((staff) => (
                                             <div
                                                 key={staff.id}
-                                                className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
+                                                className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
                                                 onClick={() => handleStaffToggle(staff.id)}
                                             >
                                                 <Checkbox
                                                     checked={selectedStaffIds.includes(staff.id)}
-                                                    onCheckedChange={() => handleStaffToggle(staff.id)}
+                                                    className="pointer-events-none"
                                                 />
                                                 <div className="flex-1">
                                                     <p className="font-medium text-gray-900">{staff.name}</p>

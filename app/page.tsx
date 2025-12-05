@@ -107,20 +107,13 @@ export default function Home() {
               </div>
 
               <div className="flex flex-wrap gap-4 pt-4">
-                <Button
-                  className="h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold rounded-lg shadow-lg shadow-blue-200 transition-all hover:scale-105"
-                  onClick={() => handleCheckout(starterPlan?.stripe_price_id || '')}
-                  disabled={!!checkoutLoading}
-                >
-                  {checkoutLoading === starterPlan?.stripe_price_id ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    "Start Free Trial"
-                  )}
-                </Button>
+                <Link href="/contact">
+                  <Button
+                    className="h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold rounded-lg shadow-lg shadow-blue-200 transition-all hover:scale-105"
+                  >
+                    Start Free Trial
+                  </Button>
+                </Link>
 
                 <Button variant="outline" className="h-14 px-8 border-2 border-blue-100 text-blue-600 hover:bg-blue-50 text-lg font-semibold rounded-lg transition-all">
                   <Play className="w-5 h-5 mr-2 fill-current" />
@@ -584,20 +577,14 @@ export default function Home() {
               </ul>
 
               <div className="flex flex-wrap gap-4 pt-4">
-                <Button
-                  className="h-14 px-8 bg-amber-400 hover:bg-amber-500 text-gray-900 text-lg font-bold rounded-lg shadow-lg"
-                  onClick={() => handleCheckout(starterPlan?.stripe_price_id || '')}
-                  disabled={!!checkoutLoading}
-                >
-                  {checkoutLoading === starterPlan?.stripe_price_id ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    "Start Your Free Trial"
-                  )}
-                </Button>
+                <Link href="/contact">
+                  <Button
+                    className="h-14 px-8 bg-amber-400 hover:bg-amber-500 text-gray-900 text-lg font-bold rounded-lg shadow-lg"
+
+                  >
+                    Start Your Free Trial
+                  </Button>
+                </Link>
                 <Link href="/contact">
                   <Button className="h-14 px-8 bg-white/10 hover:bg-white/20 text-white border border-white/20 text-lg font-semibold rounded-lg backdrop-blur-sm">
                     Book Live Demo
