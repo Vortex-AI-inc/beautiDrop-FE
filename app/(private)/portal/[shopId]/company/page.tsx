@@ -8,24 +8,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Building2, Clock, Sparkles, Save, Users, Scissors, Loader2, Plus, Trash2, Edit2 } from "lucide-react"
+import { ArrowLeft, Building2, Clock, Sparkles, Save, Users, Scissors, Loader2, Check } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { useShopStore } from "@/lib/store/shop-store"
 import { updateShop, fetchShop } from "@/lib/api/shop"
-import { fetchShopSchedules, createSchedule, updateSchedule, deleteSchedule } from "@/lib/api/schedules"
+import { fetchShopSchedules, bulkCreateSchedules } from "@/lib/api/schedules"
 import type { Schedule } from "@/types/schedule"
 import { useAuth } from "@clerk/nextjs"
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-} from "@/components/ui/dialog"
 
 export default function CompanyProfilePage() {
     const params = useParams()
@@ -39,6 +30,10 @@ export default function CompanyProfilePage() {
     const [isLoading, setIsLoading] = useState(true)
     const [schedules, setSchedules] = useState<Schedule[]>([])
     const [isLoadingSchedules, setIsLoadingSchedules] = useState(false)
+    const [isSavingSchedules, setIsSavingSchedules] = useState(false)
+
+    const [selectedDays, setSelectedDays] = useState<string[]>([])
+    const [businessHours, setBusinessHours] = useState({ start_time: "09:00", end_time: "17:00" })
 
     const [formData, setFormData] = useState({
         name: '',
@@ -98,18 +93,6 @@ export default function CompanyProfilePage() {
         }
     }, [selectedShop])
 
-    const handleInputChange = (field: string, value: string) => {
-        setFormData(prev => ({ ...prev, [field]: value }))
-    }
-
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false)
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-    const [isApplyAllModalOpen, setIsApplyAllModalOpen] = useState(false)
-    const [isApplyingToAll, setIsApplyingToAll] = useState(false)
-    const [selectedDay, setSelectedDay] = useState<string>("")
-    const [newSlotTime, setNewSlotTime] = useState({ start_time: "09:00", end_time: "17:00" })
-    const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null)
-
     useEffect(() => {
         if (selectedShop) {
             loadSchedules()
@@ -124,6 +107,20 @@ export default function CompanyProfilePage() {
 
             const data = await fetchShopSchedules(shopId, token)
             setSchedules(data)
+
+            const daysWithSchedules = data
+                .filter(s => s.is_active)
+                .map(s => s.day_of_week.charAt(0).toUpperCase() + s.day_of_week.slice(1).toLowerCase())
+
+            setSelectedDays(daysWithSchedules)
+
+            if (data.length > 0) {
+                const firstSchedule = data[0]
+                setBusinessHours({
+                    start_time: firstSchedule.start_time.substring(0, 5),
+                    end_time: firstSchedule.end_time.substring(0, 5)
+                })
+            }
         } catch (error) {
             toast({
                 title: "Error",
@@ -135,187 +132,76 @@ export default function CompanyProfilePage() {
         }
     }
 
-    const handleAddHour = (day: string) => {
-        setSelectedDay(day)
-        setNewSlotTime({ start_time: "09:00", end_time: "17:00" })
-        setEditingSchedule(null)
-        setIsAddModalOpen(true)
+    const handleInputChange = (field: string, value: string) => {
+        setFormData(prev => ({ ...prev, [field]: value }))
     }
 
-    const handleEditSchedule = (schedule: Schedule) => {
-        setEditingSchedule(schedule)
-        setSelectedDay(schedule.day_of_week)
-        setNewSlotTime({
-            start_time: schedule.start_time.substring(0, 5),
-            end_time: schedule.end_time.substring(0, 5)
+    const handleDayToggle = (day: string) => {
+        setSelectedDays(prev => {
+            if (prev.includes(day)) {
+                return prev.filter(d => d !== day)
+            } else {
+                return [...prev, day]
+            }
         })
-        setIsEditModalOpen(true)
     }
 
-    const handleSaveNewSlot = async () => {
-        if (!selectedDay || !newSlotTime.start_time || !newSlotTime.end_time) {
+    const handleSelectAllDays = () => {
+        if (selectedDays.length === DAYS.length) {
+            setSelectedDays([])
+        } else {
+            setSelectedDays([...DAYS])
+        }
+    }
+
+    const handleSaveBusinessHours = async () => {
+        if (selectedDays.length === 0) {
             toast({
                 title: "Error",
-                description: "Please fill in all fields.",
+                description: "Please select at least one day.",
+                variant: "destructive"
+            })
+            return
+        }
+
+        if (!businessHours.start_time || !businessHours.end_time) {
+            toast({
+                title: "Error",
+                description: "Please set start and end times.",
                 variant: "destructive"
             })
             return
         }
 
         try {
+            setIsSavingSchedules(true)
             const token = await getToken()
             if (!token) return
 
             const payload = {
                 shop_id: shopId,
-                day_of_week: selectedDay.toLowerCase(),
-                start_time: newSlotTime.start_time,
-                end_time: newSlotTime.end_time,
-                is_active: true
+                start_day: selectedDays[0].toLowerCase(),
+                end_day: selectedDays[selectedDays.length - 1].toLowerCase(),
+                start_time: businessHours.start_time,
+                end_time: businessHours.end_time
             }
 
-            const newSchedule = await createSchedule(payload, token)
-            setSchedules(prev => [...prev, newSchedule])
+            await bulkCreateSchedules(payload, token)
 
             toast({
                 title: "Success",
-                description: "Time slot added successfully.",
+                description: "Business hours saved successfully.",
             })
-            setIsAddModalOpen(false)
-        } catch (error: any) {
-            toast({
-                title: "Error",
-                description: error.message || "Failed to add time slot. Please try again.",
-                variant: "destructive"
-            })
-        }
-    }
-
-    const handleUpdateSchedule = async () => {
-        if (!editingSchedule || !newSlotTime.start_time || !newSlotTime.end_time) {
-            toast({
-                title: "Error",
-                description: "Please fill in all fields.",
-                variant: "destructive"
-            })
-            return
-        }
-
-        try {
-            const token = await getToken()
-            if (!token) return
-
-            const payload = {
-                start_time: newSlotTime.start_time,
-                end_time: newSlotTime.end_time,
-            }
-
-            const updatedSchedule = await updateSchedule(editingSchedule.id, payload, token)
-            setSchedules(prev => prev.map(s => s.id === editingSchedule.id ? updatedSchedule : s))
-
-            toast({
-                title: "Success",
-                description: "Time slot updated successfully.",
-            })
-            setIsEditModalOpen(false)
-            setEditingSchedule(null)
-        } catch (error: any) {
-            toast({
-                title: "Error",
-                description: error.message || "Failed to update time slot. Please try again.",
-                variant: "destructive"
-            })
-        }
-    }
-
-    const handleDeleteSchedule = async (id: string) => {
-        try {
-            const token = await getToken()
-            if (!token) return
-
-            await deleteSchedule(id, token)
-            setSchedules(prev => prev.filter(s => s.id !== id))
-
-            toast({
-                title: "Success",
-                description: "Time slot deleted successfully.",
-            })
-        } catch (error) {
-            toast({
-                title: "Error",
-                description: "Failed to delete time slot. Please try again.",
-                variant: "destructive"
-            })
-        }
-    }
-
-    const handleApplyToAllDays = async () => {
-        if (!newSlotTime.start_time || !newSlotTime.end_time) {
-            toast({
-                title: "Error",
-                description: "Please fill in all fields.",
-                variant: "destructive"
-            })
-            return
-        }
-
-        try {
-            setIsApplyingToAll(true)
-            const token = await getToken()
-            if (!token) return
-
-            const promises = DAYS.map(async (day) => {
-                const daySchedules = getDaySchedules(day)
-
-                if (daySchedules.length > 0) {
-                    const existingSchedule = daySchedules[0]
-                    const payload = {
-                        start_time: newSlotTime.start_time,
-                        end_time: newSlotTime.end_time,
-                    }
-                    return updateSchedule(existingSchedule.id, payload, token)
-                } else {
-                    const payload = {
-                        shop_id: shopId,
-                        day_of_week: day.toLowerCase(),
-                        start_time: newSlotTime.start_time,
-                        end_time: newSlotTime.end_time,
-                        is_active: true
-                    }
-                    return createSchedule(payload, token)
-                }
-            })
-
-            const updatedSchedules = await Promise.all(promises)
-
-            setSchedules(prev => {
-                const newSchedules = [...prev]
-                updatedSchedules.forEach(updated => {
-                    const index = newSchedules.findIndex(s => s.id === updated.id)
-                    if (index !== -1) {
-                        newSchedules[index] = updated
-                    } else {
-                        newSchedules.push(updated)
-                    }
-                })
-                return newSchedules
-            })
-
-            toast({
-                title: "Success",
-                description: "Business hours applied to all days successfully.",
-            })
-            setIsApplyAllModalOpen(false)
 
             await loadSchedules()
         } catch (error: any) {
             toast({
                 title: "Error",
-                description: error.message || "Failed to apply hours. Please try again.",
+                description: error.message || "Failed to save business hours. Please try again.",
                 variant: "destructive"
             })
         } finally {
-            setIsApplyingToAll(false)
+            setIsSavingSchedules(false)
         }
     }
 
@@ -373,8 +259,6 @@ export default function CompanyProfilePage() {
     const getDaySchedules = (day: string) => {
         return schedules.filter(s => s.day_of_week === day.toLowerCase())
     }
-
-
 
     return (
         <main className="min-h-screen bg-slate-50">
@@ -477,7 +361,6 @@ export default function CompanyProfilePage() {
                                     />
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
                                     <Input
                                         placeholder="State"
                                         className="placeholder:text-gray-400"
@@ -492,7 +375,6 @@ export default function CompanyProfilePage() {
                                     />
                                 </div>
                             </div>
-
 
                             <div className="flex justify-end pt-4 border-t border-gray-100 mt-6">
                                 <Button
@@ -515,23 +397,11 @@ export default function CompanyProfilePage() {
                             </div>
                         </div>
 
+                        {/* Business Hours Card */}
                         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-                            <div className="flex items-center justify-between mb-6">
-                                <div className="flex items-center gap-2">
-                                    <Clock className="w-5 h-5 text-blue-600" />
-                                    <h2 className="text-lg font-bold text-gray-900">Business Hours</h2>
-                                </div>
-                                <Button
-                                    size="sm"
-                                    onClick={() => {
-                                        setNewSlotTime({ start_time: "09:00", end_time: "17:00" })
-                                        setIsApplyAllModalOpen(true)
-                                    }}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                                >
-                                    <Clock className="w-3 h-3 mr-1" />
-                                    Apply to All Days
-                                </Button>
+                            <div className="flex items-center gap-2 mb-6">
+                                <Clock className="w-5 h-5 text-blue-600" />
+                                <h2 className="text-lg font-bold text-gray-900">Business Hours</h2>
                             </div>
 
                             {isLoadingSchedules ? (
@@ -540,89 +410,75 @@ export default function CompanyProfilePage() {
                                     <p className="text-gray-600">Loading schedules...</p>
                                 </div>
                             ) : (
-                                <div className="space-y-4">
-                                    {DAYS.map((day) => {
-                                        const daySchedules = getDaySchedules(day)
-                                        const hasSchedule = daySchedules.length > 0
-                                        const schedule = daySchedules[0]
+                                <div className="space-y-6">
+                                    {/* Select All Days */}
+                                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <Checkbox
+                                                id="select-all"
+                                                checked={selectedDays.length === DAYS.length}
+                                                onCheckedChange={handleSelectAllDays}
+                                                className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                                            />
+                                            <Label htmlFor="select-all" className="font-semibold text-gray-900 cursor-pointer">
+                                                Select All Days
+                                            </Label>
+                                        </div>
+                                    </div>
 
-                                        return (
-                                            <div key={day} className="border border-gray-100 rounded-lg p-4">
-                                                <div className="flex items-center justify-between mb-3">
-                                                    <Label className="font-semibold text-gray-900">{day}</Label>
-                                                    {!hasSchedule ? (
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={() => handleAddHour(day)}
-                                                            className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                                                        >
-                                                            <Plus className="w-3 h-3 mr-1" />
-                                                            Add Hour
-                                                        </Button>
-                                                    ) : (
-                                                        <div className="flex items-center gap-2">
-                                                            <Button
-                                                                size="sm"
-                                                                variant="ghost"
-                                                                onClick={() => handleEditSchedule(schedule)}
-                                                                className="text-blue-600 hover:bg-blue-50 h-8 px-2"
-                                                            >
-                                                                <Edit2 className="w-3 h-3 mr-1" />
-                                                                Edit
-                                                            </Button>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="ghost"
-                                                                onClick={() => handleDeleteSchedule(schedule.id)}
-                                                                className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 px-2"
-                                                            >
-                                                                <Trash2 className="w-3 h-3 mr-1" />
-                                                                Delete
-                                                            </Button>
+                                    {/* Days Selection */}
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                        {DAYS.map((day) => {
+                                            const daySchedules = getDaySchedules(day)
+                                            const hasSchedule = daySchedules.length > 0
+                                            const isSelected = selectedDays.includes(day)
+
+                                            return (
+                                                <div
+                                                    key={day}
+                                                    onClick={() => handleDayToggle(day)}
+                                                    className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all ${isSelected
+                                                        ? 'border-blue-600 bg-blue-50'
+                                                        : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                                                        }`}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <Checkbox
+                                                            checked={isSelected}
+                                                            onCheckedChange={() => handleDayToggle(day)}
+                                                            className="pointer-events-none data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                                                        />
+                                                        <div className="flex-1">
+                                                            <Label className="font-semibold text-gray-900 cursor-pointer">
+                                                                {day}
+                                                            </Label>
+                                                            {hasSchedule && (
+                                                                <div className="flex items-center gap-1 mt-1">
+                                                                    <Check className="w-3 h-3 text-green-600" />
+                                                                    <span className="text-xs text-green-600 font-medium">Set</span>
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                    )}
+                                                    </div>
                                                 </div>
+                                            )
+                                        })}
+                                    </div>
 
-                                                <div className="space-y-2">
-                                                    {hasSchedule ? (
-                                                        <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                                                            <div className="flex items-center gap-2">
-                                                                <Clock className="w-4 h-4 text-gray-400" />
-                                                                <span className="text-sm font-medium text-gray-900">
-                                                                    {formatTimeTo12Hour(schedule.start_time)} - {formatTimeTo12Hour(schedule.end_time)}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="text-center py-4">
-                                                            <p className="text-sm text-gray-500">No hours set for this day</p>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                            )}
-
-                            <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-                                <DialogContent className="sm:max-w-[425px]">
-                                    <DialogHeader>
-                                        <DialogTitle>Add Business Hours</DialogTitle>
-                                        <DialogDescription>
-                                            Add a new time slot for {selectedDay}.
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <div className="grid gap-4 py-4">
-                                        <div className="grid grid-cols-2 gap-4">
+                                    {/* Time Selection */}
+                                    <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                                        <Label className="text-base font-semibold text-gray-900 mb-4 block">
+                                            Set Business Hours
+                                        </Label>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="space-y-2">
                                                 <Label htmlFor="start-time">Start Time</Label>
                                                 <Input
                                                     id="start-time"
                                                     type="time"
-                                                    value={newSlotTime.start_time}
-                                                    onChange={(e) => setNewSlotTime(prev => ({ ...prev, start_time: e.target.value }))}
+                                                    value={businessHours.start_time}
+                                                    onChange={(e) => setBusinessHours(prev => ({ ...prev, start_time: e.target.value }))}
+                                                    className="text-lg font-medium"
                                                 />
                                             </div>
                                             <div className="space-y-2">
@@ -630,109 +486,48 @@ export default function CompanyProfilePage() {
                                                 <Input
                                                     id="end-time"
                                                     type="time"
-                                                    value={newSlotTime.end_time}
-                                                    onChange={(e) => setNewSlotTime(prev => ({ ...prev, end_time: e.target.value }))}
+                                                    value={businessHours.end_time}
+                                                    onChange={(e) => setBusinessHours(prev => ({ ...prev, end_time: e.target.value }))}
+                                                    className="text-lg font-medium"
                                                 />
                                             </div>
                                         </div>
-                                    </div>
-                                    <DialogFooter>
-                                        <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>Cancel</Button>
-                                        <Button onClick={handleSaveNewSlot} className="bg-blue-600 text-white">Add Slot</Button>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
 
-                            <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-                                <DialogContent className="sm:max-w-[425px]">
-                                    <DialogHeader>
-                                        <DialogTitle>Edit Business Hours</DialogTitle>
-                                        <DialogDescription>
-                                            Update the time slot for {selectedDay}.
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <div className="grid gap-4 py-4">
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="edit-start-time">Start Time</Label>
-                                                <Input
-                                                    id="edit-start-time"
-                                                    type="time"
-                                                    value={newSlotTime.start_time}
-                                                    onChange={(e) => setNewSlotTime(prev => ({ ...prev, start_time: e.target.value }))}
-                                                />
+                                        {selectedDays.length > 0 && (
+                                            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                                <p className="text-sm text-blue-800">
+                                                    <strong>Selected days:</strong> {selectedDays.join(', ')}
+                                                </p>
+                                                <p className="text-sm text-blue-800 mt-1">
+                                                    <strong>Hours:</strong> {formatTimeTo12Hour(businessHours.start_time)} - {formatTimeTo12Hour(businessHours.end_time)}
+                                                </p>
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="edit-end-time">End Time</Label>
-                                                <Input
-                                                    id="edit-end-time"
-                                                    type="time"
-                                                    value={newSlotTime.end_time}
-                                                    onChange={(e) => setNewSlotTime(prev => ({ ...prev, end_time: e.target.value }))}
-                                                />
-                                            </div>
-                                        </div>
+                                        )}
                                     </div>
-                                    <DialogFooter>
-                                        <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
-                                        <Button onClick={handleUpdateSchedule} className="bg-blue-600 text-white">Update Slot</Button>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
 
-                            <Dialog open={isApplyAllModalOpen} onOpenChange={setIsApplyAllModalOpen}>
-                                <DialogContent className="sm:max-w-[425px]">
-                                    <DialogHeader>
-                                        <DialogTitle>Apply Hours to All Days</DialogTitle>
-                                        <DialogDescription>
-                                            Set the same business hours for all days of the week.
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <div className="grid gap-4 py-4">
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="all-start-time">Start Time</Label>
-                                                <Input
-                                                    id="all-start-time"
-                                                    type="time"
-                                                    value={newSlotTime.start_time}
-                                                    onChange={(e) => setNewSlotTime(prev => ({ ...prev, start_time: e.target.value }))}
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="all-end-time">End Time</Label>
-                                                <Input
-                                                    id="all-end-time"
-                                                    type="time"
-                                                    value={newSlotTime.end_time}
-                                                    onChange={(e) => setNewSlotTime(prev => ({ ...prev, end_time: e.target.value }))}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                                            <p className="text-sm text-blue-800">
-                                                ℹ️ This will update existing schedules and create new ones for days without hours set.
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <DialogFooter>
-                                        <Button variant="outline" onClick={() => setIsApplyAllModalOpen(false)} disabled={isApplyingToAll}>Cancel</Button>
-                                        <Button onClick={handleApplyToAllDays} className="bg-blue-600 text-white" disabled={isApplyingToAll}>
-                                            {isApplyingToAll ? (
+                                    {/* Save Button */}
+                                    <div className="flex justify-end pt-4 border-t border-gray-100">
+                                        <Button
+                                            onClick={handleSaveBusinessHours}
+                                            disabled={isSavingSchedules || selectedDays.length === 0}
+                                            className="bg-blue-600 hover:bg-blue-700 text-white px-8"
+                                        >
+                                            {isSavingSchedules ? (
                                                 <>
-                                                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                                                    Applying...
+                                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                    Saving...
                                                 </>
                                             ) : (
-                                                "Apply to All Days"
+                                                <>
+                                                    <Save className="w-4 h-4 mr-2" />
+                                                    Save Business Hours
+                                                </>
                                             )}
                                         </Button>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
+                                    </div>
+                                </div>
+                            )}
                         </div>
-
-
                     </div>
                 </div>
             )}

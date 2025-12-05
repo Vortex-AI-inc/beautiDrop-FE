@@ -4,11 +4,9 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Light backgrounds */
   --background: #ffffff;
   --foreground: #0a0a0a;
 
-  /* BeautyDrop AI Colors */
   --primary: #2563eb;
   --primary-light: #e8f1ff;
   --primary-foreground: #ffffff;
@@ -19,13 +17,11 @@
   --accent-teal: #14b8a6;
   --accent-pink: #ec4899;
 
-  /* Cards and UI */
   --card: #ffffff;
   --card-foreground: #0a0a0a;
   --border: #e5e7eb;
   --muted: #6b7280;
 
-  /* Radius */
   --radius: 0.5rem;
 
   --popover: oklch(1 0 0);
@@ -89,7 +85,6 @@
 }
 
 @theme inline {
-  /* optional: --font-sans, --font-serif, --font-mono if they are applied in the layout.tsx */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);

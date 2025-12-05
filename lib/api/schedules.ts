@@ -286,3 +286,102 @@ export async function fetchPublicTimeSlots(
         throw error
     }
 }
+
+export interface DynamicAvailabilityRequest {
+    service_id: string
+    date: string
+    buffer_minutes_override?: number
+}
+
+export interface AvailableSlot {
+    start_time: string
+    end_time: string
+    available_staff: Array<{
+        id: string
+        name: string
+        email: string | null
+        phone: string | null
+        profile_image_url: string | null
+        is_primary: boolean
+    }>
+    available_staff_count: number
+}
+
+
+export interface DynamicAvailabilityResponse {
+    shop_id: string
+    shop_name: string
+    service_id: string
+    service_name: string
+    service_duration_minutes: number
+    date: string
+    is_shop_open: boolean
+    shop_hours: {
+        start_time: string
+        end_time: string
+        slot_duration_minutes: number
+        day_of_week: string
+    }
+    available_slots: AvailableSlot[]
+    total_available_slots: number
+    eligible_staff_count: number
+}
+
+export async function getDynamicAvailability(
+    data: DynamicAvailabilityRequest
+): Promise<DynamicAvailabilityResponse> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/schedules/time-slots/dynamic_availability/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+
+        if (!response.ok) {
+            const errorData = await response.json()
+            throw new Error(errorData.error || errorData.detail || `Failed to fetch availability: ${response.statusText}`)
+        }
+
+        const responseData = await response.json()
+        return responseData
+    } catch (error) {
+        throw error
+    }
+}
+
+export interface BulkScheduleData {
+    shop_id: string
+    start_day: string
+    end_day: string
+    start_time: string
+    end_time: string
+}
+
+export async function bulkCreateSchedules(
+    data: BulkScheduleData,
+    token: string
+): Promise<{ message?: string }> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/schedules/shop-schedules/bulk_create/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(data),
+        })
+
+        if (!response.ok) {
+            const errorData = await response.json()
+            throw new Error(errorData.error || errorData.detail || `Failed to create schedules: ${response.statusText}`)
+        }
+
+        const responseData = await response.json()
+        return { message: responseData.message || 'Schedules created successfully' }
+    } catch (error) {
+        throw error
+    }
+}
+

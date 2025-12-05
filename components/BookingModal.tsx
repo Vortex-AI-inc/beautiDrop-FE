@@ -1,21 +1,26 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { BookingDialog, BookingDialogContent } from "@/components/ui/booking-dialog"
+import { BookingDialog, BookingDialogContent, BookingDialogTitle } from "@/components/ui/booking-dialog"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
-import { fetchPublicTimeSlots } from "@/lib/api/schedules"
+import { getDynamicAvailability, type AvailableSlot, type DynamicAvailabilityResponse } from "@/lib/api/schedules"
 import { fetchAvailableStaffForService } from "@/lib/api/staff"
+import { createDynamicBooking } from "@/lib/api/bookings"
 import type { Service } from "@/types/service"
-import type { TimeSlot } from "@/types/schedule"
 import type { StaffMember } from "@/types/staff"
-import { Clock, Loader2, X, ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react"
+import { Clock, Loader2, X, Calendar as CalendarIcon, Users, DollarSign, XCircle } from "lucide-react"
 import { format } from "date-fns"
-
 import { useAuth, useUser, SignIn } from "@clerk/nextjs"
-import { useToast } from "@/components/ui/use-toast"
-import { createBooking } from "@/lib/api/bookings"
+import { useToast } from "@/hooks/use-toast"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 
 interface BookingModalProps {
     isOpen: boolean
@@ -24,13 +29,17 @@ interface BookingModalProps {
     shopId: string
 }
 
+interface SlotWithStaff extends AvailableSlot {
+    id: string
+}
+
 export default function BookingModal({ isOpen, onClose, service, shopId }: BookingModalProps) {
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
-    const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([])
-    const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null)
+    const [availabilityData, setAvailabilityData] = useState<DynamicAvailabilityResponse | null>(null)
+    const [selectedSlot, setSelectedSlot] = useState<SlotWithStaff | null>(null)
+    const [selectedStaffId, setSelectedStaffId] = useState<string>("")
     const [isLoadingSlots, setIsLoadingSlots] = useState(false)
     const [availableStaff, setAvailableStaff] = useState<StaffMember[]>([])
-    const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null)
     const { getToken, isSignedIn } = useAuth()
     const { user } = useUser()
     const { toast } = useToast()
@@ -76,31 +85,66 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
 
         setSelectedDate(date)
         setSelectedSlot(null)
-        setSelectedStaff(null)
+        setSelectedStaffId("")
         setIsLoadingSlots(true)
+        setAvailabilityData(null)
 
         try {
             const formattedDate = format(date, 'yyyy-MM-dd')
-            const allSlots = await fetchPublicTimeSlots(shopId, formattedDate)
-            setTimeSlots(allSlots)
+            const data = await getDynamicAvailability({
+                service_id: service.id.toString(),
+                date: formattedDate,
+                buffer_minutes_override: 0
+            })
+            setAvailabilityData(data)
         } catch (error) {
-            setTimeSlots([])
+            toast({
+                title: "Error",
+                description: "Failed to load available slots. Please try again.",
+                variant: "destructive"
+            })
+            setAvailabilityData(null)
         } finally {
             setIsLoadingSlots(false)
         }
     }
 
+    const handleSlotSelect = (slot: AvailableSlot, index: number) => {
+        const slotWithId: SlotWithStaff = {
+            ...slot,
+            id: `slot-${index}`
+        }
+        setSelectedSlot(slotWithId)
+        setSelectedStaffId("")
+    }
+
+    const getStaffForSlot = (slot: AvailableSlot): StaffMember[] => {
+        return slot.available_staff.map(staff => ({
+            id: staff.id,
+            name: staff.name,
+            email: staff.email || '',
+            phone: staff.phone || '',
+            profile_image_url: staff.profile_image_url || '',
+            is_active: true,
+            is_primary: staff.is_primary,
+            shop: '',
+            shop_name: '',
+            assigned_services: [],
+            created_at: '',
+            updated_at: ''
+        }))
+    }
+
     const handleBooking = async () => {
-        if (!selectedSlot || !selectedDate || !service) return
+        if (!selectedSlot || !selectedDate || !service || !selectedStaffId) return
 
         if (!isSignedIn) {
             const bookingData = {
                 serviceId: service.id.toString(),
                 serviceName: service.name,
-                timeSlotId: selectedSlot.id,
                 date: format(selectedDate, 'yyyy-MM-dd'),
-                time: selectedSlot.start_datetime,
-                staffMemberId: (!selectedSlot.staff_member_name && !selectedSlot.staff_name) ? selectedStaff?.id : undefined,
+                time: selectedSlot.start_time,
+                staffMemberId: selectedStaffId,
                 shopId: shopId,
                 timestamp: new Date().toISOString()
             }
@@ -115,7 +159,7 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
             setShowSignInModal(true)
             return
         }
-        await processBooking(selectedSlot, selectedDate, service)
+        await processBooking()
     }
 
     const processPendingBooking = async (bookingData: any) => {
@@ -123,9 +167,10 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
             const token = await getToken()
             if (!token) throw new Error("No authentication token found")
 
-            await createBooking({
+            await createDynamicBooking({
                 service_id: bookingData.serviceId,
-                time_slot_id: bookingData.timeSlotId,
+                date: bookingData.date,
+                start_time: bookingData.time,
                 staff_member_id: bookingData.staffMemberId,
                 notes: ""
             }, token)
@@ -147,28 +192,36 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
         }
     }
 
-    const processBooking = async (slot: TimeSlot, date: Date, svc: Service) => {
+    const processBooking = async () => {
+        if (!selectedSlot || !selectedDate || !service || !selectedStaffId) return
+
         setIsSubmitting(true)
 
         try {
             const token = await getToken()
             if (!token) throw new Error("No authentication token found")
 
-            await createBooking({
-                service_id: svc.id.toString(),
-                time_slot_id: slot.id,
-                staff_member_id: (!slot.staff_member_name && !slot.staff_name) ? selectedStaff?.id : undefined,
+            const formattedDate = format(selectedDate, 'yyyy-MM-dd')
+
+            const timeMatch = selectedSlot.start_time.match(/T(\d{2}:\d{2}:\d{2})/)
+            const timeOnly = timeMatch ? timeMatch[1] : selectedSlot.start_time
+
+            await createDynamicBooking({
+                service_id: service.id.toString(),
+                date: formattedDate,
+                start_time: timeOnly,
+                staff_member_id: selectedStaffId,
                 notes: ""
             }, token)
 
             toast({
                 title: "Booking Confirmed!",
-                description: `Your appointment for ${svc.name} has been scheduled.`,
+                description: `Your appointment for ${service.name} has been scheduled for ${format(selectedDate, 'MMM d, yyyy')} at ${formatTime(selectedSlot.start_time)}.`,
             })
 
             setTimeout(() => {
-                onClose()
-            }, 1000)
+                handleClose()
+            }, 2000)
         } catch (error) {
             toast({
                 title: "Booking Failed",
@@ -182,9 +235,22 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
 
     const handleClose = () => {
         setSelectedDate(undefined)
-        setTimeSlots([])
+        setAvailabilityData(null)
         setSelectedSlot(null)
+        setSelectedStaffId("")
         onClose()
+    }
+
+    const formatTime = (timeStr: string): string => {
+
+        const timeMatch = timeStr.match(/T(\d{2}):(\d{2})/)
+        if (!timeMatch) return timeStr
+
+        const hours = parseInt(timeMatch[1])
+        const minutes = parseInt(timeMatch[2])
+        const period = hours >= 12 ? 'PM' : 'AM'
+        const displayHours = hours % 12 || 12
+        return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`
     }
 
     if (!service) return null
@@ -192,43 +258,55 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
     return (
         <>
             <BookingDialog open={isOpen} onOpenChange={handleClose}>
-                <BookingDialogContent className="max-w-5xl w-[90vw] bg-[#1a1d24] border border-white/10 p-0 gap-0 overflow-hidden shadow-2xl rounded-2xl">
+                <BookingDialogContent className="max-w-5xl w-[95vw] max-h-[90vh] bg-white border-0 p-0 gap-0 overflow-y-auto shadow-2xl rounded-3xl">
                     {/* Header */}
-                    <div className="px-10 py-8 bg-gradient-to-b from-white/5 to-transparent border-b border-white/5">
-                        <div className="flex justify-between items-start">
+                    <div className="px-8 py-6 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+                        <div className="relative flex justify-between items-start">
                             <div>
-                                <h2 className="text-3xl font-bold text-white mb-2">
+                                <BookingDialogTitle className="text-3xl font-bold text-white mb-2">
                                     Book Appointment
-                                </h2>
-                                <p className="text-white/50 text-base">
+                                </BookingDialogTitle>
+                                <p className="text-white/90 text-lg font-medium">
                                     {service.name}
                                 </p>
                             </div>
                             <button
                                 onClick={handleClose}
-                                className="rounded-full p-2 hover:bg-white/10 transition-colors focus:outline-none"
+                                className="rounded-full p-2 hover:bg-white/20 transition-colors focus:outline-none"
                             >
-                                <X className="h-5 w-5 text-white/60 hover:text-white" />
+                                <X className="h-6 w-6 text-white" />
                             </button>
                         </div>
 
-                        <div className="flex items-center gap-6 mt-6">
-                            <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-                                ${parseFloat(service.price).toFixed(0)}
-                            </span>
-                            <div className="h-6 w-[1px] bg-white/10"></div>
-                            <div className="flex items-center gap-2 text-white/70 bg-white/5 px-3 py-1.5 rounded-full text-sm">
-                                <Clock className="w-4 h-4 text-purple-400" />
-                                <span className="font-medium">{service.duration_minutes} mins</span>
+                        <div className="flex items-center gap-6 mt-6 relative">
+                            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
+                                <DollarSign className="w-5 h-5 text-white" />
+                                <span className="text-2xl font-bold text-white">
+                                    ${parseFloat(service.price).toFixed(0)}
+                                </span>
                             </div>
+                            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
+                                <Clock className="w-5 h-5 text-white" />
+                                <span className="font-semibold text-white">{service.duration_minutes} mins</span>
+                            </div>
+                            {availabilityData && (
+                                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
+                                    <Users className="w-5 h-5 text-white" />
+                                    <span className="font-semibold text-white">{availabilityData.eligible_staff_count} Staff Available</span>
+                                </div>
+                            )}
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
-                        <div className="p-10 border-b lg:border-b-0 lg:border-r border-white/5">
+                        {/* Date Selection */}
+                        <div className="p-8 border-b lg:border-b-0 lg:border-r border-gray-200 bg-gray-50">
                             <div className="flex items-center gap-2 mb-6">
-                                <CalendarIcon className="w-5 h-5 text-purple-400" />
-                                <h3 className="text-base font-semibold text-white">Select Date</h3>
+                                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                                    <CalendarIcon className="w-5 h-5 text-blue-600" />
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-900">Select Date</h3>
                             </div>
 
                             <div className="flex justify-center">
@@ -237,168 +315,160 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
                                     selected={selectedDate}
                                     onSelect={handleDateSelect}
                                     disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                                    className="rounded-xl border border-white/5 bg-white/[0.02] p-4"
+                                    className="rounded-2xl border-2 border-gray-200 bg-white p-4 shadow-sm"
                                     classNames={{
                                         months: "flex flex-col space-y-4",
                                         month: "space-y-4 w-full",
                                         caption: "flex justify-center pt-1 relative items-center mb-4",
-                                        caption_label: "text-base font-semibold text-white",
+                                        caption_label: "text-lg font-bold text-gray-900",
                                         nav: "space-x-1 flex items-center",
-                                        button_previous: "h-8 w-8 bg-transparent hover:bg-white/10 text-white/60 hover:text-white rounded-lg transition-all",
-                                        button_next: "h-8 w-8 bg-transparent hover:bg-white/10 text-white/60 hover:text-white rounded-lg transition-all",
+                                        button_previous: "h-10 w-10 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all",
+                                        button_next: "h-10 w-10 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all",
                                         weekdays: "flex w-full mb-2",
-                                        weekday: "!text-white/90 rounded-md w-full font-medium text-xs flex-1 text-center uppercase tracking-wide",
+                                        weekday: "text-gray-600 rounded-md w-full font-semibold text-sm flex-1 text-center uppercase tracking-wide",
                                         week: "flex w-full mt-1",
                                         day: "relative p-0.5 text-center flex-1",
-                                        day_button: "h-11 w-11 mx-auto p-0 font-normal !text-white/80 hover:!bg-white/10 hover:!text-white rounded-lg transition-all inline-flex items-center justify-center text-sm",
-                                        selected: "!bg-purple-600 !text-white hover:!bg-purple-700 font-semibold shadow-lg shadow-purple-500/20",
-                                        today: "!bg-transparent !text-white font-medium ring-1 ring-white/20",
-                                        outside: "!text-white/20 opacity-50 hover:!bg-transparent hover:!text-white/20",
-                                        disabled: "!text-white/10 cursor-not-allowed hover:!bg-transparent hover:!text-white/10",
+                                        day_button: "h-12 w-12 mx-auto p-0 font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all inline-flex items-center justify-center text-base",
+                                        selected: "bg-gradient-to-br from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 font-bold shadow-lg",
+                                        today: "bg-blue-50 text-blue-600 font-semibold ring-2 ring-blue-200",
+                                        outside: "text-gray-300 opacity-50 hover:bg-transparent hover:text-gray-300",
+                                        disabled: "text-gray-200 cursor-not-allowed hover:bg-transparent hover:text-gray-200",
                                         hidden: "invisible",
                                     }}
                                 />
                             </div>
                         </div>
 
-                        <div className="p-10 bg-gradient-to-br from-white/[0.02] to-transparent">
+                        {/* Time & Staff Selection */}
+                        <div className="p-8 bg-white">
                             <div className="flex items-center gap-2 mb-6">
-                                <Clock className="w-5 h-5 text-purple-400" />
-                                <h3 className="text-base font-semibold text-white">Select Time</h3>
+                                <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                                    <Clock className="w-5 h-5 text-purple-600" />
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-900">Select Time & Staff</h3>
                             </div>
 
                             {!selectedDate ? (
-                                <div className="flex flex-col items-center justify-center h-[380px] text-white/30 border-2 border-dashed border-white/5 rounded-xl bg-white/[0.01]">
-                                    <CalendarIcon className="w-10 h-10 mb-3 opacity-20" />
-                                    <p className="text-sm font-medium">Select a date to view available slots</p>
+                                <div className="flex flex-col items-center justify-center h-[400px] text-gray-400 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50">
+                                    <CalendarIcon className="w-16 h-16 mb-4 opacity-40" />
+                                    <p className="text-base font-semibold">Select a date to view available slots</p>
                                 </div>
                             ) : isLoadingSlots ? (
-                                <div className="flex items-center justify-center h-[380px] border border-white/5 rounded-xl bg-white/[0.01]">
-                                    <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+                                <div className="flex items-center justify-center h-[400px] border-2 border-gray-200 rounded-2xl bg-gray-50">
+                                    <div className="text-center">
+                                        <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-3" />
+                                        <p className="text-gray-600 font-medium">Loading available slots...</p>
+                                    </div>
                                 </div>
-                            ) : timeSlots.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-[380px] text-white/30 border border-white/5 rounded-xl bg-white/[0.01]">
-                                    <p className="text-sm font-medium">No slots available for this date</p>
+                            ) : !availabilityData || !availabilityData.is_shop_open ? (
+                                <div className="flex flex-col items-center justify-center h-[400px] text-gray-400 border-2 border-gray-200 rounded-2xl bg-gray-50">
+                                    <XCircle className="w-16 h-16 mb-4 text-red-400" />
+                                    <p className="text-base font-semibold text-gray-600">Shop is closed on this date</p>
                                 </div>
-                            ) : (() => {
-                                const hasUnassignedSlots = timeSlots.some(slot =>
-                                    !slot.staff_member_name && !slot.staff_name
-                                )
+                            ) : availabilityData.available_slots.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center h-[400px] text-gray-400 border-2 border-gray-200 rounded-2xl bg-gray-50">
+                                    <Clock className="w-16 h-16 mb-4 opacity-40" />
+                                    <p className="text-base font-semibold text-gray-600">No slots available for this date</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-5 h-full flex flex-col">
+                                    {/* Time Slots Grid */}
+                                    <div className={`grid grid-cols-2 gap-3 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent ${selectedSlot ? 'max-h-[280px]' : 'max-h-[480px]'}`}>
+                                        {availabilityData.available_slots.map((slot, index) => {
+                                            const isSelected = selectedSlot?.id === `slot-${index}`
+                                            const startTime = formatTime(slot.start_time)
 
-
-                                const filteredSlots = timeSlots
-
-                                return (
-                                    <>
-                                        {hasUnassignedSlots && availableStaff.length > 0 && (
-                                            <div className="mb-4">
-                                                <label className="block text-sm font-medium text-white/70 mb-2">
-                                                    Select Staff Member {selectedSlot && !selectedSlot.staff_member_name && !selectedSlot.staff_name && <span className="text-red-400">*</span>}
-                                                </label>
-                                                <select
-                                                    value={selectedStaff?.id || ""}
-                                                    onChange={(e) => {
-                                                        const staffId = e.target.value
-                                                        if (!staffId) {
-                                                            setSelectedStaff(null)
-                                                        } else {
-                                                            const staff = availableStaff.find(s => s.id === staffId)
-                                                            setSelectedStaff(staff || null)
+                                            return (
+                                                <button
+                                                    key={index}
+                                                    onClick={() => handleSlotSelect(slot, index)}
+                                                    className={`
+                                                        px-4 py-4 rounded-xl text-sm font-semibold transition-all duration-200 flex flex-col items-start gap-2 w-full border-2
+                                                        ${isSelected
+                                                            ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white border-transparent shadow-lg'
+                                                            : 'bg-white text-gray-700 hover:bg-blue-50 hover:border-blue-300 border-gray-200 hover:shadow-md'
                                                         }
-                                                    }}
-                                                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                                    `}
                                                 >
-                                                    <option value="" className="bg-[#1a1d24] text-white">Select a staff member</option>
-                                                    {availableStaff.map((staff) => (
-                                                        <option key={staff.id} value={staff.id} className="bg-[#1a1d24] text-white">
-                                                            {staff.name}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                        )}
+                                                    <span className="text-lg font-bold">{startTime}</span>
+                                                    <div className={`flex items-center gap-1.5 text-xs ${isSelected ? 'text-white/90' : 'text-purple-600'}`}>
+                                                        <Users className="w-3.5 h-3.5" />
+                                                        <span className="font-semibold">{slot.available_staff_count} available</span>
+                                                    </div>
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
 
-                                        {filteredSlots.length === 0 ? (
-                                            <div className="flex flex-col items-center justify-center h-[380px] text-white/30 border border-white/5 rounded-xl bg-white/[0.01]">
-                                                <p className="text-sm font-medium">No slots available</p>
-                                            </div>
-                                        ) : (
-                                            <div className="grid grid-cols-2 gap-2.5 max-h-[380px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-                                                {filteredSlots.map((slot) => {
-                                                    const isAvailable = slot.is_available
-                                                    const isSelected = selectedSlot?.id === slot.id
-                                                    const timeStr = slot.start_datetime.split('T')[1]?.substring(0, 5) || ''
-                                                    const [hours, minutes] = timeStr.split(':').map(Number)
-                                                    const period = hours >= 12 ? 'PM' : 'AM'
-                                                    const displayHours = hours % 12 || 12
-                                                    const startTime = `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`
-                                                    const staffName = slot.staff_member_name || slot.staff_name
-
-                                                    return (
-                                                        <button
-                                                            key={slot.id}
-                                                            onClick={() => isAvailable && setSelectedSlot(slot)}
-                                                            disabled={!isAvailable}
-                                                            className={`
-                                                            px-4 py-3.5 rounded-lg text-sm font-medium transition-all duration-200 flex flex-col items-start gap-1 w-full
-                                                            ${isSelected
-                                                                    ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30 ring-2 ring-purple-400/50'
-                                                                    : isAvailable
-                                                                        ? 'bg-white/5 text-white hover:bg-white/10 hover:shadow-md border border-white/5'
-                                                                        : 'bg-transparent text-white/20 cursor-not-allowed border border-white/5'
-                                                                }
-                                                        `}
+                                    {/* Staff Selection */}
+                                    {selectedSlot && (
+                                        <div className="space-y-3 pt-4 border-t-2 border-gray-200">
+                                            <label className="block text-sm font-bold text-gray-900">
+                                                Select Staff Member <span className="text-red-500">*</span>
+                                            </label>
+                                            <Select value={selectedStaffId} onValueChange={setSelectedStaffId}>
+                                                <SelectTrigger className="w-full h-12 bg-gray-50 border-2 border-gray-200 text-gray-900 hover:border-blue-300 rounded-xl font-medium">
+                                                    <SelectValue placeholder="Choose a staff member" />
+                                                </SelectTrigger>
+                                                <SelectContent className="bg-white border-2 border-gray-200 rounded-xl">
+                                                    {getStaffForSlot(selectedSlot).map((staff) => (
+                                                        <SelectItem
+                                                            key={staff.id}
+                                                            value={staff.id}
+                                                            className="text-gray-900 hover:bg-blue-50 focus:bg-blue-50 font-medium py-3"
                                                         >
-                                                            <span className="font-semibold">{startTime}</span>
-                                                            {staffName && (
-                                                                <span className={`text-xs ${isSelected ? 'text-white/80' : 'text-purple-400'}`}>
-                                                                    {staffName}
-                                                                </span>
-                                                            )}
-                                                        </button>
-                                                    )
-                                                })}
-                                            </div>
-                                        )}
-                                    </>
-                                )
-                            })()}
+                                                            <div className="flex items-center gap-2">
+                                                                <Users className="w-4 h-4 text-purple-600" />
+                                                                {staff.name}
+                                                            </div>
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    <div className="flex justify-between items-center px-10 py-6 bg-white/[0.02] border-t border-white/5">
-                        <div className="text-sm text-white/40">
-                            {selectedDate && selectedSlot ? (
-                                <span>
-                                    <span className="text-white/60">Selected:</span> <span className="text-white font-medium">{format(selectedDate, 'MMM d, yyyy')}</span> <span className="text-white/60">at</span> <span className="text-white font-medium">{(() => {
-                                        const timeStr = selectedSlot.start_datetime.split('T')[1]?.substring(0, 5) || ''
-                                        const [hours, minutes] = timeStr.split(':').map(Number)
-                                        const period = hours >= 12 ? 'PM' : 'AM'
-                                        const displayHours = hours % 12 || 12
-                                        return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`
-                                    })()}</span>
+                    {/* Footer */}
+                    <div className="flex justify-between items-center px-8 py-6 bg-gray-50 border-t-2 border-gray-200">
+                        <div className="text-sm text-gray-600">
+                            {selectedDate && selectedSlot && selectedStaffId ? (
+                                <span className="font-medium">
+                                    <span className="text-gray-500">Selected:</span>{" "}
+                                    <span className="text-gray-900 font-bold">{format(selectedDate, 'MMM d, yyyy')}</span>{" "}
+                                    <span className="text-gray-500">at</span>{" "}
+                                    <span className="text-gray-900 font-bold">{formatTime(selectedSlot.start_time)}</span>
+                                    {selectedStaffId && (
+                                        <>
+                                            <span className="text-gray-500"> with </span>
+                                            <span className="text-gray-900 font-bold">{availableStaff.find(s => s.id === selectedStaffId)?.name}</span>
+                                        </>
+                                    )}
                                 </span>
                             ) : (
-                                <span>Select a date and time to continue</span>
+                                <span>Select a date, time, and staff member to continue</span>
                             )}
                         </div>
                         <div className="flex gap-3">
                             <Button
                                 onClick={handleClose}
-                                variant="ghost"
-                                className="text-white/60 hover:text-white hover:bg-white/5 px-6 h-11"
+                                variant="outline"
+                                className="px-6 h-12 border-2 border-gray-300 hover:bg-gray-100 text-gray-700 font-semibold rounded-xl"
                                 disabled={isSubmitting}
                             >
                                 Cancel
                             </Button>
                             <Button
                                 onClick={handleBooking}
-                                disabled={!selectedSlot || !selectedDate || isSubmitting || (selectedSlot && !selectedSlot.staff_member_name && !selectedSlot.staff_name && !selectedStaff)}
-                                className="bg-purple-600 hover:bg-purple-700 text-white px-8 h-11 shadow-lg shadow-purple-900/30 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:shadow-purple-900/40"
+                                disabled={!selectedSlot || !selectedDate || !selectedStaffId || isSubmitting}
+                                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 h-12 shadow-lg rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all font-bold text-base"
                             >
                                 {isSubmitting ? (
                                     <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                                         Booking...
                                     </>
                                 ) : (
@@ -411,7 +481,7 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
             </BookingDialog>
 
             <Dialog open={showSignInModal} onOpenChange={setShowSignInModal}>
-                <DialogContent className="sm:max-w-[425px] bg-white p-0 gap-0">
+                <DialogContent className="sm:max-w-[425px] bg-white p-0 gap-0 rounded-2xl">
                     <div className="flex flex-col items-center justify-center p-6">
                         <SignIn
                             appearance={{

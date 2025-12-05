@@ -5,12 +5,10 @@ export default function AuthCompletePage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-tertiary/5 via-background to-primary/5 px-4">
       <div className="w-full max-w-md space-y-8 text-center">
-        {/* Success Icon */}
         <div className="flex justify-center">
           <CheckCircle className="w-20 h-20 text-tertiary" />
         </div>
 
-        {/* Content - replaced card-base, heading-2, body-default, heading-3, body-small, btn-secondary with inline Tailwind */}
         <div className="bg-card text-card-foreground rounded-lg border border-border shadow-sm p-6 space-y-6">
           <div className="space-y-2">
             <h1 className="font-heading text-3xl font-bold tracking-tight">Verify Your Email</h1>

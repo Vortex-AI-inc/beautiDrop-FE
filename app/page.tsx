@@ -239,7 +239,6 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Loading State */}
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
               {[1, 2, 3].map((i) => (
@@ -259,7 +258,6 @@ export default function Home() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-              {/* Starter Plan */}
               <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm hover:shadow-lg transition-all">
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">
                   {starterPlan?.name}
@@ -305,7 +303,6 @@ export default function Home() {
                 </Button>
               </div>
 
-              {/* Professional Plan */}
               <div className="bg-white rounded-2xl p-8 border-2 border-blue-600 shadow-xl relative transform md:-translate-y-4">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg">
                   Most Popular
@@ -355,7 +352,6 @@ export default function Home() {
                 </Button>
               </div>
 
-              {/* Enterprise Plan */}
               <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm hover:shadow-lg transition-all">
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">
                   {enterprisePlan?.name}
@@ -464,7 +460,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Bottom Stats */}
                 <div className="absolute bottom-8 left-8 right-8 grid grid-cols-2 gap-6">
                   <div className="text-center">
                     <p className="text-5xl font-bold text-white mb-1">24/7</p>

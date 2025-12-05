@@ -58,10 +58,23 @@ function BookingDialogContent({
     )
 }
 
+function BookingDialogTitle({
+    className,
+    ...props
+}: React.ComponentProps<typeof DialogPrimitive.Title>) {
+    return (
+        <DialogPrimitive.Title
+            className={cn('text-lg font-semibold', className)}
+            {...props}
+        />
+    )
+}
+
 export {
     BookingDialog,
     BookingDialogTrigger,
     BookingDialogContent,
     BookingDialogOverlay,
     BookingDialogPortal,
+    BookingDialogTitle,
 }

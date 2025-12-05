@@ -8,13 +8,16 @@ import type { Shop } from "@/types/shop"
 import type { Service } from "@/types/service"
 import type { Schedule } from "@/types/schedule"
 import { Button } from "@/components/ui/button"
-import { MapPin, Star, Clock, Phone, Mail, Globe, Loader2, Menu, X } from "lucide-react"
-import { useParams } from "next/navigation"
-import DarkVeil from "@/components/DarkVeil"
+import { MapPin, Star, Clock, Phone, Mail, Globe, Loader2, Calendar, ArrowLeft, Check, Sparkles, Users } from "lucide-react"
+import { useParams, useRouter } from "next/navigation"
 import BookingModal from "@/components/BookingModal"
+import { Header } from "@/components/layout/header"
+import { Footer } from "@/components/layout/footer"
+import Image from "next/image"
 
-export default function SalonLandingPage() {
+export default function SalonDetailPage() {
     const params = useParams()
+    const router = useRouter()
     const shopId = params.shopId as string
     const [shop, setShop] = useState<Shop | null>(null)
     const [services, setServices] = useState<Service[]>([])
@@ -22,7 +25,6 @@ export default function SalonLandingPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
     const [selectedService, setSelectedService] = useState<Service | null>(null)
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
     useEffect(() => {
         if (shopId) {
@@ -45,6 +47,7 @@ export default function SalonLandingPage() {
                 setSchedules(schedulesData)
             }
         } catch (error) {
+            console.error("Failed to load shop details:", error)
         } finally {
             setIsLoading(false)
         }
@@ -52,19 +55,13 @@ export default function SalonLandingPage() {
 
     if (isLoading) {
         return (
-            <main className="min-h-screen relative overflow-hidden bg-black">
-                <div className="fixed inset-0 z-0">
-                    <DarkVeil
-                        hueShift={33}
-                        noiseIntensity={0}
-                        scanlineIntensity={0}
-                        speed={0.5}
-                        scanlineFrequency={0}
-                        warpAmount={0}
-                    />
-                </div>
-                <div className="relative z-10 flex items-center justify-center min-h-screen">
-                    <Loader2 className="w-12 h-12 text-white animate-spin" />
+            <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30 flex flex-col">
+                <Header />
+                <div className="flex-grow flex items-center justify-center">
+                    <div className="text-center">
+                        <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+                        <p className="text-gray-600 font-medium">Loading salon details...</p>
+                    </div>
                 </div>
             </main>
         )
@@ -72,255 +69,400 @@ export default function SalonLandingPage() {
 
     if (!shop) {
         return (
-            <main className="min-h-screen relative overflow-hidden bg-black">
-                <div className="fixed inset-0 z-0">
-                    <DarkVeil
-                        hueShift={33}
-                        noiseIntensity={0}
-                        scanlineIntensity={0}
-                        speed={0.5}
-                        scanlineFrequency={0}
-                        warpAmount={0}
-                    />
-                </div>
-                <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4">
-                    <h1 className="text-3xl font-bold text-white mb-4">Salon Not Found</h1>
-                    <p className="text-white/70 mb-8">The salon you are looking for does not exist.</p>
+            <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30 flex flex-col">
+                <Header />
+                <div className="flex-grow flex flex-col items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl p-12 shadow-xl border border-gray-100 max-w-md text-center">
+                        <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <span className="text-4xl">😔</span>
+                        </div>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-4">Salon Not Found</h1>
+                        <p className="text-gray-600 mb-8">The salon you are looking for does not exist or has been removed.</p>
+                        <Button onClick={() => router.push('/browse-salons')} className="bg-blue-600 hover:bg-blue-700 shadow-lg">
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            Back to Browse Salons
+                        </Button>
+                    </div>
                 </div>
             </main>
         )
     }
 
     return (
-        <div className="min-h-screen relative bg-black">
-            <div className="fixed inset-0 z-0">
-                <DarkVeil
-                    hueShift={33}
-                    noiseIntensity={0}
-                    scanlineIntensity={0}
-                    speed={0.5}
-                    scanlineFrequency={0}
-                    warpAmount={0}
+        <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30 flex flex-col">
+            <Header />
+
+            {/* Hero Section with Cover Image */}
+            <section className="relative h-[450px] md:h-[550px] bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 overflow-hidden">
+                <Image
+                    src={shop.cover_image_url || "/saloon-bg.jpg"}
+                    alt={shop.name}
+                    fill
+                    className="object-cover"
+                    priority
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+
+
+                <div className="absolute inset-0 flex items-end">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 w-full">
+                        <div className="flex flex-wrap items-center gap-3 mb-6">
+                            <div className="flex items-center bg-gradient-to-r from-yellow-400 to-amber-400 px-4 py-2 rounded-full shadow-lg">
+                                <Star className="w-5 h-5 text-white mr-2 fill-white" />
+                                <span className="font-bold text-white text-lg">5.0</span>
+                            </div>
+                            <div className="flex items-center bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/30">
+                                <Users className="w-4 h-4 text-white mr-2" />
+                                <span className="text-white font-medium text-sm">1000+ Happy Clients</span>
+                            </div>
+                            <div className="flex items-center bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/30">
+                                <Sparkles className="w-4 h-4 text-white mr-2" />
+                                <span className="text-white font-medium text-sm">Premium Services</span>
+                            </div>
+                        </div>
+
+                        <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold text-white mb-4 drop-shadow-lg">
+                            {shop.name}
+                        </h1>
+
+                        {shop.description && (
+                            <p className="text-lg md:text-xl text-white/95 mb-6 max-w-3xl leading-relaxed drop-shadow">
+                                {shop.description}
+                            </p>
+                        )}
+
+                        {/* Contact Info Pills */}
+                        <div className="flex flex-wrap gap-3">
+                            {shop.address && (
+                                <div className="flex items-center gap-2 bg-white/15 backdrop-blur-md px-5 py-3 rounded-full text-white border border-white/30 shadow-lg hover:bg-white/25 transition-all">
+                                    <MapPin className="w-5 h-5" />
+                                    <span className="font-medium">{shop.address}, {shop.city}, {shop.state}</span>
+                                </div>
+                            )}
+                            {shop.phone && (
+                                <a href={`tel:${shop.phone}`} className="flex items-center gap-2 bg-white/15 backdrop-blur-md px-5 py-3 rounded-full text-white border border-white/30 shadow-lg hover:bg-white/25 transition-all">
+                                    <Phone className="w-5 h-5" />
+                                    <span className="font-medium">{shop.phone}</span>
+                                </a>
+                            )}
+                            {shop.email && (
+                                <a href={`mailto:${shop.email}`} className="flex items-center gap-2 bg-white/15 backdrop-blur-md px-5 py-3 rounded-full text-white border border-white/30 shadow-lg hover:bg-white/25 transition-all">
+                                    <Mail className="w-5 h-5" />
+                                    <span className="font-medium">{shop.email}</span>
+                                </a>
+                            )}
+                            {shop.website && (
+                                <a href={shop.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-white/15 backdrop-blur-md px-5 py-3 rounded-full text-white border border-white/30 shadow-lg hover:bg-white/25 transition-all">
+                                    <Globe className="w-5 h-5" />
+                                    <span className="font-medium">Visit Website</span>
+                                </a>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Main Content */}
+            <div className="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Left Column - Services */}
+                        <div className="lg:col-span-2 space-y-8">
+                            {/* Services Section */}
+                            <section id="services">
+                                <div className="flex items-center justify-between mb-8">
+                                    <div>
+                                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Our Services</h2>
+                                        <p className="text-gray-600">Choose from our premium selection of beauty services</p>
+                                    </div>
+                                    {services.length > 0 && (
+                                        <div className="hidden sm:block bg-blue-100 text-blue-700 px-4 py-2 rounded-full font-semibold">
+                                            {services.length} {services.length === 1 ? 'Service' : 'Services'}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {services.length === 0 ? (
+                                    <div className="bg-white rounded-3xl p-16 text-center border border-gray-100 shadow-lg">
+                                        <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                            <Calendar className="w-12 h-12 text-blue-600" />
+                                        </div>
+                                        <h3 className="text-2xl font-bold text-gray-900 mb-3">Services Coming Soon</h3>
+                                        <p className="text-gray-600 text-lg mb-6">We're currently updating our service menu. Please check back soon!</p>
+                                        {shop.phone && (
+                                            <p className="text-gray-500">
+                                                For inquiries, call us at <a href={`tel:${shop.phone}`} className="text-blue-600 font-semibold hover:underline">{shop.phone}</a>
+                                            </p>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 gap-6">
+                                        {services.map((service, index) => (
+                                            <div
+                                                key={service.id}
+                                                className="group bg-white rounded-3xl p-8 border border-gray-100 shadow-md hover:shadow-2xl transition-all duration-500 hover:border-blue-200 hover:-translate-y-1 relative overflow-hidden"
+                                                style={{ animationDelay: `${index * 100}ms` }}
+                                            >
+                                                {/* Gradient accent */}
+                                                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-500"></div>
+
+                                                <div className="relative flex flex-col md:flex-row justify-between items-start gap-6">
+                                                    <div className="flex-1">
+                                                        <div className="flex items-start gap-3 mb-3">
+                                                            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center shrink-0 shadow-lg">
+                                                                <Sparkles className="w-6 h-6 text-white" />
+                                                            </div>
+                                                            <div className="flex-1">
+                                                                <h3 className="font-bold text-gray-900 text-2xl mb-2 group-hover:text-blue-600 transition-colors">
+                                                                    {service.name}
+                                                                </h3>
+                                                                {service.category && (
+                                                                    <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 border border-blue-200">
+                                                                        {service.category}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        {service.description ? (
+                                                            <p className="text-gray-600 leading-relaxed mb-4 text-base">
+                                                                {service.description}
+                                                            </p>
+                                                        ) : (
+                                                            <p className="text-gray-400 italic mb-4">
+                                                                Professional {service.name.toLowerCase()} service
+                                                            </p>
+                                                        )}
+
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="flex items-center gap-2 text-gray-600 bg-gray-50 px-4 py-2 rounded-full">
+                                                                <Clock className="w-4 h-4 text-blue-600" />
+                                                                <span className="font-medium">{service.duration_minutes} minutes</span>
+                                                            </div>
+                                                            {service.assigned_staff && service.assigned_staff.length > 0 && (
+                                                                <div className="flex items-center gap-2 text-gray-600 bg-gray-50 px-4 py-2 rounded-full">
+                                                                    <Users className="w-4 h-4 text-purple-600" />
+                                                                    <span className="font-medium">{service.assigned_staff.length} {service.assigned_staff.length === 1 ? 'Specialist' : 'Specialists'}</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Show assigned staff names */}
+                                                        {service.assigned_staff && service.assigned_staff.length > 0 && (
+                                                            <div className="mt-4 flex flex-wrap gap-2">
+                                                                {service.assigned_staff.map((staff) => (
+                                                                    <div key={staff.staff_id} className="flex items-center gap-2 bg-purple-50 px-3 py-1.5 rounded-full border border-purple-200">
+                                                                        <div className="w-6 h-6 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
+                                                                            <span className="text-white text-xs font-bold">
+                                                                                {staff.staff_name.charAt(0).toUpperCase()}
+                                                                            </span>
+                                                                        </div>
+                                                                        <span className="text-sm font-medium text-purple-900">{staff.staff_name}</span>
+                                                                        {staff.is_primary && (
+                                                                            <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                                                                        )}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="flex flex-col items-end gap-4 md:min-w-[180px]">
+                                                        <div className="text-right">
+                                                            <div className="text-sm text-gray-500 mb-1">Starting at</div>
+                                                            <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                                                ${parseFloat(service.price).toFixed(0)}
+                                                            </div>
+                                                        </div>
+                                                        <Button
+                                                            onClick={() => {
+                                                                setSelectedService(service)
+                                                                setIsBookingModalOpen(true)
+                                                            }}
+                                                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all px-8 py-6 text-lg rounded-xl"
+                                                        >
+                                                            Book Now
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </section>
+
+                            {/* Additional Info Section */}
+                            {(shop.description || shop.address) && (
+                                <section className="bg-gradient-to-br from-white to-blue-50/50 rounded-3xl p-8 border border-gray-100 shadow-md">
+                                    <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+                                            <Check className="w-6 h-6 text-white" />
+                                        </div>
+                                        Why Choose Us
+                                    </h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {[
+                                            "Expert Professionals",
+                                            "Premium Products",
+                                            "Flexible Scheduling",
+                                            "Satisfaction Guaranteed"
+                                        ].map((benefit, index) => (
+                                            <div key={index} className="flex items-center gap-3 text-gray-700">
+                                                <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center shrink-0">
+                                                    <Check className="w-4 h-4 text-green-600" />
+                                                </div>
+                                                <span className="font-medium">{benefit}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
+                        </div>
+
+                        {/* Right Column - Sidebar */}
+                        <div className="space-y-6">
+                            {/* Business Hours Card */}
+                            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-lg">
+                                <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+                                        <Clock className="w-5 h-5 text-white" />
+                                    </div>
+                                    Business Hours
+                                </h3>
+
+                                {schedules.length === 0 ? (
+                                    <div className="text-center py-8">
+                                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <Clock className="w-8 h-8 text-gray-400" />
+                                        </div>
+                                        <p className="text-gray-500 font-medium mb-2">Hours Not Available</p>
+                                        {shop.phone && (
+                                            <p className="text-sm text-gray-400">
+                                                Call us at <a href={`tel:${shop.phone}`} className="text-blue-600 hover:underline">{shop.phone}</a>
+                                            </p>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => {
+                                            const schedule = schedules.find(s => s.day_of_week.toLowerCase() === day.toLowerCase())
+                                            const isActive = schedule?.is_active
+                                            const isToday = new Date().toLocaleDateString('en-US', { weekday: 'long' }) === day
+
+                                            const formatTime = (time: string) => {
+                                                const [hours, minutes] = time.split(':').map(Number)
+                                                const period = hours >= 12 ? 'PM' : 'AM'
+                                                const displayHours = hours % 12 || 12
+                                                return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`
+                                            }
+
+                                            return (
+                                                <div
+                                                    key={day}
+                                                    className={`flex justify-between items-center py-3 px-4 rounded-xl transition-all ${isToday
+                                                        ? 'bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200'
+                                                        : 'border-b border-gray-100 last:border-0'
+                                                        }`}
+                                                >
+                                                    <span className={`font-semibold ${isToday ? 'text-blue-700' : 'text-gray-700'}`}>
+                                                        {day}
+                                                        {isToday && <span className="ml-2 text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full">Today</span>}
+                                                    </span>
+                                                    <span className={`text-sm font-medium ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
+                                                        {isActive && schedule ? (
+                                                            `${formatTime(schedule.start_time)} - ${formatTime(schedule.end_time)}`
+                                                        ) : (
+                                                            'Closed'
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Contact Card */}
+                            <div className="bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 rounded-3xl p-8 text-white shadow-xl">
+                                <h3 className="text-2xl font-bold mb-6">Get in Touch</h3>
+                                <div className="space-y-4">
+                                    {shop.phone && (
+                                        <a href={`tel:${shop.phone}`} className="flex items-center gap-4 text-white hover:bg-white/10 transition-all p-3 rounded-xl group">
+                                            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:bg-white/30 transition-all">
+                                                <Phone className="w-6 h-6" />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-white/70 mb-1">Phone</p>
+                                                <p className="font-semibold text-lg">{shop.phone}</p>
+                                            </div>
+                                        </a>
+                                    )}
+                                    {shop.email && (
+                                        <a href={`mailto:${shop.email}`} className="flex items-center gap-4 text-white hover:bg-white/10 transition-all p-3 rounded-xl group">
+                                            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:bg-white/30 transition-all">
+                                                <Mail className="w-6 h-6" />
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-xs text-white/70 mb-1">Email</p>
+                                                <p className="font-semibold truncate">{shop.email}</p>
+                                            </div>
+                                        </a>
+                                    )}
+                                    {shop.website && (
+                                        <a href={shop.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 text-white hover:bg-white/10 transition-all p-3 rounded-xl group">
+                                            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:bg-white/30 transition-all">
+                                                <Globe className="w-6 h-6" />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-white/70 mb-1">Website</p>
+                                                <p className="font-semibold">Visit Our Site</p>
+                                            </div>
+                                        </a>
+                                    )}
+                                    {shop.address && (
+                                        <div className="flex items-start gap-4 text-white p-3 rounded-xl bg-white/10">
+                                            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shrink-0">
+                                                <MapPin className="w-6 h-6" />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-white/70 mb-1">Address</p>
+                                                <p className="font-semibold leading-relaxed">
+                                                    {shop.address}<br />
+                                                    {shop.city}, {shop.state} {shop.postal_code}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* CTA Card */}
+                            <div className="bg-gradient-to-br from-amber-400 to-orange-500 rounded-3xl p-8 text-white shadow-xl">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <Sparkles className="w-8 h-8" />
+                                    <h3 className="text-2xl font-bold">Ready to Book?</h3>
+                                </div>
+                                <p className="text-white/95 mb-6 leading-relaxed">
+                                    Experience premium beauty services with our expert team. Book your appointment today!
+                                </p>
+                                <Button
+                                    onClick={() => {
+                                        const servicesSection = document.getElementById('services')
+                                        if (servicesSection) {
+                                            servicesSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                                        }
+                                    }}
+                                    className="w-full bg-white hover:bg-gray-100 text-orange-600 font-bold shadow-lg text-lg py-6 rounded-xl"
+                                >
+                                    View All Services
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <header className="relative z-20 py-6 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-7xl mx-auto">
-                    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-full px-6 py-4 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <span className="text-white font-semibold text-lg">{shop.name}</span>
-                        </div>
-
-                        <nav className="hidden md:flex items-center gap-8">
-                            <a href="#services" className="text-white/80 hover:text-white transition-colors text-sm">Services</a>
-                            <a href="#contact" className="text-white/80 hover:text-white transition-colors text-sm">Contact</a>
-                        </nav>
-
-                        <button
-                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                            className="md:hidden text-white p-2 hover:bg-white/10 rounded-lg transition-colors"
-                            aria-label="Toggle menu"
-                        >
-                            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                        </button>
-                    </div>
-
-                    {isMobileMenuOpen && (
-                        <div className="md:hidden mt-4 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
-                            <nav className="flex flex-col">
-                                <a
-                                    href="#services"
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                    className="text-white/80 hover:text-white hover:bg-white/10 transition-colors px-6 py-4 border-b border-white/10"
-                                >
-                                    Services
-                                </a>
-                                <a
-                                    href="#contact"
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                    className="text-white/80 hover:text-white hover:bg-white/10 transition-colors px-6 py-4"
-                                >
-                                    Contact
-                                </a>
-                            </nav>
-                        </div>
-                    )}
-                </div>
-            </header>
-
-            {/* Hero Section */}
-            <section className="relative z-10 min-h-[90vh] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-20">
-                <div className="text-center max-w-5xl mx-auto">
-                    <div className="inline-block bg-white/5 backdrop-blur-sm border border-white/10 rounded-full px-4 py-2 mb-8">
-                        <span className="text-white/80 text-sm">✨ New Way of Styling</span>
-                    </div>
-
-                    <h1 className="text-5xl sm:text-6xl lg:text-6xl xl:text-6xl font-bold text-white mb-8 leading-wider">
-                        {shop.name}
-                    </h1>
-                    <p className="text-xl sm:text-xl lg:text-2xl text-white/80 mb-12 max-w-3xl mx-auto leading-relaxed">
-                        {shop.description || "Experience luxury beauty services"}
-                    </p>
-
-                    {/* Contact Info Pills */}
-                    <div className="flex flex-wrap justify-center gap-4 mb-12">
-                        {shop.address && (
-                            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md px-6 py-3 rounded-full text-white/80 text-base border border-white/10">
-                                <MapPin className="w-5 h-5" />
-                                <span>{shop.city}, {shop.state}</span>
-                            </div>
-                        )}
-                        {shop.phone && (
-                            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md px-6 py-3 rounded-full text-white/80 text-base border border-white/10">
-                                <Phone className="w-5 h-5" />
-                                <span>{shop.phone}</span>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* CTA Buttons - Matching Preview Style */}
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                        <Button
-                            size="lg"
-                            onClick={() => {
-                                const servicesSection = document.getElementById('services')
-                                if (servicesSection) {
-                                    servicesSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                                }
-                            }}
-                            className="bg-white hover:bg-white/90 text-black px-10 py-6 text-lg font-medium rounded-xl shadow-lg border-0"
-                        >
-                            Book Appointment
-                        </Button>
-                        {shop.website && (
-                            <Button
-                                size="lg"
-                                variant="ghost"
-                                asChild
-                                className="bg-white/5 hover:bg-white/10 text-white px-10 py-6 text-lg rounded-xl backdrop-blur-sm border border-white/10"
-                            >
-                                <a
-                                    href={shop.website}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-3"
-                                >
-                                    <Globe className="w-5 h-5" />
-                                    Visit Website
-                                </a>
-                            </Button>
-                        )}
-                    </div>
-                </div>
-            </section>
-
-            <section id="services" className="relative z-10 py-20 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex items-center gap-6 mb-16">
-                        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Our Services</h2>
-                    </div>
-
-                    {services.length === 0 ? (
-                        <div className="bg-white/5 backdrop-blur-sm rounded-3xl p-16 text-center border border-white/10">
-                            <p className="text-white/60 text-xl">Services coming soon...</p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-                            {services.map((service) => (
-                                <div
-                                    key={service.id}
-                                    className="group bg-white/5 cursor-pointer backdrop-blur-xl hover:bg-white/10 rounded-3xl p-8 border border-white/10 hover:border-white/20 transition-all duration-300 flex flex-col"
-                                >
-                                    <div className="flex justify-between items-start mb-4">
-                                        <h3 className="font-bold text-white text-2xl sm:text-3xl group-hover:text-purple-300 transition-colors">
-                                            {service.name}
-                                        </h3>
-                                        <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                                            ${parseFloat(service.price).toFixed(0)}
-                                        </div>
-                                    </div>
-                                    <p className="text-white/70 text-base sm:text-lg mb-6 leading-relaxed flex-grow">
-                                        {service.description || "No description available yet"}
-                                    </p>
-                                    <div className="flex items-center justify-between mt-auto">
-                                        <div className="flex items-center gap-2 text-white/60">
-                                            <Clock className="w-5 h-5" />
-                                            <span className="text-base">{service.duration_minutes} mins</span>
-                                        </div>
-                                        <Button
-                                            size="lg"
-                                            onClick={() => {
-                                                setSelectedService(service)
-                                                setIsBookingModalOpen(true)
-                                            }}
-                                            className="bg-white hover:bg-white/90 text-black px-6 py-2 rounded-lg font-medium"
-                                        >
-                                            Book Now
-                                        </Button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </section>
-
-            <section className="relative z-10 py-20 px-4 sm:px-6 lg:px-8 bg-white/5 border-y border-white/10">
-                <div className="max-w-3xl mx-auto text-center">
-                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-12">Business Hours</h2>
-
-                    {schedules.length === 0 ? (
-                        <p className="text-white/60">Hours not available</p>
-                    ) : (
-                        <div className="grid gap-4 bg-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/10">
-                            {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => {
-                                const schedule = schedules.find(s => s.day_of_week.toLowerCase() === day.toLowerCase())
-                                const isActive = schedule?.is_active
-
-                                const formatTime = (time: string) => {
-                                    const [hours, minutes] = time.split(':').map(Number)
-                                    const period = hours >= 12 ? 'PM' : 'AM'
-                                    const displayHours = hours % 12 || 12
-                                    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`
-                                }
-
-                                return (
-                                    <div key={day} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
-                                        <span className="text-white/80 font-medium">{day}</span>
-                                        <span className={`font-medium ${isActive ? 'text-white' : 'text-white/40'}`}>
-                                            {isActive && schedule ? (
-                                                `${formatTime(schedule.start_time)} - ${formatTime(schedule.end_time)}`
-                                            ) : (
-                                                'Closed'
-                                            )}
-                                        </span>
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    )}
-                </div>
-            </section>
-
-            <footer id="contact" className="relative z-10 py-12 px-4 sm:px-6 lg:px-8 border-t border-white/10">
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-6 text-white/60">
-                        <div className="flex items-center gap-3">
-                            <Star className="w-6 h-6 text-yellow-400 fill-yellow-400" />
-                            <span className="text-white font-semibold text-lg">5.0</span>
-                            <span className="text-lg">• Trusted by 1000+ clients</span>
-                        </div>
-                        {shop.email && (
-                            <div className="flex items-center gap-3">
-                                <Mail className="w-5 h-5" />
-                                <a href={`mailto:${shop.email}`} className="hover:text-white transition-colors text-lg">
-                                    {shop.email}
-                                </a>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </footer>
+            <Footer />
 
             <BookingModal
                 isOpen={isBookingModalOpen}
@@ -328,6 +470,6 @@ export default function SalonLandingPage() {
                 service={selectedService}
                 shopId={shopId}
             />
-        </div>
+        </main>
     )
 }
