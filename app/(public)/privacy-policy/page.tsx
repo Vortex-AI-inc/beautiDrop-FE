@@ -89,11 +89,9 @@ export default function PrivacyPolicyPage() {
                 </div>
             </section>
 
-            {/* Content Section */}
             <section className="py-16 px-4">
                 <div className="max-w-4xl mx-auto space-y-8">
 
-                    {/* About This Policy */}
                     <div className="bg-blue-50 rounded-xl p-6 border border-blue-100">
                         <div className="flex items-start gap-3">
                             <FileText className="w-5 h-5 text-blue-600 mt-1" />
@@ -106,7 +104,6 @@ export default function PrivacyPolicyPage() {
                         </div>
                     </div>
 
-                    {/* Information We Collect */}
                     <div className="space-y-6">
                         <div className="flex items-center gap-2 mb-4">
                             <User className="w-5 h-5 text-blue-600" />
@@ -138,7 +135,7 @@ export default function PrivacyPolicyPage() {
                                 <p className="text-gray-600 text-sm mb-3">Information related to your business operations:</p>
                                 <ul className="space-y-2">
                                     {[
-                                        "Salon service menu and pricing",
+                                        "Salon services and pricing",
                                         "Staff schedules and availability",
                                         "Client booking history and preferences",
                                         "Operational policies and procedures"
@@ -171,7 +168,6 @@ export default function PrivacyPolicyPage() {
                         </div>
                     </div>
 
-                    {/* How We Use Your Information */}
                     <div className="space-y-6 pt-8">
                         <div className="flex items-center gap-2 mb-4">
                             <Zap className="w-5 h-5 text-blue-600" />
@@ -230,7 +226,6 @@ export default function PrivacyPolicyPage() {
                         </div>
                     </div>
 
-                    {/* Information Sharing and Disclosure */}
                     <div className="space-y-6 pt-8">
                         <div className="flex items-center gap-2 mb-4">
                             <Share2 className="w-5 h-5 text-blue-600" />
@@ -260,7 +255,6 @@ export default function PrivacyPolicyPage() {
                         </div>
                     </div>
 
-                    {/* Data Security */}
                     <div className="space-y-6 pt-8">
                         <div className="flex items-center gap-2 mb-4">
                             <Lock className="w-5 h-5 text-blue-600" />
@@ -297,7 +291,6 @@ export default function PrivacyPolicyPage() {
                         </div>
                     </div>
 
-                    {/* Your Privacy Rights */}
                     <div className="space-y-6 pt-8">
                         <div className="flex items-center gap-2 mb-4">
                             <UserCheck className="w-5 h-5 text-blue-600" />
@@ -330,7 +323,6 @@ export default function PrivacyPolicyPage() {
                         </div>
                     </div>
 
-                    {/* Opt-Out Form */}
                     <div className="space-y-6 pt-8">
                         <div className="flex items-center gap-2 mb-4">
                             <Mail className="w-5 h-5 text-blue-600" />
@@ -467,7 +459,6 @@ export default function PrivacyPolicyPage() {
                         </div>
                     </div>
 
-                    {/* Data Retention */}
                     <div className="space-y-6 pt-8">
                         <div className="flex items-center gap-2 mb-4">
                             <Clock className="w-5 h-5 text-blue-600" />
@@ -491,7 +482,6 @@ export default function PrivacyPolicyPage() {
                         </div>
                     </div>
 
-                    {/* Contact Us About Privacy */}
                     <div className="space-y-6 pt-8">
                         <div className="flex items-center gap-2 mb-4">
                             <Mail className="w-5 h-5 text-blue-600" />
@@ -525,7 +515,6 @@ export default function PrivacyPolicyPage() {
                         </div>
                     </div>
 
-                    {/* Policy Updates Banner */}
                     <div className="bg-orange-500 rounded-xl p-6 text-white shadow-lg flex items-center gap-4">
                         <div className="bg-white/20 p-3 rounded-full">
                             <Bell className="w-6 h-6 text-white" />

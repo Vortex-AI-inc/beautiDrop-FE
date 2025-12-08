@@ -1,3 +1,5 @@
+"use client"
+
 import { SignIn } from '@clerk/nextjs'
 import { Header } from "../../../components/layout/header"
 import { Footer } from "../../../components/layout/footer"
@@ -27,7 +29,7 @@ export default function LoginPage() {
                         routing="path"
                         path="/login"
                         signUpUrl="/signup"
-                        afterSignInUrl="/portal"
+                        afterSignInUrl="/auth-complete"
                     />
                 </div>
             </div>

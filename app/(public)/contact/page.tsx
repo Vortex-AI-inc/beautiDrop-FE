@@ -465,7 +465,7 @@ export default function ContactPage() {
               },
               {
                 q: "How does Beauty Drop AI know my salon's services and pricing?",
-                a: "During setup, our team works with you to train Beauty Drop on everything specific to your salon: service menu, pricing, staff schedules, policies, and even your preferred way of speaking to customers. Beauty Drop learns your business inside and out, so it can represent you perfectly on every call."
+                a: "During setup, our team works with you to train Beauty Drop on everything specific to your salon: services, pricing, staff schedules, policies, and even your preferred way of speaking to customers. Beauty Drop learns your business inside and out, so it can represent you perfectly on every call."
               },
               {
                 q: "What if a customer wants to speak to a human?",

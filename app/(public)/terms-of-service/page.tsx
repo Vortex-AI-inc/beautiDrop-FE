@@ -29,7 +29,6 @@ export default function TermsOfServicePage() {
         <main className="min-h-screen bg-slate-50">
             <Header />
 
-            {/* Hero Section */}
             <section className="pt-32 pb-12 px-4 bg-white border-b border-gray-100">
                 <div className="max-w-4xl mx-auto text-center">
                     <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
@@ -44,11 +43,9 @@ export default function TermsOfServicePage() {
                 </div>
             </section>
 
-            {/* Content Section */}
             <section className="py-16 px-4">
                 <div className="max-w-4xl mx-auto space-y-8">
 
-                    {/* Agreement Overview */}
                     <div className="bg-blue-50 rounded-xl p-6 border border-blue-100">
                         <div className="flex items-start gap-3">
                             <FileText className="w-5 h-5 text-blue-600 mt-1" />
@@ -61,7 +58,6 @@ export default function TermsOfServicePage() {
                         </div>
                     </div>
 
-                    {/* Acceptance of Terms */}
                     <div className="space-y-6 pt-4">
                         <div className="flex items-center gap-2 mb-4">
                             <CheckCircle className="w-5 h-5 text-blue-600" />
@@ -92,7 +88,6 @@ export default function TermsOfServicePage() {
                         </div>
                     </div>
 
-                    {/* Service Description */}
                     <div className="space-y-6 pt-4">
                         <div className="flex items-center gap-2 mb-4">
                             <Server className="w-5 h-5 text-blue-600" />
@@ -121,7 +116,6 @@ export default function TermsOfServicePage() {
                         </div>
                     </div>
 
-                    {/* Your Responsibilities */}
                     <div className="space-y-6 pt-4">
                         <div className="flex items-center gap-2 mb-4">
                             <User className="w-5 h-5 text-blue-600" />
@@ -157,7 +151,7 @@ export default function TermsOfServicePage() {
                                 </div>
                                 <ul className="space-y-2 text-xs text-gray-600 list-disc pl-4">
                                     <li>Provide accurate business information</li>
-                                    <li>Keep service menus and pricing up to date</li>
+                                    <li>Keep services and pricing up to date</li>
                                     <li>Ensure staff schedules are current</li>
                                 </ul>
                             </div>
@@ -175,7 +169,6 @@ export default function TermsOfServicePage() {
                         </div>
                     </div>
 
-                    {/* Payment Terms */}
                     <div className="space-y-6 pt-4">
                         <div className="flex items-center gap-2 mb-4">
                             <CreditCard className="w-5 h-5 text-blue-600" />
@@ -343,7 +336,6 @@ export default function TermsOfServicePage() {
                         </div>
                     </div>
 
-                    {/* Termination */}
                     <div className="space-y-6 pt-4">
                         <div className="flex items-center gap-2 mb-4">
                             <XCircle className="w-5 h-5 text-blue-600" />
@@ -386,7 +378,6 @@ export default function TermsOfServicePage() {
                         </div>
                     </div>
 
-                    {/* Governing Law & Disputes */}
                     <div className="space-y-6 pt-4">
                         <div className="flex items-center gap-2 mb-4">
                             <Gavel className="w-5 h-5 text-blue-600" />
@@ -416,7 +407,6 @@ export default function TermsOfServicePage() {
                         </div>
                     </div>
 
-                    {/* Contact Us About These Terms */}
                     <div className="space-y-6 pt-4">
                         <div className="flex items-center gap-2 mb-4">
                             <Mail className="w-5 h-5 text-blue-600" />
@@ -450,7 +440,6 @@ export default function TermsOfServicePage() {
                         </div>
                     </div>
 
-                    {/* Changes to These Terms */}
                     <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl p-8 text-white shadow-lg text-center">
                         <div className="flex justify-center mb-4">
                             <div className="bg-white/20 p-3 rounded-full">

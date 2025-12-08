@@ -188,7 +188,7 @@ export default function SalonDetailPage() {
                                             <Calendar className="w-12 h-12 text-blue-600" />
                                         </div>
                                         <h3 className="text-2xl font-bold text-gray-900 mb-3">Services Coming Soon</h3>
-                                        <p className="text-gray-600 text-lg mb-6">We're currently updating our service menu. Please check back soon!</p>
+                                        <p className="text-gray-600 text-lg mb-6">We're currently updating our services. Please check back soon!</p>
                                         {shop.phone && (
                                             <p className="text-gray-500">
                                                 For inquiries, call us at <a href={`tel:${shop.phone}`} className="text-blue-600 font-semibold hover:underline">{shop.phone}</a>

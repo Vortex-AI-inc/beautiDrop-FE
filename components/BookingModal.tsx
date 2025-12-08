@@ -68,6 +68,21 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
 
     useEffect(() => {
         if (isSignedIn && user) {
+            const role = user.unsafeMetadata?.role as string | undefined
+
+            if (!role) {
+                toast({
+                    title: "Please Sign Up First",
+                    description: "You need to complete the signup process to make bookings.",
+                    variant: "destructive"
+                })
+
+                setShowSignInModal(false)
+
+                window.location.href = '/signup'
+                return
+            }
+
             const pendingBooking = localStorage.getItem('pendingBooking')
             if (pendingBooking) {
                 try {

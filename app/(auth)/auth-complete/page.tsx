@@ -1,53 +1,54 @@
-import Link from "next/link"
-import { CheckCircle, ArrowRight } from "lucide-react"
+"use client"
+
+import { useEffect } from 'react'
+import { useAuth, useUser } from '@clerk/nextjs'
+import { useRouter } from 'next/navigation'
+import { Loader2 } from 'lucide-react'
+import { useToast } from "@/hooks/use-toast"
 
 export default function AuthCompletePage() {
+  const { isSignedIn, isLoaded } = useAuth()
+  const { user } = useUser()
+  const router = useRouter()
+  const { toast } = useToast()
+
+  useEffect(() => {
+    if (!isLoaded) return
+
+    if (!isSignedIn) {
+      router.push('/login')
+      return
+    }
+
+    if (user) {
+      const role = user.unsafeMetadata?.role as string | undefined
+
+      if (!role) {
+        toast({
+          title: "Please Sign Up First",
+          description: "You need to complete the signup process to access your account.",
+          variant: "destructive"
+        })
+
+        router.push('/signup')
+      } else {
+        if (role === 'customer') {
+          router.push('/customer-dashboard')
+        } else if (role === 'client') {
+          router.push('/portal')
+        } else {
+          router.push('/signup')
+        }
+      }
+    }
+  }, [isLoaded, isSignedIn, user, router, toast])
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-tertiary/5 via-background to-primary/5 px-4">
-      <div className="w-full max-w-md space-y-8 text-center">
-        <div className="flex justify-center">
-          <CheckCircle className="w-20 h-20 text-tertiary" />
-        </div>
-
-        <div className="bg-card text-card-foreground rounded-lg border border-border shadow-sm p-6 space-y-6">
-          <div className="space-y-2">
-            <h1 className="font-heading text-3xl font-bold tracking-tight">Verify Your Email</h1>
-            <p className="font-sans text-base leading-relaxed text-muted-foreground">
-              We've sent a confirmation link to your email address.
-            </p>
-          </div>
-
-          <div className="py-6 bg-muted rounded-lg space-y-3">
-            <p className="font-heading text-2xl font-semibold text-primary">Check Your Email</p>
-            <p className="font-sans text-sm leading-relaxed text-muted-foreground">
-              Click the link in your email to verify your account and get started.
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            <p className="font-sans text-sm leading-relaxed text-muted-foreground">
-              Didn't receive the email? Check your spam folder or try again.
-            </p>
-            <button className="inline-flex items-center justify-center gap-2 px-6 py-3 border-2 border-primary text-primary font-medium rounded-lg hover:bg-primary hover:text-primary-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed w-full justify-center">
-              Resend Email
-            </button>
-          </div>
-
-          <div className="pt-4 border-t border-border">
-            <p className="font-sans text-sm leading-relaxed text-muted-foreground">
-              Questions?{" "}
-              <Link href="/contact" className="text-primary hover:underline font-medium">
-                Contact support
-              </Link>
-            </p>
-          </div>
-        </div>
-
-        {/* Back to Home */}
-        <Link href="/" className="inline-flex items-center gap-2 text-primary hover:underline">
-          Back to home
-          <ArrowRight className="w-4 h-4" />
-        </Link>
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="text-center">
+        <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Completing Sign In...</h2>
+        <p className="text-gray-600">Please wait while we redirect you.</p>
       </div>
     </div>
   )
