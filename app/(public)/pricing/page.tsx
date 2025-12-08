@@ -191,33 +191,43 @@ export default function PricingPage() {
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly')
 
-  const starterPlan = getPlanByName('Starter')
-  const professionalPlan = getPlanByName('Professional')
-  const enterprisePlan = getPlanByName('Enterprise')
-
-  const calculateYearlyPrice = (monthlyPrice: string) => {
-    const monthly = parseFloat(monthlyPrice)
-    const yearly = monthly * 12 * 0.9
-    return yearly.toFixed(0)
+  const getActivePlan = (baseName: string) => {
+    if (billingPeriod === 'yearly') {
+      return getPlanByName(`${baseName} Yearly`) || getPlanByName(baseName)
+    }
+    return getPlanByName(baseName)
   }
 
-  const calculateMonthlySavings = (monthlyPrice: string) => {
-    const monthly = parseFloat(monthlyPrice)
-    const yearlySavings = monthly * 12 * 0.1
-    return yearlySavings.toFixed(0)
+  const starterPlan = getActivePlan('Starter')
+  const professionalPlan = getActivePlan('Professional')
+  const enterprisePlan = getActivePlan('Enterprise')
+
+  const getMonthlyPlan = (baseName: string) => {
+    return getPlanByName(baseName)
   }
 
   const getDisplayPrice = (plan: any) => {
     if (!plan?.amount) return '0'
-    const monthlyPrice = parseFloat(plan.amount)
+    const price = parseFloat(plan.amount)
 
-    if (billingPeriod === 'yearly') {
-      const yearlyTotal = monthlyPrice * 12 * 0.9
-      const monthlyEquivalent = yearlyTotal / 12
-      return monthlyEquivalent.toFixed(0)
+    if (billingPeriod === 'yearly' && plan?.billing_period === 'year') {
+      return (price / 12).toFixed(0)
     }
 
-    return monthlyPrice.toFixed(0)
+    return price.toFixed(0)
+  }
+
+  const calculateSavings = (baseName: string) => {
+    const monthlyPlan = getMonthlyPlan(baseName)
+    const yearlyPlan = getPlanByName(`${baseName} Yearly`)
+
+    if (!monthlyPlan?.amount || !yearlyPlan?.amount) return '0'
+
+    const monthlyTotal = parseFloat(monthlyPlan.amount) * 12
+    const yearlyTotal = parseFloat(yearlyPlan.amount)
+    const savings = monthlyTotal - yearlyTotal
+
+    return savings.toFixed(0)
   }
 
   const getBillingLabel = () => {
@@ -433,13 +443,13 @@ export default function PricingPage() {
                     </span>
                     <span className="text-gray-600">{getBillingLabel()}</span>
                   </div>
-                  {billingPeriod === 'yearly' && starterPlan?.amount && (
+                  {billingPeriod === 'yearly' && starterPlan?.billing_period === 'year' && (
                     <div className="mt-2">
                       <p className="text-sm text-gray-500 line-through">
-                        ${starterPlan.amount}/month
+                        ${getMonthlyPlan('Starter')?.amount}/month
                       </p>
                       <p className="text-sm font-semibold text-green-600">
-                        Save ${calculateMonthlySavings(starterPlan.amount)}/year
+                        Save ${calculateSavings('Starter')}/year
                       </p>
                     </div>
                   )}
@@ -492,13 +502,13 @@ export default function PricingPage() {
                     </span>
                     <span className="text-blue-100">{getBillingLabel()}</span>
                   </div>
-                  {billingPeriod === 'yearly' && professionalPlan?.amount && (
+                  {billingPeriod === 'yearly' && professionalPlan?.billing_period === 'year' && (
                     <div className="mt-2">
                       <p className="text-sm text-blue-200 line-through">
-                        ${professionalPlan.amount}/month
+                        ${getMonthlyPlan('Professional')?.amount}/month
                       </p>
                       <p className="text-sm font-semibold text-amber-300">
-                        Save ${calculateMonthlySavings(professionalPlan.amount)}/year
+                        Save ${calculateSavings('Professional')}/year
                       </p>
                     </div>
                   )}
@@ -543,13 +553,13 @@ export default function PricingPage() {
                     </span>
                     <span className="text-gray-600">{getBillingLabel()}</span>
                   </div>
-                  {billingPeriod === 'yearly' && enterprisePlan?.amount && (
+                  {billingPeriod === 'yearly' && enterprisePlan?.billing_period === 'year' && (
                     <div className="mt-2">
                       <p className="text-sm text-gray-500 line-through">
-                        ${enterprisePlan.amount}/month
+                        ${getMonthlyPlan('Enterprise')?.amount}/month
                       </p>
                       <p className="text-sm font-semibold text-green-600">
-                        Save ${calculateMonthlySavings(enterprisePlan.amount)}/year
+                        Save ${calculateSavings('Enterprise')}/year
                       </p>
                     </div>
                   )}
