@@ -411,119 +411,166 @@ export default function CompanyProfilePage() {
                                 </div>
                             ) : (
                                 <div className="space-y-6">
-                                    {/* Select All Days */}
-                                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
-                                        <div className="flex items-center gap-3 mb-4">
-                                            <Checkbox
-                                                id="select-all"
-                                                checked={selectedDays.length === DAYS.length}
-                                                onCheckedChange={handleSelectAllDays}
-                                                className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-                                            />
-                                            <Label htmlFor="select-all" className="font-semibold text-gray-900 cursor-pointer">
-                                                Select All Days
-                                            </Label>
+                                    {/* Current Schedule Display */}
+                                    {schedules.length > 0 && (
+                                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-6">
+                                            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                                <Clock className="w-5 h-5 text-blue-600" />
+                                                Current Business Hours
+                                            </h3>
+                                            <div className="space-y-3">
+                                                {DAYS.map((day) => {
+                                                    const daySchedules = getDaySchedules(day)
+                                                    const schedule = daySchedules[0]
+
+                                                    return (
+                                                        <div
+                                                            key={day}
+                                                            className={`flex items-center justify-between p-3 rounded-lg transition-all ${schedule
+                                                                    ? 'bg-white border border-blue-100'
+                                                                    : 'bg-gray-50 border border-gray-200 opacity-60'
+                                                                }`}
+                                                        >
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`w-2 h-2 rounded-full ${schedule ? 'bg-green-500' : 'bg-gray-300'}`} />
+                                                                <span className="font-semibold text-gray-900 min-w-[100px]">
+                                                                    {day}
+                                                                </span>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                {schedule ? (
+                                                                    <span className="text-sm font-medium text-gray-700">
+                                                                        {formatTimeTo12Hour(schedule.start_time)} - {formatTimeTo12Hour(schedule.end_time)}
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="text-sm text-gray-400 italic">Closed</span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                })}
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
 
-                                    {/* Days Selection */}
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                        {DAYS.map((day) => {
-                                            const daySchedules = getDaySchedules(day)
-                                            const hasSchedule = daySchedules.length > 0
-                                            const isSelected = selectedDays.includes(day)
+                                    {/* Edit Section */}
+                                    <div className="bg-white border border-gray-200 rounded-xl p-6">
+                                        <h3 className="text-lg font-bold text-gray-900 mb-4">Update Business Hours</h3>
 
-                                            return (
-                                                <div
-                                                    key={day}
-                                                    onClick={() => handleDayToggle(day)}
-                                                    className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all ${isSelected
-                                                        ? 'border-blue-600 bg-blue-50'
-                                                        : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
-                                                        }`}
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <Checkbox
-                                                            checked={isSelected}
-                                                            onCheckedChange={() => handleDayToggle(day)}
-                                                            className="pointer-events-none data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-                                                        />
-                                                        <div className="flex-1">
-                                                            <Label className="font-semibold text-gray-900 cursor-pointer">
-                                                                {day}
-                                                            </Label>
-                                                            {hasSchedule && (
-                                                                <div className="flex items-center gap-1 mt-1">
-                                                                    <Check className="w-3 h-3 text-green-600" />
-                                                                    <span className="text-xs text-green-600 font-medium">Set</span>
-                                                                </div>
-                                                            )}
+                                        {/* Select All Days */}
+                                        <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <Checkbox
+                                                    id="select-all"
+                                                    checked={selectedDays.length === DAYS.length}
+                                                    onCheckedChange={handleSelectAllDays}
+                                                    className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                                                />
+                                                <Label htmlFor="select-all" className="font-semibold text-gray-900 cursor-pointer">
+                                                    Select All Days
+                                                </Label>
+                                            </div>
+                                        </div>
+
+                                        {/* Days Selection */}
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                                            {DAYS.map((day) => {
+                                                const daySchedules = getDaySchedules(day)
+                                                const hasSchedule = daySchedules.length > 0
+                                                const isSelected = selectedDays.includes(day)
+
+                                                return (
+                                                    <div
+                                                        key={day}
+                                                        onClick={() => handleDayToggle(day)}
+                                                        className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all ${isSelected
+                                                            ? 'border-blue-600 bg-blue-50'
+                                                            : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                                                            }`}
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <Checkbox
+                                                                checked={isSelected}
+                                                                onCheckedChange={() => handleDayToggle(day)}
+                                                                className="pointer-events-none data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                                                            />
+                                                            <div className="flex-1">
+                                                                <Label className="font-semibold text-gray-900 cursor-pointer">
+                                                                    {day}
+                                                                </Label>
+                                                                {hasSchedule && (
+                                                                    <div className="flex items-center gap-1 mt-1">
+                                                                        <Check className="w-3 h-3 text-green-600" />
+                                                                        <span className="text-xs text-green-600 font-medium">Set</span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            )
-                                        })}
-                                    </div>
-
-                                    {/* Time Selection */}
-                                    <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
-                                        <Label className="text-base font-semibold text-gray-900 mb-4 block">
-                                            Set Business Hours
-                                        </Label>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="start-time">Start Time</Label>
-                                                <Input
-                                                    id="start-time"
-                                                    type="time"
-                                                    value={businessHours.start_time}
-                                                    onChange={(e) => setBusinessHours(prev => ({ ...prev, start_time: e.target.value }))}
-                                                    className="text-lg font-medium"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="end-time">End Time</Label>
-                                                <Input
-                                                    id="end-time"
-                                                    type="time"
-                                                    value={businessHours.end_time}
-                                                    onChange={(e) => setBusinessHours(prev => ({ ...prev, end_time: e.target.value }))}
-                                                    className="text-lg font-medium"
-                                                />
-                                            </div>
+                                                )
+                                            })}
                                         </div>
 
-                                        {selectedDays.length > 0 && (
-                                            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                                <p className="text-sm text-blue-800">
-                                                    <strong>Selected days:</strong> {selectedDays.join(', ')}
-                                                </p>
-                                                <p className="text-sm text-blue-800 mt-1">
-                                                    <strong>Hours:</strong> {formatTimeTo12Hour(businessHours.start_time)} - {formatTimeTo12Hour(businessHours.end_time)}
-                                                </p>
+                                        {/* Time Selection */}
+                                        <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                                            <Label className="text-base font-semibold text-gray-900 mb-4 block">
+                                                Set Business Hours
+                                            </Label>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="start-time">Start Time</Label>
+                                                    <Input
+                                                        id="start-time"
+                                                        type="time"
+                                                        value={businessHours.start_time}
+                                                        onChange={(e) => setBusinessHours(prev => ({ ...prev, start_time: e.target.value }))}
+                                                        className="text-lg font-medium"
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="end-time">End Time</Label>
+                                                    <Input
+                                                        id="end-time"
+                                                        type="time"
+                                                        value={businessHours.end_time}
+                                                        onChange={(e) => setBusinessHours(prev => ({ ...prev, end_time: e.target.value }))}
+                                                        className="text-lg font-medium"
+                                                    />
+                                                </div>
                                             </div>
-                                        )}
-                                    </div>
 
-                                    {/* Save Button */}
-                                    <div className="flex justify-end pt-4 border-t border-gray-100">
-                                        <Button
-                                            onClick={handleSaveBusinessHours}
-                                            disabled={isSavingSchedules || selectedDays.length === 0}
-                                            className="bg-blue-600 hover:bg-blue-700 text-white px-8"
-                                        >
-                                            {isSavingSchedules ? (
-                                                <>
-                                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                                    Saving...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Save className="w-4 h-4 mr-2" />
-                                                    Save Business Hours
-                                                </>
+                                            {selectedDays.length > 0 && (
+                                                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                                    <p className="text-sm text-blue-800">
+                                                        <strong>Selected days:</strong> {selectedDays.join(', ')}
+                                                    </p>
+                                                    <p className="text-sm text-blue-800 mt-1">
+                                                        <strong>Hours:</strong> {formatTimeTo12Hour(businessHours.start_time)} - {formatTimeTo12Hour(businessHours.end_time)}
+                                                    </p>
+                                                </div>
                                             )}
-                                        </Button>
+                                        </div>
+
+                                        {/* Save Button */}
+                                        <div className="flex justify-end pt-4 border-t border-gray-100 mt-6">
+                                            <Button
+                                                onClick={handleSaveBusinessHours}
+                                                disabled={isSavingSchedules || selectedDays.length === 0}
+                                                className="bg-blue-600 hover:bg-blue-700 text-white px-8"
+                                            >
+                                                {isSavingSchedules ? (
+                                                    <>
+                                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                        Saving...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Save className="w-4 h-4 mr-2" />
+                                                        Save Business Hours
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
                             )}

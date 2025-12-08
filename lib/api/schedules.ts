@@ -7,7 +7,8 @@ export async function fetchShopSchedules(
     token: string
 ): Promise<Schedule[]> {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/v1/schedules/shop-schedules/`, {
+        const queryParams = new URLSearchParams({ shop_id: shopId })
+        const response = await fetch(`${API_BASE_URL}/api/v1/schedules/shop-schedules/?${queryParams.toString()}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -25,15 +26,15 @@ export async function fetchShopSchedules(
 
         if (Array.isArray(data)) {
             schedules = data
-        } else if (data.data && Array.isArray(data.data)) {
-            schedules = data.data
         } else if (data.results && Array.isArray(data.results)) {
             schedules = data.results
+        } else if (data.data && Array.isArray(data.data)) {
+            schedules = data.data
         } else {
             return []
         }
 
-        return schedules.filter(schedule => schedule.shop === shopId)
+        return schedules
     } catch (error) {
         throw error
     }

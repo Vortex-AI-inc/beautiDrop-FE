@@ -11,6 +11,7 @@ export interface ShopFormData {
     website: string
     cover_image_url: string
     is_active: boolean
+    timezone: string
 }
 
 export interface ShopDashboardData {
