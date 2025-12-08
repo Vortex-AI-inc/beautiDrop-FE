@@ -47,6 +47,30 @@ export default function ForSalonOwnersPage() {
     const { toast } = useToast()
     const router = useRouter()
     const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
+    const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly')
+
+    const getDisplayPrice = (plan: any) => {
+        if (!plan?.amount) return '0'
+        const monthlyPrice = parseFloat(plan.amount)
+
+        if (billingPeriod === 'yearly') {
+            const yearlyTotal = monthlyPrice * 12 * 0.9
+            const monthlyEquivalent = yearlyTotal / 12
+            return monthlyEquivalent.toFixed(0)
+        }
+
+        return monthlyPrice.toFixed(0)
+    }
+
+    const calculateMonthlySavings = (monthlyPrice: string) => {
+        const monthly = parseFloat(monthlyPrice)
+        const yearlySavings = monthly * 12 * 0.1
+        return yearlySavings.toFixed(0)
+    }
+
+    const getBillingLabel = () => {
+        return billingPeriod === 'monthly' ? '/month' : '/month (billed yearly)'
+    }
 
     const handleCheckout = async (stripePriceId: string) => {
         if (!isSignedIn) {
@@ -245,9 +269,39 @@ export default function ForSalonOwnersPage() {
                         <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
                             Choose the Perfect Plan for <span className="text-blue-600">Your Salon</span>
                         </h2>
-                        <p className="text-xl text-gray-600">
+                        <p className="text-xl text-gray-600 mb-8">
                             Flexible plans designed to grow with your business.
                         </p>
+
+                        {/* Billing Period Toggle */}
+                        <div className="flex items-center justify-center gap-4 mb-8">
+                            <div className="inline-flex items-center bg-gray-100 rounded-full p-1">
+                                <button
+                                    onClick={() => setBillingPeriod('monthly')}
+                                    className={`px-6 py-2 rounded-full font-semibold transition-all ${billingPeriod === 'monthly'
+                                        ? 'bg-white text-blue-600 shadow-md'
+                                        : 'text-gray-600 hover:text-gray-900'
+                                        }`}
+                                >
+                                    Monthly
+                                </button>
+                                <button
+                                    onClick={() => setBillingPeriod('yearly')}
+                                    className={`px-6 py-2 rounded-full font-semibold transition-all ${billingPeriod === 'yearly'
+                                        ? 'bg-white text-blue-600 shadow-md'
+                                        : 'text-gray-600 hover:text-gray-900'
+                                        }`}
+                                >
+                                    Yearly
+                                </button>
+                            </div>
+                            {billingPeriod === 'yearly' && (
+                                <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-bold animate-in fade-in slide-in-from-right-5">
+                                    <Sparkles className="w-4 h-4" />
+                                    Save 10% with yearly billing
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {isLoading ? (
@@ -277,10 +331,22 @@ export default function ForSalonOwnersPage() {
                                 <h3 className="text-2xl font-bold text-gray-900 mb-2">{starterPlan?.name}</h3>
                                 <p className="text-gray-600 mb-6">Perfect for independent stylists</p>
                                 <div className="mb-6">
-                                    <span className="text-5xl font-bold text-gray-900">
-                                        ${starterPlan?.amount ? parseFloat(starterPlan.amount).toFixed(0) : '88'}
-                                    </span>
-                                    <span className="text-gray-600">/month</span>
+                                    <div className="flex items-baseline justify-center gap-2">
+                                        <span className="text-5xl font-bold text-gray-900">
+                                            ${getDisplayPrice(starterPlan)}
+                                        </span>
+                                        <span className="text-gray-600">{getBillingLabel()}</span>
+                                    </div>
+                                    {billingPeriod === 'yearly' && starterPlan?.amount && (
+                                        <div className="mt-2">
+                                            <p className="text-sm text-gray-500 line-through">
+                                                ${starterPlan.amount}/month
+                                            </p>
+                                            <p className="text-sm font-semibold text-green-600">
+                                                Save ${calculateMonthlySavings(starterPlan.amount)}/year
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="text-sm text-blue-600 font-semibold mb-6">
                                     14-Day Free Trial
@@ -328,10 +394,22 @@ export default function ForSalonOwnersPage() {
                                 <h3 className="text-2xl font-bold text-gray-900 mb-2">{professionalPlan?.name}</h3>
                                 <p className="text-gray-600 mb-6">Best for growing salons</p>
                                 <div className="mb-6">
-                                    <span className="text-5xl font-bold text-gray-900">
-                                        ${professionalPlan?.amount ? parseFloat(professionalPlan.amount).toFixed(0) : '188'}
-                                    </span>
-                                    <span className="text-gray-600">/month</span>
+                                    <div className="flex items-baseline justify-center gap-2">
+                                        <span className="text-5xl font-bold text-gray-900">
+                                            ${getDisplayPrice(professionalPlan)}
+                                        </span>
+                                        <span className="text-gray-600">{getBillingLabel()}</span>
+                                    </div>
+                                    {billingPeriod === 'yearly' && professionalPlan?.amount && (
+                                        <div className="mt-2">
+                                            <p className="text-sm text-gray-500 line-through">
+                                                ${professionalPlan.amount}/month
+                                            </p>
+                                            <p className="text-sm font-semibold text-green-600">
+                                                Save ${calculateMonthlySavings(professionalPlan.amount)}/year
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="text-sm text-blue-600 font-semibold mb-6">
                                     Everything in Starter +
@@ -374,10 +452,22 @@ export default function ForSalonOwnersPage() {
                                 <h3 className="text-2xl font-bold text-gray-900 mb-2">{enterprisePlan?.name}</h3>
                                 <p className="text-gray-600 mb-6">For multi-location salons</p>
                                 <div className="mb-6">
-                                    <span className="text-5xl font-bold text-gray-900">
-                                        ${enterprisePlan?.amount ? parseFloat(enterprisePlan.amount).toFixed(0) : '388'}
-                                    </span>
-                                    <span className="text-gray-600">/month</span>
+                                    <div className="flex items-baseline justify-center gap-2">
+                                        <span className="text-5xl font-bold text-gray-900">
+                                            ${getDisplayPrice(enterprisePlan)}
+                                        </span>
+                                        <span className="text-gray-600">{getBillingLabel()}</span>
+                                    </div>
+                                    {billingPeriod === 'yearly' && enterprisePlan?.amount && (
+                                        <div className="mt-2">
+                                            <p className="text-sm text-gray-500 line-through">
+                                                ${enterprisePlan.amount}/month
+                                            </p>
+                                            <p className="text-sm font-semibold text-green-600">
+                                                Save ${calculateMonthlySavings(enterprisePlan.amount)}/year
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="text-sm text-blue-600 font-semibold mb-6">
                                     Everything in Professional +

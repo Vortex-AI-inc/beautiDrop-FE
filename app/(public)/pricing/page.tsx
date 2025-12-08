@@ -189,10 +189,40 @@ export default function PricingPage() {
   const { toast } = useToast()
   const router = useRouter()
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly')
 
   const starterPlan = getPlanByName('Starter')
   const professionalPlan = getPlanByName('Professional')
   const enterprisePlan = getPlanByName('Enterprise')
+
+  const calculateYearlyPrice = (monthlyPrice: string) => {
+    const monthly = parseFloat(monthlyPrice)
+    const yearly = monthly * 12 * 0.9
+    return yearly.toFixed(0)
+  }
+
+  const calculateMonthlySavings = (monthlyPrice: string) => {
+    const monthly = parseFloat(monthlyPrice)
+    const yearlySavings = monthly * 12 * 0.1
+    return yearlySavings.toFixed(0)
+  }
+
+  const getDisplayPrice = (plan: any) => {
+    if (!plan?.amount) return '0'
+    const monthlyPrice = parseFloat(plan.amount)
+
+    if (billingPeriod === 'yearly') {
+      const yearlyTotal = monthlyPrice * 12 * 0.9
+      const monthlyEquivalent = yearlyTotal / 12
+      return monthlyEquivalent.toFixed(0)
+    }
+
+    return monthlyPrice.toFixed(0)
+  }
+
+  const getBillingLabel = () => {
+    return billingPeriod === 'monthly' ? '/month' : '/month (billed yearly)'
+  }
 
   const handleCheckout = async (stripePriceId: string) => {
     if (!isSignedIn) {
@@ -334,9 +364,39 @@ export default function PricingPage() {
             <h2 className="text-3xl lg:text-4xl font-bold font-heading text-gray-900 mb-4">
               Our Pricing Plans
             </h2>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-gray-600 mb-8">
               Choose the plan that best fits your salon's needs
             </p>
+
+            {/* Billing Period Toggle */}
+            <div className="flex items-center justify-center gap-4 mb-8">
+              <div className="inline-flex items-center bg-gray-100 rounded-full p-1">
+                <button
+                  onClick={() => setBillingPeriod('monthly')}
+                  className={`px-6 py-2 rounded-full font-semibold transition-all ${billingPeriod === 'monthly'
+                    ? 'bg-white text-blue-600 shadow-md'
+                    : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                >
+                  Monthly
+                </button>
+                <button
+                  onClick={() => setBillingPeriod('yearly')}
+                  className={`px-6 py-2 rounded-full font-semibold transition-all ${billingPeriod === 'yearly'
+                    ? 'bg-white text-blue-600 shadow-md'
+                    : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                >
+                  Yearly
+                </button>
+              </div>
+              {billingPeriod === 'yearly' && (
+                <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-bold animate-in fade-in slide-in-from-right-5">
+                  <Sparkles className="w-4 h-4" />
+                  Save 10% with yearly billing
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Loading State */}
@@ -367,10 +427,22 @@ export default function PricingPage() {
                 </h3>
                 <p className="text-gray-600 mb-6">{planConfigs.starter.description}</p>
                 <div className="mb-6">
-                  <span className="text-5xl font-bold text-gray-900">
-                    ${starterPlan?.amount ? parseFloat(starterPlan.amount).toFixed(0) : '99'}
-                  </span>
-                  <span className="text-gray-600">/month</span>
+                  <div className="flex items-baseline justify-center gap-2">
+                    <span className="text-5xl font-bold text-gray-900">
+                      ${getDisplayPrice(starterPlan)}
+                    </span>
+                    <span className="text-gray-600">{getBillingLabel()}</span>
+                  </div>
+                  {billingPeriod === 'yearly' && starterPlan?.amount && (
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-500 line-through">
+                        ${starterPlan.amount}/month
+                      </p>
+                      <p className="text-sm font-semibold text-green-600">
+                        Save ${calculateMonthlySavings(starterPlan.amount)}/year
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <ul className="space-y-3 mb-8">
                   {planConfigs.starter.features.map((feature, i) => (
@@ -414,10 +486,22 @@ export default function PricingPage() {
                 </h3>
                 <p className="text-blue-100 mb-6">{planConfigs.professional.description}</p>
                 <div className="mb-6">
-                  <span className="text-5xl font-bold text-white">
-                    ${professionalPlan?.amount ? parseFloat(professionalPlan.amount).toFixed(0) : '199'}
-                  </span>
-                  <span className="text-blue-100">/month</span>
+                  <div className="flex items-baseline justify-center gap-2">
+                    <span className="text-5xl font-bold text-white">
+                      ${getDisplayPrice(professionalPlan)}
+                    </span>
+                    <span className="text-blue-100">{getBillingLabel()}</span>
+                  </div>
+                  {billingPeriod === 'yearly' && professionalPlan?.amount && (
+                    <div className="mt-2">
+                      <p className="text-sm text-blue-200 line-through">
+                        ${professionalPlan.amount}/month
+                      </p>
+                      <p className="text-sm font-semibold text-amber-300">
+                        Save ${calculateMonthlySavings(professionalPlan.amount)}/year
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <ul className="space-y-3 mb-8">
                   {planConfigs.professional.features.map((feature, i) => (
@@ -453,10 +537,22 @@ export default function PricingPage() {
                 </h3>
                 <p className="text-gray-600 mb-6">{planConfigs.enterprise.description}</p>
                 <div className="mb-6">
-                  <span className="text-5xl font-bold text-gray-900">
-                    ${enterprisePlan?.amount ? parseFloat(enterprisePlan.amount).toFixed(0) : '399'}
-                  </span>
-                  <span className="text-gray-600">/month</span>
+                  <div className="flex items-baseline justify-center gap-2">
+                    <span className="text-5xl font-bold text-gray-900">
+                      ${getDisplayPrice(enterprisePlan)}
+                    </span>
+                    <span className="text-gray-600">{getBillingLabel()}</span>
+                  </div>
+                  {billingPeriod === 'yearly' && enterprisePlan?.amount && (
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-500 line-through">
+                        ${enterprisePlan.amount}/month
+                      </p>
+                      <p className="text-sm font-semibold text-green-600">
+                        Save ${calculateMonthlySavings(enterprisePlan.amount)}/year
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <ul className="space-y-3 mb-8">
                   {planConfigs.enterprise.features.map((feature, i) => (

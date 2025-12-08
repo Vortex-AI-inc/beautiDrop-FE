@@ -12,7 +12,8 @@ import {
   Check,
   Star,
   Play,
-  Loader2
+  Loader2,
+  Sparkles
 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -31,10 +32,34 @@ export default function Home() {
   const { toast } = useToast()
   const router = useRouter()
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly')
 
   const starterPlan = getPlanByName('Starter')
   const professionalPlan = getPlanByName('Professional')
   const enterprisePlan = getPlanByName('Enterprise')
+
+  const getDisplayPrice = (plan: any) => {
+    if (!plan?.amount) return '0'
+    const monthlyPrice = parseFloat(plan.amount)
+
+    if (billingPeriod === 'yearly') {
+      const yearlyTotal = monthlyPrice * 12 * 0.9
+      const monthlyEquivalent = yearlyTotal / 12
+      return monthlyEquivalent.toFixed(0)
+    }
+
+    return monthlyPrice.toFixed(0)
+  }
+
+  const calculateMonthlySavings = (monthlyPrice: string) => {
+    const monthly = parseFloat(monthlyPrice)
+    const yearlySavings = monthly * 12 * 0.1
+    return yearlySavings.toFixed(0)
+  }
+
+  const getBillingLabel = () => {
+    return billingPeriod === 'monthly' ? '/month' : '/month (billed yearly)'
+  }
 
   const handleCheckout = async (stripePriceId: string) => {
     if (!isSignedIn) {
@@ -236,6 +261,36 @@ export default function Home() {
             <p className="text-xl text-gray-600 mb-8">
               Choose the perfect plan for your salon. No hidden fees.
             </p>
+
+            {/* Billing Period Toggle */}
+            <div className="flex items-center justify-center gap-4 mb-8">
+              <div className="inline-flex items-center bg-white rounded-full p-1 shadow-md">
+                <button
+                  onClick={() => setBillingPeriod('monthly')}
+                  className={`px-6 py-2 rounded-full font-semibold transition-all ${billingPeriod === 'monthly'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                >
+                  Monthly
+                </button>
+                <button
+                  onClick={() => setBillingPeriod('yearly')}
+                  className={`px-6 py-2 rounded-full font-semibold transition-all ${billingPeriod === 'yearly'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                >
+                  Yearly
+                </button>
+              </div>
+              {billingPeriod === 'yearly' && (
+                <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-bold animate-in fade-in slide-in-from-right-5">
+                  <Sparkles className="w-4 h-4" />
+                  Save 10% with yearly billing
+                </div>
+              )}
+            </div>
           </div>
 
           {isLoading ? (
@@ -262,11 +317,23 @@ export default function Home() {
                   {starterPlan?.name}
                 </h3>
                 <p className="text-gray-500 text-sm mb-6">Perfect for solo stylists</p>
-                <div className="flex items-baseline mb-6">
-                  <span className="text-4xl font-bold text-gray-900">
-                    ${starterPlan?.amount ? parseFloat(starterPlan.amount).toFixed(0) : '88'}
-                  </span>
-                  <span className="text-gray-500">/month</span>
+                <div className="mb-6">
+                  <div className="flex items-baseline justify-center gap-2">
+                    <span className="text-4xl font-bold text-gray-900">
+                      ${getDisplayPrice(starterPlan)}
+                    </span>
+                    <span className="text-gray-500">{getBillingLabel()}</span>
+                  </div>
+                  {billingPeriod === 'yearly' && starterPlan?.amount && (
+                    <div className="mt-2">
+                      <p className="text-xs text-gray-400 line-through">
+                        ${starterPlan.amount}/month
+                      </p>
+                      <p className="text-xs font-semibold text-green-600">
+                        Save ${calculateMonthlySavings(starterPlan.amount)}/year
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg text-sm font-semibold text-center mb-8">
                   250 Minutes Included
@@ -310,11 +377,23 @@ export default function Home() {
                   {professionalPlan?.name}
                 </h3>
                 <p className="text-gray-500 text-sm mb-6">For growing salons</p>
-                <div className="flex items-baseline mb-6">
-                  <span className="text-4xl font-bold text-gray-900">
-                    ${professionalPlan?.amount ? parseFloat(professionalPlan.amount).toFixed(0) : '188'}
-                  </span>
-                  <span className="text-gray-500">/month</span>
+                <div className="mb-6">
+                  <div className="flex items-baseline justify-center gap-2">
+                    <span className="text-4xl font-bold text-gray-900">
+                      ${getDisplayPrice(professionalPlan)}
+                    </span>
+                    <span className="text-gray-500">{getBillingLabel()}</span>
+                  </div>
+                  {billingPeriod === 'yearly' && professionalPlan?.amount && (
+                    <div className="mt-2">
+                      <p className="text-xs text-gray-400 line-through">
+                        ${professionalPlan.amount}/month
+                      </p>
+                      <p className="text-xs font-semibold text-green-600">
+                        Save ${calculateMonthlySavings(professionalPlan.amount)}/year
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold text-center mb-8 shadow-md">
                   500 Minutes Included
@@ -356,11 +435,23 @@ export default function Home() {
                   {enterprisePlan?.name}
                 </h3>
                 <p className="text-gray-500 text-sm mb-6">For multi-location salons</p>
-                <div className="flex items-baseline mb-6">
-                  <span className="text-4xl font-bold text-gray-900">
-                    ${enterprisePlan?.amount ? parseFloat(enterprisePlan.amount).toFixed(0) : '388'}
-                  </span>
-                  <span className="text-gray-500">/month</span>
+                <div className="mb-6">
+                  <div className="flex items-baseline justify-center gap-2">
+                    <span className="text-4xl font-bold text-gray-900">
+                      ${getDisplayPrice(enterprisePlan)}
+                    </span>
+                    <span className="text-gray-500">{getBillingLabel()}</span>
+                  </div>
+                  {billingPeriod === 'yearly' && enterprisePlan?.amount && (
+                    <div className="mt-2">
+                      <p className="text-xs text-gray-400 line-through">
+                        ${enterprisePlan.amount}/month
+                      </p>
+                      <p className="text-xs font-semibold text-green-600">
+                        Save ${calculateMonthlySavings(enterprisePlan.amount)}/year
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <div className="bg-amber-50 text-amber-700 px-4 py-2 rounded-lg text-sm font-semibold text-center mb-8">
                   1000 Minutes Included
