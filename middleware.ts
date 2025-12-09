@@ -15,6 +15,7 @@ const isPublicRoute = createRouteMatcher([
     '/login(.*)',
     '/signup(.*)',
     '/api/v1/shops(.*)',
+    '/staff/complete-signup(.*)',
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
@@ -30,12 +31,16 @@ export default clerkMiddleware(async (auth, req) => {
     if (userId && sessionClaims) {
         const role = (sessionClaims.unsafeMetadata as { role?: string })?.role;
 
-        if (role === 'customer' && currentPath.startsWith('/portal')) {
-            return NextResponse.redirect(new URL('/customer-dashboard', req.url));
+        if (role === 'customer' || role === 'client') {
+            if (currentPath.startsWith('/portal') || currentPath.startsWith('/staff-portal')) {
+                return NextResponse.redirect(new URL('/customer-dashboard', req.url));
+            }
         }
 
-        if (role === 'client' && currentPath.startsWith('/customer-dashboard')) {
-            return NextResponse.redirect(new URL('/portal', req.url));
+        if (role === 'staff') {
+            if (currentPath.startsWith('/portal') || currentPath.startsWith('/customer-dashboard')) {
+                return NextResponse.redirect(new URL('/staff-portal', req.url));
+            }
         }
     }
 

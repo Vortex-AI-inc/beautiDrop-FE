@@ -18,6 +18,9 @@ export interface StaffMember {
     is_active: boolean
     assigned_services: AssignedService[]
     total_bookings?: number
+    invite_status?: 'pending' | 'accepted' | 'expired'
+    invite_sent_at?: string
+    invite_accepted_at?: string | null
     created_at: string
     updated_at: string
 }
@@ -30,6 +33,7 @@ export interface CreateStaffData {
     bio?: string
     profile_image_url?: string
     is_active?: boolean
+    send_invite?: boolean
 }
 
 export interface UpdateStaffData {

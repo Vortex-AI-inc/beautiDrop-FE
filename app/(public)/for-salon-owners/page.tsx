@@ -49,7 +49,6 @@ export default function ForSalonOwnersPage() {
     const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
     const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly')
 
-    // Get the appropriate plan based on billing period
     const getActivePlan = (baseName: string) => {
         if (billingPeriod === 'yearly') {
             return getPlanByName(`${baseName} Yearly`) || getPlanByName(baseName)
@@ -61,7 +60,6 @@ export default function ForSalonOwnersPage() {
     const professionalPlan = getActivePlan('Professional')
     const enterprisePlan = getActivePlan('Enterprise')
 
-    // Get monthly plan for comparison
     const getMonthlyPlan = (baseName: string) => {
         return getPlanByName(baseName)
     }
@@ -70,7 +68,6 @@ export default function ForSalonOwnersPage() {
         if (!plan?.amount) return '0'
         const price = parseFloat(plan.amount)
 
-        // If it's a yearly plan, divide by 12 to show monthly equivalent
         if (billingPeriod === 'yearly' && plan?.billing_period === 'year') {
             return (price / 12).toFixed(0)
         }

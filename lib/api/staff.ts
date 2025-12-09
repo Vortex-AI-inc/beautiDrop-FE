@@ -138,13 +138,12 @@ export async function removeService(
     token: string
 ): Promise<void> {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/v1/staff/${staffId}/remove_service/`, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/staff/${staffId}/remove_service/?service_id=${serviceId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
             },
-            body: JSON.stringify({ service_id: serviceId }),
         })
 
         if (!response.ok) {
@@ -203,6 +202,114 @@ export async function fetchAvailableStaffForService(
         } else if (data.data && Array.isArray(data.data)) {
             return data.data
         }
+
+        return []
+    } catch (error) {
+        throw error
+    }
+}
+
+export async function resendInvite(
+    staffId: string,
+    email: string,
+    token: string
+): Promise<void> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/staff/${staffId}/resend_invite/?email=${encodeURIComponent(email)}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        })
+
+        if (!response.ok) {
+            throw new Error(`Failed to resend invite: ${response.statusText}`)
+        }
+    } catch (error) {
+        throw error
+    }
+}
+
+
+export async function fetchMyServices(
+    token: string,
+    params?: {
+        page?: number
+        page_size?: number
+        search?: string
+    }
+): Promise<any> {
+    try {
+        const queryParams = new URLSearchParams()
+        if (params?.page) queryParams.append('page', params.page.toString())
+        if (params?.page_size) queryParams.append('page_size', params.page_size.toString())
+        if (params?.search) queryParams.append('search', params.search)
+
+        const queryString = queryParams.toString()
+        const url = `${API_BASE_URL}/api/v1/staff/dashboard/my-services/${queryString ? `?${queryString}` : ''}`
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        })
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch my services: ${response.statusText}`)
+        }
+
+        const data = await response.json()
+
+        // Handle paginated or list response
+        if (Array.isArray(data)) return data
+        if (data.results && Array.isArray(data.results)) return data.results
+        if (data.data && Array.isArray(data.data)) return data.data
+
+        return []
+    } catch (error) {
+        throw error
+    }
+}
+
+export async function fetchMyBookings(
+    token: string,
+    params?: {
+        page?: number
+        page_size?: number
+        search?: string
+        ordering?: string
+    }
+): Promise<any> {
+    try {
+        const queryParams = new URLSearchParams()
+        if (params?.page) queryParams.append('page', params.page.toString())
+        if (params?.page_size) queryParams.append('page_size', params.page_size.toString())
+        if (params?.search) queryParams.append('search', params.search)
+        if (params?.ordering) queryParams.append('ordering', params.ordering)
+
+        const queryString = queryParams.toString()
+        const url = `${API_BASE_URL}/api/v1/staff/dashboard/my-bookings/${queryString ? `?${queryString}` : ''}`
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        })
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch my bookings: ${response.statusText}`)
+        }
+
+        const data = await response.json()
+
+        // Handle paginated or list response
+        if (Array.isArray(data)) return data
+        if (data.results && Array.isArray(data.results)) return data.results
+        if (data.data && Array.isArray(data.data)) return data.data
 
         return []
     } catch (error) {

@@ -62,12 +62,10 @@ export function BookingCalendar({ bookings, onBookingClick, onDayClick }: Bookin
 
     const calendarDays = []
 
-    // Add empty cells for days before the first day of the month
     for (let i = 0; i < firstDayOfMonth; i++) {
         calendarDays.push(null)
     }
 
-    // Add cells for each day of the month
     for (let day = 1; day <= daysInMonth; day++) {
         calendarDays.push(day)
     }

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, Sparkles, Scissors, Trash2, Loader2, Edit2 } from "lucide-react"
+import { ArrowLeft, Sparkles, Scissors, Trash2, Loader2, Edit2, UserPlus } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
@@ -15,7 +15,7 @@ import { createService, fetchServices, deleteService, updateService, toggleServi
 import type { Service } from "@/types/service"
 import type { StaffMember } from "@/types/staff"
 import { fetchShopStaff } from "@/lib/api/staff"
-import { assignServices } from "@/lib/api/staff"
+import { assignServices, removeService } from "@/lib/api/staff"
 import { Switch } from "@/components/ui/switch"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -42,6 +42,16 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export default function ServicesManagementPage() {
     const params = useParams()
@@ -67,6 +77,7 @@ export default function ServicesManagementPage() {
     const [selectedStaffIds, setSelectedStaffIds] = useState<string[]>([])
     const [isLoadingStaff, setIsLoadingStaff] = useState(false)
     const [isAssigningStaff, setIsAssigningStaff] = useState(false)
+    const [staffRemovalData, setStaffRemovalData] = useState<{ staffId: string, serviceId: string, staffName: string } | null>(null)
 
     const CATEGORIES = [
         "Haircut",
@@ -215,7 +226,7 @@ export default function ServicesManagementPage() {
         })
     }
 
-    const handleToggleActive = async (id: number, currentStatus: boolean) => {
+    const handleToggleActive = async (id: string, currentStatus: boolean) => {
         try {
             const token = await getToken()
             if (!token) return
@@ -238,7 +249,7 @@ export default function ServicesManagementPage() {
         }
     }
 
-    const handleDeleteService = async (id: number) => {
+    const handleDeleteService = async (id: string) => {
         try {
             const token = await getToken()
             if (!token) return
@@ -327,6 +338,37 @@ export default function ServicesManagementPage() {
             })
         } finally {
             setIsAssigningStaff(false)
+        }
+    }
+
+    const initiateRemoveStaffFromService = (staffId: string, serviceId: string, staffName: string) => {
+        setStaffRemovalData({ staffId, serviceId, staffName })
+    }
+
+    const executeRemoveStaffFromService = async () => {
+        if (!staffRemovalData) return
+        const { staffId, serviceId } = staffRemovalData
+
+        try {
+            const token = await getToken()
+            if (!token) return
+
+            await removeService(staffId, serviceId, token)
+
+            toast({
+                title: "Staff removed",
+                description: "Staff member removed from this service.",
+            })
+
+            loadServices()
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to remove staff from service.",
+                variant: "destructive"
+            })
+        } finally {
+            setStaffRemovalData(null)
         }
     }
 
@@ -680,12 +722,21 @@ export default function ServicesManagementPage() {
                                                             {service.assigned_staff.map((staff, index) => (
                                                                 <span
                                                                     key={staff.staff_id}
-                                                                    className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200"
+                                                                    className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 group"
                                                                 >
                                                                     {staff.staff_name}
                                                                     {staff.is_primary && (
                                                                         <span className="ml-1 text-[10px]">★</span>
                                                                     )}
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation()
+                                                                            initiateRemoveStaffFromService(staff.staff_id, service.id, staff.staff_name)
+                                                                        }}
+                                                                        className="ml-1.5 text-blue-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                    >
+                                                                        ×
+                                                                    </button>
                                                                 </span>
                                                             ))}
                                                         </div>
@@ -693,15 +744,21 @@ export default function ServicesManagementPage() {
                                                 </TableCell>
                                                 <TableCell className="text-right">
                                                     <div className="flex items-center justify-end gap-1">
-                                                        {(!service.assigned_staff || service.assigned_staff.length === 0) && (
-                                                            <Button
-                                                                size="sm"
-                                                                className="bg-yellow-400 hover:bg-yellow-500 text-black border-0 text-xs font-semibold h-7"
-                                                                onClick={() => handleAssignStaffClick(service)}
-                                                            >
-                                                                + Assign Now
-                                                            </Button>
-                                                        )}
+                                                        <Button
+                                                            size="sm"
+                                                            variant={(!service.assigned_staff || service.assigned_staff.length === 0) ? "default" : "ghost"}
+                                                            className={(!service.assigned_staff || service.assigned_staff.length === 0)
+                                                                ? "bg-yellow-400 hover:bg-yellow-500 text-black border-0 text-xs font-semibold h-7"
+                                                                : "h-8 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"}
+                                                            onClick={() => handleAssignStaffClick(service)}
+                                                            title="Assign Staff"
+                                                        >
+                                                            {(!service.assigned_staff || service.assigned_staff.length === 0) ? (
+                                                                "+ Assign Now"
+                                                            ) : (
+                                                                <UserPlus className="w-4 h-4" />
+                                                            )}
+                                                        </Button>
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
@@ -730,6 +787,23 @@ export default function ServicesManagementPage() {
                     </div>
                 </div>
             </div>
+
+            <AlertDialog open={!!staffRemovalData} onOpenChange={() => setStaffRemovalData(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Remove Staff from Service?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to remove {staffRemovalData?.staffName} from this service?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={executeRemoveStaffFromService} className="bg-red-600 hover:bg-red-700">
+                            Remove
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </main>
     )
 }

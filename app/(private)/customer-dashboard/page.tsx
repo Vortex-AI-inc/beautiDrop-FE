@@ -40,7 +40,7 @@ export default function CustomerDashboardPage() {
     const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false)
     const [selectedBookingForReschedule, setSelectedBookingForReschedule] = useState<CustomerBooking | null>(null)
 
-    // Calendar View State
+
     const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
     const [selectedDate, setSelectedDate] = useState<Date | null>(null)
     const [selectedDayBookings, setSelectedDayBookings] = useState<CustomerBooking[]>([])

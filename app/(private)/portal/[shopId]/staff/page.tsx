@@ -12,7 +12,7 @@ import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@clerk/nextjs"
-import { fetchShopStaff, createStaff, deleteStaff, toggleAvailability } from "@/lib/api/staff"
+import { fetchShopStaff, createStaff, deleteStaff, toggleAvailability, resendInvite } from "@/lib/api/staff"
 import type { StaffMember } from "@/types/staff"
 import {
     Select,
@@ -29,6 +29,16 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export default function StaffManagementPage() {
     const params = useParams()
@@ -40,8 +50,11 @@ export default function StaffManagementPage() {
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     const [newStaffName, setNewStaffName] = useState("")
+    const [newStaffEmail, setNewStaffEmail] = useState("")
+    const [newStaffPhone, setNewStaffPhone] = useState("")
     const [canBookAppointments, setCanBookAppointments] = useState(true)
     const [selectedLanguages, setSelectedLanguages] = useState<string[]>(["English"])
+    const [staffToDelete, setStaffToDelete] = useState<{ id: string; name: string } | null>(null)
 
     const AVAILABLE_LANGUAGES = [
         "English",
@@ -103,7 +116,10 @@ export default function StaffManagementPage() {
             await createStaff({
                 shop_id: shopId,
                 name: newStaffName,
+                email: newStaffEmail,
+                phone: newStaffPhone,
                 is_active: canBookAppointments,
+                send_invite: true,
             }, token)
 
             toast({
@@ -112,6 +128,8 @@ export default function StaffManagementPage() {
             })
 
             setNewStaffName("")
+            setNewStaffEmail("")
+            setNewStaffPhone("")
             setCanBookAppointments(true)
             setSelectedLanguages(["English"])
             fetchStaff()
@@ -127,7 +145,14 @@ export default function StaffManagementPage() {
         }
     }
 
-    const handleDeleteStaffMember = async (id: string, name: string) => {
+    const initiateDelete = (id: string, name: string) => {
+        setStaffToDelete({ id, name })
+    }
+
+    const handleDeleteStaffMember = async () => {
+        if (!staffToDelete) return
+        const { id, name } = staffToDelete
+
         try {
             const token = await getToken()
             if (!token) throw new Error("No authentication token")
@@ -140,6 +165,7 @@ export default function StaffManagementPage() {
                 title: "Staff member removed",
                 description: `${name} has been removed from your team.`,
             })
+            setStaffToDelete(null)
         } catch (error) {
             toast({
                 title: "Error",
@@ -166,6 +192,35 @@ export default function StaffManagementPage() {
             toast({
                 title: "Error",
                 description: "Failed to update availability.",
+                variant: "destructive"
+            })
+        }
+    }
+
+    const handleResendInvite = async (id: string, name: string, email?: string) => {
+        if (!email) {
+            toast({
+                title: "Error",
+                description: "This staff member has no email address.",
+                variant: "destructive"
+            })
+            return
+        }
+
+        try {
+            const token = await getToken()
+            if (!token) throw new Error("No authentication token")
+
+            await resendInvite(id, email, token)
+
+            toast({
+                title: "Invite Sent",
+                description: `Invitation re-sent to ${name}.`,
+            })
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to resend invitation.",
                 variant: "destructive"
             })
         }
@@ -219,6 +274,28 @@ export default function StaffManagementPage() {
                                     className="placeholder:text-gray-400"
                                     value={newStaffName}
                                     onChange={(e) => setNewStaffName(e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="staffEmail">Email <span className="text-red-500">*</span></Label>
+                                <Input
+                                    id="staffEmail"
+                                    type="email"
+                                    placeholder="email@example.com"
+                                    className="placeholder:text-gray-400"
+                                    value={newStaffEmail}
+                                    onChange={(e) => setNewStaffEmail(e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="staffPhone">Phone</Label>
+                                <Input
+                                    id="staffPhone"
+                                    type="tel"
+                                    placeholder="+1234567890"
+                                    className="placeholder:text-gray-400"
+                                    value={newStaffPhone}
+                                    onChange={(e) => setNewStaffPhone(e.target.value)}
                                 />
                             </div>
                             <div className="space-y-2">
@@ -313,8 +390,10 @@ export default function StaffManagementPage() {
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Name</TableHead>
+                                        <TableHead>Email</TableHead>
+                                        <TableHead>Phone</TableHead>
                                         <TableHead>Can Book</TableHead>
-                                        <TableHead>Languages</TableHead>
+                                        <TableHead>Invite Status</TableHead>
                                         <TableHead className="text-right">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -322,6 +401,8 @@ export default function StaffManagementPage() {
                                     {staffMembers.map((member) => (
                                         <TableRow key={member.id}>
                                             <TableCell className="font-medium">{member.name}</TableCell>
+                                            <TableCell>{member.email || '-'}</TableCell>
+                                            <TableCell>{member.phone || '-'}</TableCell>
                                             <TableCell>
                                                 <Switch
                                                     checked={member.is_active}
@@ -329,14 +410,26 @@ export default function StaffManagementPage() {
                                                 />
                                             </TableCell>
                                             <TableCell>
-                                                {/* Placeholder for languages as API doesn't return them yet */}
-                                                <span className="text-gray-400 text-sm">English</span>
+                                                {!member.invite_accepted_at ? (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => handleResendInvite(member.id, member.name, member.email)}
+                                                        className="h-7 text-xs"
+                                                    >
+                                                        Resend Invite
+                                                    </Button>
+                                                ) : (
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                        Accepted
+                                                    </span>
+                                                )}
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    onClick={() => handleDeleteStaffMember(member.id, member.name)}
+                                                    onClick={() => initiateDelete(member.id, member.name)}
                                                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
@@ -350,6 +443,23 @@ export default function StaffManagementPage() {
                     </div>
                 </div>
             </div>
+
+            <AlertDialog open={!!staffToDelete} onOpenChange={() => setStaffToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will permanently remove {staffToDelete?.name} from your staff. This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteStaffMember} className="bg-red-600 hover:bg-red-700">
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </main>
     )
 }

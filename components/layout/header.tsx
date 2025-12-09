@@ -12,8 +12,15 @@ export function Header() {
   const { user } = useUser()
   const userRole = user?.unsafeMetadata?.role as string | undefined
 
-  const dashboardLink = userRole === 'customer' ? '/customer-dashboard' : '/portal'
-  const dashboardText = userRole === 'customer' ? 'Dashboard' : 'Business Portal'
+  const dashboardLink =
+    userRole === 'customer' ? '/customer-dashboard' :
+      userRole === 'staff' ? '/staff-portal' :
+        '/portal'
+
+  const dashboardText =
+    userRole === 'customer' ? 'Dashboard' :
+      userRole === 'staff' ? 'Staff Portal' :
+        'Business Portal'
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
