@@ -113,7 +113,7 @@ export default function Home() {
             <div className="space-y-8 relative z-10">
               <div className="space-y-2">
                 <h1 className="text-5xl lg:text-7xl font-bold font-heading tracking-tight leading-[1.1]">
-                  <span className="text-blue-600 block">AI Assistantss</span>
+                  <span className="text-blue-600 block">AI Assistant</span>
                   <span className="text-gray-900 block">for your Beauty</span>
                   <span className="text-gray-900 block">Services</span>
                 </h1>
