@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { Header } from "@/components/layout/header"
 import { Button } from "@/components/ui/button"
-import { Calendar, Loader2, Clock, TrendingUp, Users, CheckCircle, XCircle, AlertCircle, MoreVertical, Check, X } from "lucide-react"
+import { Calendar, Loader2, Clock, TrendingUp, Users, CheckCircle, XCircle, AlertCircle, MoreVertical, Check, X, CalendarDays, List } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
@@ -24,6 +24,9 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { BookingCalendar } from "@/components/ui/booking-calendar"
+import { BookingDetailModal } from "@/components/ui/booking-detail-modal"
+import { DayBookingsModal } from "@/components/ui/day-bookings-modal"
 
 export default function SchedulingPage() {
     const params = useParams()
@@ -36,6 +39,12 @@ export default function SchedulingPage() {
     const [isLoadingBookings, setIsLoadingBookings] = useState(true)
     const [isLoadingStats, setIsLoadingStats] = useState(true)
     const [actioningBookingId, setActioningBookingId] = useState<string | null>(null)
+    const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar')
+    const [selectedBooking, setSelectedBooking] = useState<CustomerBooking | null>(null)
+    const [isModalOpen, setIsModalOpen] = useState(false)
+    const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+    const [selectedDayBookings, setSelectedDayBookings] = useState<CustomerBooking[]>([])
+    const [isDayModalOpen, setIsDayModalOpen] = useState(false)
 
     useEffect(() => {
         loadData()
@@ -99,6 +108,8 @@ export default function SchedulingPage() {
             })
 
             await loadData()
+            setIsModalOpen(false)
+            setSelectedBooking(null)
         } catch (error: any) {
             toast({
                 title: "Error",
@@ -124,6 +135,8 @@ export default function SchedulingPage() {
             })
 
             await loadData()
+            setIsModalOpen(false)
+            setSelectedBooking(null)
         } catch (error: any) {
             toast({
                 title: "Error",
@@ -149,6 +162,8 @@ export default function SchedulingPage() {
             })
 
             await loadData()
+            setIsModalOpen(false)
+            setSelectedBooking(null)
         } catch (error: any) {
             toast({
                 title: "Error",
@@ -158,6 +173,30 @@ export default function SchedulingPage() {
         } finally {
             setActioningBookingId(null)
         }
+    }
+
+    const handleBookingClick = (booking: CustomerBooking) => {
+        setSelectedBooking(booking)
+        setIsModalOpen(true)
+    }
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false)
+        setSelectedBooking(null)
+    }
+
+    const handleDayClick = (date: Date, dayBookings: CustomerBooking[]) => {
+        setSelectedDate(date)
+        setSelectedDayBookings(dayBookings)
+        setIsDayModalOpen(true)
+    }
+
+    const handleCloseDayModal = () => {
+        setIsDayModalOpen(false)
+        setSelectedDate(null)
+        setSelectedDayBookings([])
+        setIsModalOpen(false)
+        setSelectedBooking(null)
     }
 
     const formatTime = (datetime: string) => {
@@ -318,147 +357,211 @@ export default function SchedulingPage() {
                             </div>
                         )}
 
-                        {/* Bookings Table */}
-                        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-                            <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 px-8 py-8">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                                        <Calendar className="w-6 h-6 text-white" />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-2xl font-bold text-white">All Bookings</h2>
-                                        <p className="text-white/90 mt-1">Manage and track all your appointments</p>
-                                    </div>
-                                </div>
-                            </div>
+                        {/* View Toggle */}
+                        <div className="flex justify-center gap-2">
+                            <Button
+                                onClick={() => setViewMode('calendar')}
+                                variant={viewMode === 'calendar' ? 'default' : 'outline'}
+                                className={`flex items-center gap-2 ${viewMode === 'calendar'
+                                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                                    : 'border-2 border-gray-300 text-gray-700 hover:border-blue-500'
+                                    }`}
+                            >
+                                <CalendarDays className="w-5 h-5" />
+                                Calendar View
+                            </Button>
+                            <Button
+                                onClick={() => setViewMode('list')}
+                                variant={viewMode === 'list' ? 'default' : 'outline'}
+                                className={`flex items-center gap-2 ${viewMode === 'list'
+                                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                                    : 'border-2 border-gray-300 text-gray-700 hover:border-blue-500'
+                                    }`}
+                            >
+                                <List className="w-5 h-5" />
+                                List View
+                            </Button>
+                        </div>
 
-                            {isLoadingBookings ? (
-                                <div className="p-16 flex flex-col items-center justify-center">
+                        {/* Calendar View */}
+                        {viewMode === 'calendar' && (
+                            isLoadingBookings ? (
+                                <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-16 flex flex-col items-center justify-center">
                                     <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
-                                    <p className="text-gray-600 font-medium">Loading bookings...</p>
-                                </div>
-                            ) : bookings.length === 0 ? (
-                                <div className="p-20 text-center">
-                                    <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                                        <Calendar className="w-12 h-12 text-gray-400" />
-                                    </div>
-                                    <h3 className="text-2xl font-bold text-gray-900 mb-3">No Bookings Yet</h3>
-                                    <p className="text-gray-600 text-lg">Booked appointments will appear here.</p>
+                                    <p className="text-gray-600 font-medium">Loading calendar...</p>
                                 </div>
                             ) : (
-                                <div className="overflow-x-auto">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow className="bg-gray-50 border-b-2 border-gray-200">
-                                                <TableHead className="font-bold text-gray-900 text-sm">Customer</TableHead>
-                                                <TableHead className="font-bold text-gray-900 text-sm">Service</TableHead>
-                                                <TableHead className="font-bold text-gray-900 text-sm">Staff</TableHead>
-                                                <TableHead className="font-bold text-gray-900 text-sm">Date & Time</TableHead>
-                                                <TableHead className="font-bold text-gray-900 text-sm">Status</TableHead>
-                                                <TableHead className="font-bold text-gray-900 text-sm">Price</TableHead>
-                                                <TableHead className="font-bold text-gray-900 text-sm text-right">Actions</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {bookings.map((booking) => (
-                                                <TableRow key={booking.id} className="hover:bg-blue-50/50 transition-colors border-b border-gray-100">
-                                                    <TableCell className="font-medium py-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-400 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">
-                                                                {booking.customer_name.charAt(0).toUpperCase()}
+                                <BookingCalendar
+                                    bookings={bookings}
+                                    onBookingClick={handleBookingClick}
+                                    onDayClick={handleDayClick}
+                                />
+                            )
+                        )}
+
+                        {/* List View (Bookings Table) */}
+                        {viewMode === 'list' && (
+                            <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                                <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 px-8 py-8">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                                            <Calendar className="w-6 h-6 text-white" />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-2xl font-bold text-white">All Bookings</h2>
+                                            <p className="text-white/90 mt-1">Manage and track all your appointments</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {isLoadingBookings ? (
+                                    <div className="p-16 flex flex-col items-center justify-center">
+                                        <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
+                                        <p className="text-gray-600 font-medium">Loading bookings...</p>
+                                    </div>
+                                ) : bookings.length === 0 ? (
+                                    <div className="p-20 text-center">
+                                        <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                                            <Calendar className="w-12 h-12 text-gray-400" />
+                                        </div>
+                                        <h3 className="text-2xl font-bold text-gray-900 mb-3">No Bookings Yet</h3>
+                                        <p className="text-gray-600 text-lg">Booked appointments will appear here.</p>
+                                    </div>
+                                ) : (
+                                    <div className="overflow-x-auto">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow className="bg-gray-50 border-b-2 border-gray-200">
+                                                    <TableHead className="font-bold text-gray-900 text-sm">Customer</TableHead>
+                                                    <TableHead className="font-bold text-gray-900 text-sm">Service</TableHead>
+                                                    <TableHead className="font-bold text-gray-900 text-sm">Staff</TableHead>
+                                                    <TableHead className="font-bold text-gray-900 text-sm">Date & Time</TableHead>
+                                                    <TableHead className="font-bold text-gray-900 text-sm">Status</TableHead>
+                                                    <TableHead className="font-bold text-gray-900 text-sm">Price</TableHead>
+                                                    <TableHead className="font-bold text-gray-900 text-sm text-right">Actions</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {bookings.map((booking) => (
+                                                    <TableRow key={booking.id} className="hover:bg-blue-50/50 transition-colors border-b border-gray-100">
+                                                        <TableCell className="font-medium py-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-400 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">
+                                                                    {booking.customer_name.charAt(0).toUpperCase()}
+                                                                </div>
+                                                                <div>
+                                                                    <div className="font-semibold text-gray-900 text-base">{booking.customer_name}</div>
+                                                                    {booking.customer_email && (
+                                                                        <div className="text-xs text-gray-500 mt-0.5">{booking.customer_email}</div>
+                                                                    )}
+                                                                </div>
                                                             </div>
-                                                            <div>
-                                                                <div className="font-semibold text-gray-900 text-base">{booking.customer_name}</div>
-                                                                {booking.customer_email && (
-                                                                    <div className="text-xs text-gray-500 mt-0.5">{booking.customer_email}</div>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <span className="font-semibold text-gray-900">{booking.service_name}</span>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                                                    <Users className="w-4 h-4 text-purple-600" />
+                                                                </div>
+                                                                <span className="text-gray-700 font-medium">{booking.staff_member_name || '-'}</span>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div className="flex flex-col">
+                                                                <span className="font-semibold text-gray-900">
+                                                                    {new Date(booking.booking_datetime).toLocaleDateString('en-US', {
+                                                                        month: 'short',
+                                                                        day: 'numeric',
+                                                                        year: 'numeric'
+                                                                    })}
+                                                                </span>
+                                                                <span className="text-sm text-gray-500 mt-0.5">{formatTime(booking.booking_datetime)}</span>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <span className={`px-3 py-1.5 rounded-xl text-xs font-bold border-2 ${getStatusColor(booking.status)}`}>
+                                                                {booking.status.charAt(0).toUpperCase() + booking.status.slice(1).replace('_', ' ')}
+                                                            </span>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <span className="font-bold text-gray-900 text-lg">${booking.total_price}</span>
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            <div className="flex items-center justify-end gap-2">
+                                                                {booking.status === 'pending' && (
+                                                                    <button
+                                                                        onClick={() => handleConfirmBooking(booking.id)}
+                                                                        disabled={actioningBookingId === booking.id}
+                                                                        className="w-10 h-10 rounded-full bg-green-100 hover:bg-green-600 text-green-600 hover:text-white transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center group"
+                                                                        title="Confirm Booking"
+                                                                    >
+                                                                        {actioningBookingId === booking.id ? (
+                                                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                                                        ) : (
+                                                                            <Check className="w-5 h-5" />
+                                                                        )}
+                                                                    </button>
+                                                                )}
+                                                                {booking.status === 'confirmed' && (
+                                                                    <>
+                                                                        <button
+                                                                            onClick={() => handleCompleteBooking(booking.id)}
+                                                                            disabled={actioningBookingId === booking.id}
+                                                                            className="w-10 h-10 rounded-full bg-blue-100 hover:bg-blue-600 text-blue-600 hover:text-white transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                                                                            title="Mark as Completed"
+                                                                        >
+                                                                            {actioningBookingId === booking.id ? (
+                                                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                                            ) : (
+                                                                                <CheckCircle className="w-5 h-5" />
+                                                                            )}
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleMarkNoShow(booking.id)}
+                                                                            disabled={actioningBookingId === booking.id}
+                                                                            className="w-10 h-10 rounded-full bg-red-100 hover:bg-red-600 text-red-600 hover:text-white transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                                                                            title="Mark as No-Show"
+                                                                        >
+                                                                            {actioningBookingId === booking.id ? (
+                                                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                                            ) : (
+                                                                                <X className="w-5 h-5" />
+                                                                            )}
+                                                                        </button>
+                                                                    </>
                                                                 )}
                                                             </div>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <span className="font-semibold text-gray-900">{booking.service_name}</span>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                                                                <Users className="w-4 h-4 text-purple-600" />
-                                                            </div>
-                                                            <span className="text-gray-700 font-medium">{booking.staff_member_name || '-'}</span>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div className="flex flex-col">
-                                                            <span className="font-semibold text-gray-900">
-                                                                {new Date(booking.booking_datetime).toLocaleDateString('en-US', {
-                                                                    month: 'short',
-                                                                    day: 'numeric',
-                                                                    year: 'numeric'
-                                                                })}
-                                                            </span>
-                                                            <span className="text-sm text-gray-500 mt-0.5">{formatTime(booking.booking_datetime)}</span>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <span className={`px-3 py-1.5 rounded-xl text-xs font-bold border-2 ${getStatusColor(booking.status)}`}>
-                                                            {booking.status.charAt(0).toUpperCase() + booking.status.slice(1).replace('_', ' ')}
-                                                        </span>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <span className="font-bold text-gray-900 text-lg">${booking.total_price}</span>
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        <div className="flex items-center justify-end gap-2">
-                                                            {booking.status === 'pending' && (
-                                                                <button
-                                                                    onClick={() => handleConfirmBooking(booking.id)}
-                                                                    disabled={actioningBookingId === booking.id}
-                                                                    className="w-10 h-10 rounded-full bg-green-100 hover:bg-green-600 text-green-600 hover:text-white transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center group"
-                                                                    title="Confirm Booking"
-                                                                >
-                                                                    {actioningBookingId === booking.id ? (
-                                                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                                                    ) : (
-                                                                        <Check className="w-5 h-5" />
-                                                                    )}
-                                                                </button>
-                                                            )}
-                                                            {booking.status === 'confirmed' && (
-                                                                <>
-                                                                    <button
-                                                                        onClick={() => handleCompleteBooking(booking.id)}
-                                                                        disabled={actioningBookingId === booking.id}
-                                                                        className="w-10 h-10 rounded-full bg-blue-100 hover:bg-blue-600 text-blue-600 hover:text-white transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                                                                        title="Mark as Completed"
-                                                                    >
-                                                                        {actioningBookingId === booking.id ? (
-                                                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                                                        ) : (
-                                                                            <CheckCircle className="w-5 h-5" />
-                                                                        )}
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => handleMarkNoShow(booking.id)}
-                                                                        disabled={actioningBookingId === booking.id}
-                                                                        className="w-10 h-10 rounded-full bg-red-100 hover:bg-red-600 text-red-600 hover:text-white transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                                                                        title="Mark as No-Show"
-                                                                    >
-                                                                        {actioningBookingId === booking.id ? (
-                                                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                                                        ) : (
-                                                                            <X className="w-5 h-5" />
-                                                                        )}
-                                                                    </button>
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </div>
-                            )}
-                        </div>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Day Bookings Modal */}
+                        <DayBookingsModal
+                            date={selectedDate}
+                            bookings={selectedDayBookings}
+                            isOpen={isDayModalOpen}
+                            onClose={handleCloseDayModal}
+                            onBookingClick={handleBookingClick}
+                        />
+
+                        {/* Booking Detail Modal */}
+                        <BookingDetailModal
+                            booking={selectedBooking}
+                            isOpen={isModalOpen}
+                            onClose={handleCloseModal}
+                            onConfirm={handleConfirmBooking}
+                            onComplete={handleCompleteBooking}
+                            onNoShow={handleMarkNoShow}
+                            isActioning={actioningBookingId === selectedBooking?.id}
+                        />
                     </div>
                 </div>
             </div>

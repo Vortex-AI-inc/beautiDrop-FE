@@ -4,12 +4,14 @@ import { useEffect, useState } from "react"
 import { useUser, useAuth } from "@clerk/nextjs"
 import { Header } from "@/components/layout/header"
 import { Button } from "@/components/ui/button"
-import { Calendar, Clock, MapPin, Loader2, Star, Heart } from "lucide-react"
+import { Calendar, Clock, MapPin, Loader2, Star, Heart, LayoutList, CalendarDays } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
 import { useRoleProtection } from "@/hooks/useRoleProtection"
 import { fetchMyBookings, cancelBooking } from "@/lib/api/bookings"
 import type { CustomerBooking } from "@/types/booking"
+import { BookingCalendar } from "@/components/ui/booking-calendar"
+import { DayBookingsModal } from "@/components/ui/day-bookings-modal"
 import {
     Card,
     CardContent,
@@ -37,6 +39,12 @@ export default function CustomerDashboardPage() {
     const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null)
     const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false)
     const [selectedBookingForReschedule, setSelectedBookingForReschedule] = useState<CustomerBooking | null>(null)
+
+    // Calendar View State
+    const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
+    const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+    const [selectedDayBookings, setSelectedDayBookings] = useState<CustomerBooking[]>([])
+    const [isDayModalOpen, setIsDayModalOpen] = useState(false)
 
     useEffect(() => {
         if (isLoaded && user) {
@@ -93,6 +101,23 @@ export default function CustomerDashboardPage() {
     }
 
     const handleReschedule = (booking: CustomerBooking) => {
+        setSelectedBookingForReschedule(booking)
+        setIsRescheduleModalOpen(true)
+    }
+
+    const handleDayClick = (date: Date, dayBookings: CustomerBooking[]) => {
+        setSelectedDate(date)
+        setSelectedDayBookings(dayBookings)
+        setIsDayModalOpen(true)
+    }
+
+    const handleCloseDayModal = () => {
+        setIsDayModalOpen(false)
+        setSelectedDate(null)
+        setSelectedDayBookings([])
+    }
+
+    const handleCalendarBookingClick = (booking: CustomerBooking) => {
         setSelectedBookingForReschedule(booking)
         setIsRescheduleModalOpen(true)
     }
@@ -186,84 +211,125 @@ export default function CustomerDashboardPage() {
 
                     {/* Upcoming Bookings */}
                     <div className="mb-8">
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
                             <h2 className="text-2xl font-bold text-gray-900">Upcoming Bookings</h2>
-                            <Link href="/browse-salons">
-                                <Button className="bg-purple-600 hover:bg-purple-700">
-                                    Book New Appointment
-                                </Button>
-                            </Link>
+                            <div className="flex items-center gap-3">
+                                <div className="bg-gray-100 p-1 rounded-lg flex items-center">
+                                    <button
+                                        onClick={() => setViewMode('list')}
+                                        className={`p-2 rounded-md transition-all ${viewMode === 'list'
+                                            ? 'bg-white text-blue-600 shadow-sm'
+                                            : 'text-gray-500 hover:text-gray-700'
+                                            }`}
+                                        title="List View"
+                                    >
+                                        <LayoutList className="w-5 h-5" />
+                                    </button>
+                                    <button
+                                        onClick={() => setViewMode('calendar')}
+                                        className={`p-2 rounded-md transition-all ${viewMode === 'calendar'
+                                            ? 'bg-white text-blue-600 shadow-sm'
+                                            : 'text-gray-500 hover:text-gray-700'
+                                            }`}
+                                        title="Calendar View"
+                                    >
+                                        <CalendarDays className="w-5 h-5" />
+                                    </button>
+                                </div>
+                                <Link href="/browse-salons">
+                                    <Button className="bg-purple-600 hover:bg-purple-700">
+                                        Book New Appointment
+                                    </Button>
+                                </Link>
+                            </div>
                         </div>
 
-                        {upcomingBookings.length === 0 ? (
-                            <Card>
-                                <CardContent className="p-12 text-center">
-                                    <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Upcoming Bookings</h3>
-                                    <p className="text-gray-600 mb-4">You don't have any upcoming appointments</p>
-                                    <Link href="/browse-salons">
-                                        <Button className="bg-purple-600 hover:bg-purple-700">
-                                            Browse Salons
-                                        </Button>
-                                    </Link>
-                                </CardContent>
-                            </Card>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {upcomingBookings.map((booking) => (
-                                    <Card key={booking.id}>
-                                        <CardHeader>
-                                            <div className="flex items-start justify-between">
-                                                <div>
-                                                    <CardTitle>{booking.shop_name}</CardTitle>
-                                                    <CardDescription>{booking.service_name}</CardDescription>
-                                                </div>
-                                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
-                                                    {booking.status}
-                                                </span>
-                                            </div>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <div className="space-y-2">
-                                                <div className="flex items-center text-sm text-gray-600">
-                                                    <Clock className="w-4 h-4 mr-2" />
-                                                    {new Date(booking.booking_datetime).toLocaleString()}
-                                                </div>
-                                                <div className="flex items-center text-sm text-gray-600">
-                                                    <MapPin className="w-4 h-4 mr-2" />
-                                                    View Location
-                                                </div>
-                                                <div className="pt-4 flex gap-2">
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="flex-1"
-                                                        onClick={() => handleReschedule(booking)}
-                                                    >
-                                                        Reschedule
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="flex-1 text-red-600 hover:text-red-700"
-                                                        onClick={() => handleCancelBooking(booking.id, booking.shop_name)}
-                                                        disabled={cancellingBookingId === booking.id}
-                                                    >
-                                                        {cancellingBookingId === booking.id ? (
-                                                            <>
-                                                                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                                                Cancelling...
-                                                            </>
-                                                        ) : (
-                                                            "Cancel"
-                                                        )}
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
+                        {viewMode === 'calendar' ? (
+                            <div className="space-y-4">
+                                <BookingCalendar
+                                    bookings={upcomingBookings}
+                                    onBookingClick={handleCalendarBookingClick}
+                                    onDayClick={handleDayClick}
+                                />
+                                <DayBookingsModal
+                                    date={selectedDate}
+                                    bookings={selectedDayBookings}
+                                    isOpen={isDayModalOpen}
+                                    onClose={handleCloseDayModal}
+                                    onBookingClick={handleCalendarBookingClick}
+                                />
                             </div>
+                        ) : (
+                            upcomingBookings.length === 0 ? (
+                                <Card>
+                                    <CardContent className="p-12 text-center">
+                                        <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                                        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Upcoming Bookings</h3>
+                                        <p className="text-gray-600 mb-4">You don't have any upcoming appointments</p>
+                                        <Link href="/browse-salons">
+                                            <Button className="bg-purple-600 hover:bg-purple-700">
+                                                Browse Salons
+                                            </Button>
+                                        </Link>
+                                    </CardContent>
+                                </Card>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {upcomingBookings.map((booking) => (
+                                        <Card key={booking.id}>
+                                            <CardHeader>
+                                                <div className="flex items-start justify-between">
+                                                    <div>
+                                                        <CardTitle>{booking.shop_name}</CardTitle>
+                                                        <CardDescription>{booking.service_name}</CardDescription>
+                                                    </div>
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
+                                                        {booking.status}
+                                                    </span>
+                                                </div>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center text-sm text-gray-600">
+                                                        <Clock className="w-4 h-4 mr-2" />
+                                                        {new Date(booking.booking_datetime).toLocaleString()}
+                                                    </div>
+                                                    <div className="flex items-center text-sm text-gray-600">
+                                                        <MapPin className="w-4 h-4 mr-2" />
+                                                        View Location
+                                                    </div>
+                                                    <div className="pt-4 flex gap-2">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="flex-1"
+                                                            onClick={() => handleReschedule(booking)}
+                                                        >
+                                                            Reschedule
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="flex-1 text-red-600 hover:text-red-700"
+                                                            onClick={() => handleCancelBooking(booking.id, booking.shop_name)}
+                                                            disabled={cancellingBookingId === booking.id}
+                                                        >
+                                                            {cancellingBookingId === booking.id ? (
+                                                                <>
+                                                                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                                                    Cancelling...
+                                                                </>
+                                                            ) : (
+                                                                "Cancel"
+                                                            )}
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </div>
+                            )
                         )}
                     </div>
 
