@@ -26,6 +26,10 @@ export default function StaffPortalPage() {
 
     useEffect(() => {
         if (isLoaded && user) {
+            const role = (user.unsafeMetadata?.role as string) || (user.publicMetadata?.role as string)
+            if (role === 'staff') {
+                localStorage.setItem('userRole', 'staff')
+            }
             loadData()
         }
     }, [isLoaded, user])
@@ -41,8 +45,7 @@ export default function StaffPortalPage() {
                 fetchMyBookings(token)
             ])
 
-            // Ensure we handle the response structure correctly (array directly or nested results)
-            // The API helper attempts to unwrap 'results', but let's be safe
+
             const servicesList = Array.isArray(servicesData) ? servicesData : (servicesData.results || [])
             const bookingsList = Array.isArray(bookingsData) ? bookingsData : (bookingsData.results || [])
 
@@ -80,7 +83,6 @@ export default function StaffPortalPage() {
         }
     }
 
-    // Map status string to Badge variant (using available variants or custom colors via class)
     const renderStatusBadge = (status: string) => {
         let className = ""
         switch (status) {

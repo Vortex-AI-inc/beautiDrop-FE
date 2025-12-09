@@ -36,6 +36,9 @@ export default function AuthCompletePage() {
           router.push('/customer-dashboard')
         } else if (role === 'client') {
           router.push('/portal')
+        }
+        else if (role === 'staff') {
+          router.push('/staff-portal')
         } else {
           router.push('/signup')
         }
