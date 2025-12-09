@@ -1,12 +1,9 @@
 "use client"
 
 import { SignUp } from "@clerk/nextjs"
-import { useSearchParams } from "next/navigation"
+
 
 export default function StaffCompleteSignupPage() {
-    const searchParams = useSearchParams()
-
-
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
             <div className="mb-8 text-center">
@@ -26,3 +23,4 @@ export default function StaffCompleteSignupPage() {
         </div>
     )
 }
+
