@@ -9,6 +9,12 @@ permissions:
   contents: read
   id-token: write
 
+env:
+  PROJECT_ID: beautydrop-dev
+  REGION: us-east1
+  SERVICE_NAME: beautydrop-frontend
+  REPOSITORY: beautydrop-frontend
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -25,18 +31,38 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Deploy to Cloud Run from Source (No Docker!)
+      - name: Configure Docker for Artifact Registry
         run: |
-          gcloud run deploy beautydrop-frontend \
-            --source . \
-            --region us-east1 \
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build Docker image
+        run: |
+          IMAGE_NAME="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/app:latest"
+          docker build \
+            --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}" \
+            --build-arg CLERK_SECRET_KEY="${{ secrets.CLERK_SECRET_KEY }}" \
+            --build-arg NEXT_PUBLIC_BACKEND_URL="${{ secrets.NEXT_PUBLIC_BACKEND_URL }}" \
+            -t ${IMAGE_NAME} \
+            .
+          docker push ${IMAGE_NAME}
+
+      - name: Deploy to Cloud Run
+        run: |
+          IMAGE_NAME="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/app:latest"
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image ${IMAGE_NAME} \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --project ${{ env.PROJECT_ID }} \
             --allow-unauthenticated \
-            --builder=gcr.io/buildpacks/builder:v1 \
-            --set-build-env-vars="NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }},CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }},NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }}" \
-            --set-env-vars="NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }},CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }},NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }}" \
             --memory=512Mi \
             --cpu=1 \
-            --max-instances=5 \
+            --min-instances=0 \
+            --max-instances=10 \
+            --timeout=300 \
             --port=3000 \
+            --set-env-vars="NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}" \
+            --set-env-vars="CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}" \
+            --set-env-vars="NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }}" \
             --quiet
 
