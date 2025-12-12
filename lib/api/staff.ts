@@ -262,7 +262,6 @@ export async function fetchMyServices(
 
         const data = await response.json()
 
-        // Handle paginated or list response
         if (Array.isArray(data)) return data
         if (data.results && Array.isArray(data.results)) return data.results
         if (data.data && Array.isArray(data.data)) return data.data
@@ -306,7 +305,6 @@ export async function fetchMyBookings(
 
         const data = await response.json()
 
-        // Handle paginated or list response
         if (Array.isArray(data)) return data
         if (data.results && Array.isArray(data.results)) return data.results
         if (data.data && Array.isArray(data.data)) return data.data

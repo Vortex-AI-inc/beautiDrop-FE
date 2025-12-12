@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import type { Service } from "@/types/service"
-import type { CustomerBooking } from "@/types/booking" // Ensure this matches existing type header
+import type { CustomerBooking } from "@/types/booking"
 import { useToast } from "@/hooks/use-toast"
 import { Badge } from "@/components/ui/badge"
 
@@ -161,7 +161,6 @@ export default function StaffPortalPage() {
                                 <BookingCalendar
                                     bookings={bookings}
                                     onBookingClick={(booking) => {
-                                        // Optional: Open detail modal
                                         console.log("Clicked booking:", booking)
                                     }}
                                 />

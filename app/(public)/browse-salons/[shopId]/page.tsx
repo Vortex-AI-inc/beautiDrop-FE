@@ -14,6 +14,7 @@ import BookingModal from "@/components/BookingModal"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import Image from "next/image"
+import Chatbot from "@/components/Chatbot"
 
 export default function SalonDetailPage() {
     const params = useParams()
@@ -469,6 +470,14 @@ export default function SalonDetailPage() {
                 onClose={() => setIsBookingModalOpen(false)}
                 service={selectedService}
                 shopId={shopId}
+            />
+            <Chatbot
+                shopName={shop.name}
+                phone={shop.phone}
+                services={services}
+                schedules={schedules}
+                address={shop.address}
+                email={shop.email}
             />
         </main>
     )
