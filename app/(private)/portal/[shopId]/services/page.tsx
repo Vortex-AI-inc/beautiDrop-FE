@@ -101,7 +101,11 @@ export default function ServicesManagementPage() {
             const token = await getToken()
             if (!token) return
             const data = await fetchServices(shopId, token)
-            setServices(data)
+            const safeData = data.map((s: any) => ({
+                ...s,
+                id: s.id || s._id || s.service_id
+            }))
+            setServices(safeData)
         } catch (error) {
             toast({
                 title: "Error",
@@ -171,7 +175,12 @@ export default function ServicesManagementPage() {
 
             if (editingService) {
                 const updatedService = await updateService(editingService.id, payload, token)
-                setServices(prev => prev.map(s => s.id === editingService.id ? updatedService : s))
+                const safeUpdatedService = {
+                    ...updatedService,
+                    id: updatedService.id || (updatedService as any)._id || (updatedService as any).service_id || editingService.id,
+                    assigned_staff: updatedService.assigned_staff || editingService.assigned_staff
+                }
+                setServices(prev => prev.map(s => s.id === editingService.id ? safeUpdatedService : s))
                 toast({
                     title: "Success",
                     description: "Service updated successfully.",
@@ -179,7 +188,11 @@ export default function ServicesManagementPage() {
                 setIsEditModalOpen(false)
             } else {
                 const newService = await createService(payload, token)
-                setServices(prev => [...prev, newService])
+                const safeNewService = {
+                    ...newService,
+                    id: newService.id || (newService as any)._id || (newService as any).service_id
+                }
+                setServices(prev => [...prev, safeNewService])
                 toast({
                     title: "Success",
                     description: `${newService.name} has been added to your services.`,
@@ -318,7 +331,12 @@ export default function ServicesManagementPage() {
 
             const serviceIds = [selectedServiceForStaff.id]
 
-            for (const staffId of selectedStaffIds) {
+            // Only assign staff that are NOT already assigned
+            const newAssignments = selectedStaffIds.filter(id =>
+                !selectedServiceForStaff.assigned_staff?.some(as => as.staff_id === id)
+            )
+
+            for (const staffId of newAssignments) {
                 await assignServices(staffId, { service_ids: serviceIds }, token)
             }
 
@@ -423,6 +441,7 @@ export default function ServicesManagementPage() {
                             </Button>
                         </div>
                     )}
+
 
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
                         <div className="flex items-center justify-between mb-6">
@@ -609,33 +628,41 @@ export default function ServicesManagementPage() {
                                     </div>
                                 ) : (
                                     <div className="space-y-3 max-h-[300px] overflow-y-auto">
-                                        {availableStaff.map((staff) => (
-                                            <div
-                                                key={staff.id}
-                                                className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                                                onClick={() => handleStaffToggle(staff.id)}
-                                            >
-                                                <Checkbox
-                                                    checked={selectedStaffIds.includes(staff.id)}
-                                                    className="pointer-events-none"
-                                                />
-                                                <div className="flex-1">
-                                                    <p className="font-medium text-gray-900">{staff.name}</p>
-                                                    {staff.email && (
-                                                        <p className="text-sm text-gray-500">{staff.email}</p>
+                                        {availableStaff.map((staff) => {
+                                            const isAlreadyAssigned = selectedServiceForStaff?.assigned_staff?.some(s => s.staff_id === staff.id)
+
+                                            return (
+                                                <div
+                                                    key={staff.id}
+                                                    className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${isAlreadyAssigned
+                                                        ? 'bg-gray-50 opacity-60 cursor-not-allowed'
+                                                        : 'hover:bg-gray-50 cursor-pointer'
+                                                        }`}
+                                                    onClick={() => !isAlreadyAssigned && handleStaffToggle(staff.id)}
+                                                >
+                                                    <Checkbox
+                                                        checked={selectedStaffIds.includes(staff.id)}
+                                                        className="pointer-events-none"
+                                                        disabled={isAlreadyAssigned}
+                                                    />
+                                                    <div className="flex-1">
+                                                        <p className="font-medium text-gray-900">{staff.name}</p>
+                                                        {staff.email && (
+                                                            <p className="text-sm text-gray-500">{staff.email}</p>
+                                                        )}
+                                                    </div>
+                                                    {staff.is_active ? (
+                                                        <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">
+                                                            Active
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
+                                                            Inactive
+                                                        </span>
                                                     )}
                                                 </div>
-                                                {staff.is_active ? (
-                                                    <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">
-                                                        Active
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
-                                                        Inactive
-                                                    </span>
-                                                )}
-                                            </div>
-                                        ))}
+                                            )
+                                        })}
                                     </div>
                                 )}
                             </div>
