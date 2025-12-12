@@ -283,7 +283,9 @@ export default function ServicesManagementPage() {
             if (!token) return
 
             const staff = await fetchShopStaff(shopId, token)
-            setAvailableStaff(staff)
+            // Filter to only show staff who have accepted the invite and are active
+            const acceptedActiveStaff = staff.filter(s => !!s.invite_accepted_at && s.is_active)
+            setAvailableStaff(acceptedActiveStaff)
         } catch (error) {
             toast({
                 title: "Error",
