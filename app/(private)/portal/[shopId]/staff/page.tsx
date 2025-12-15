@@ -66,7 +66,6 @@ export default function StaffManagementPage() {
     const [selectedLanguages, setSelectedLanguages] = useState<string[]>(["English"])
     const [staffToDelete, setStaffToDelete] = useState<{ id: string; name: string } | null>(null)
 
-    // Assign Services State
     const [isServiceModalOpen, setIsServiceModalOpen] = useState(false)
     const [selectedStaffForService, setSelectedStaffForService] = useState<StaffMember | null>(null)
     const [availableServices, setAvailableServices] = useState<Service[]>([])
@@ -250,12 +249,6 @@ export default function StaffManagementPage() {
         setIsServiceModalOpen(true)
         setIsLoadingServices(true)
 
-        // Pre-select services already assigned to this staff?
-        // The current Service type/Staff type might not show this relation easily without fetching deeply or checking services.
-        // For now start with empty selection or logic to check.
-        // Actually, we can check logic: staff member doesn't store their service IDs in basic list?
-        // Let's assume we start fresh or need checks. 
-        // BETTER: When fetching services, we can check if this staff is in service.assigned_staff.
 
         try {
             const token = await getToken()
@@ -264,7 +257,6 @@ export default function StaffManagementPage() {
             const servicesData = await fetchServices(shopId, token)
             setAvailableServices(servicesData)
 
-            // Calculate pre-selected IDs
             const preSelected = servicesData
                 .filter(service => service.assigned_staff?.some(s => s.staff_id === staff.id))
                 .map(service => service.id)
@@ -300,25 +292,6 @@ export default function StaffManagementPage() {
         try {
             const token = await getToken()
             if (!token) throw new Error("No authentication token")
-
-            // We need to differentiate between adding and removing if we want to be precise,
-            // or we can just "Assign" new ones.
-            // The API `assignServices` takes a list. Does it overwrite? usually "assign" might just add.
-            // The screenshot showed `assign_services`. 
-            // If we want to handle unchecking = removal, we might need logic.
-            // But let's follow services/page.tsx pattern: it iterates and calls assignServices. I will do the same.
-            // Wait, services/page.tsx doesn't seem to handle *removal* via the modal, only "Assign".
-            // It has a separate "x" button to remove staff.
-            // So here, I will just support Assigning (adding).
-
-            // However, for a better UX, if I uncheck something that was checked, I should probably remove it.
-            // Let's check `services/page.tsx` again. usage:
-            // for (const staffId of selectedStaffIds) { await assignServices(staffId, { service_ids: [serviceId] }) }
-            // It adds staff to service.
-
-            // Here we want to add services to staff.
-            // `assignServices(staffId, { service_ids: selectedServiceIds })` matches the API signature.
-
             await assignServices(selectedStaffForService.id, { service_ids: selectedServiceIds }, token)
 
             toast({

@@ -58,8 +58,6 @@ export default function WidgetPage() {
     const [shop, setShop] = useState<Shop | null>(null)
     const [isSaving, setIsSaving] = useState(false)
     const [copied, setCopied] = useState(false)
-
-    // Configuration State
     const [layout, setLayout] = useState('card')
     const [primaryColor, setPrimaryColor] = useState('#2563EB')
     const [showLogo, setShowLogo] = useState(true)
@@ -70,14 +68,9 @@ export default function WidgetPage() {
     const [buttonText, setButtonText] = useState("Book Now")
     const [widgetWidth, setWidgetWidth] = useState(380)
     const [borderRadius, setBorderRadius] = useState(12)
-
-    // Text Content State
-    const [customTitle, setCustomTitle] = useState("")
-    const [customDescription, setCustomDescription] = useState("")
-
+    const [customTitle, setCustomTitle] = useState("My shop")
+    const [customDescription, setCustomDescription] = useState("Your premium beauty destination.")
     const [embedCode, setEmbedCode] = useState("")
-
-    // Stable ID for the session to prevent flashing during preview updates
     const [uniqueId] = useState(`bd-widget-${Math.random().toString(36).substr(2, 9)}`)
 
     useEffect(() => {
@@ -109,11 +102,9 @@ export default function WidgetPage() {
         const widgetUrl = `${origin}/browse-salons/${shopId}`
         const fontFamily = selectedFont === 'Serif' ? 'serif' : 'sans-serif'
 
-        // CSS Generation based on layout
         let layoutCss = ""
         let htmlStructure = ""
 
-        // Helper to generate logo HTML with specific styling
         const getLogoHtml = (size: string, customClass: string = '') => {
             const style = `width: ${size}; height: ${size}; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; font-weight: bold; font-size: ${parseInt(size) / 2.5}px; color: white; background: ${primaryColor};`
 
@@ -160,7 +151,6 @@ export default function WidgetPage() {
                     .bd-content { text-align: center !important; }
                 }
             `
-            // Align logo based on text align
             const logoAlignStyle = textAlign === 'center' ? 'align-self: center;' : textAlign === 'right' ? 'align-self: flex-end;' : 'align-self: flex-start;'
 
             htmlStructure = `
