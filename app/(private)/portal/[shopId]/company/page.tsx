@@ -14,8 +14,10 @@ import { useParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { useShopStore } from "@/lib/store/shop-store"
 import { updateShop, fetchShop } from "@/lib/api/shop"
-import { fetchShopSchedules, bulkCreateSchedules } from "@/lib/api/schedules"
+import { fetchShopSchedules, bulkCreateSchedules, fetchHolidays, bulkCreateHolidays, bulkDeleteHolidays, Holiday } from "@/lib/api/schedules"
 import type { Schedule } from "@/types/schedule"
+import { Calendar } from "@/components/ui/calendar"
+import { format } from "date-fns"
 import { useAuth } from "@clerk/nextjs"
 
 export default function CompanyProfilePage() {
@@ -34,6 +36,11 @@ export default function CompanyProfilePage() {
 
     const [selectedDays, setSelectedDays] = useState<string[]>([])
     const [businessHours, setBusinessHours] = useState({ start_time: "09:00", end_time: "17:00" })
+
+    const [holidays, setHolidays] = useState<Holiday[]>([])
+    const [isLoadingHolidays, setIsLoadingHolidays] = useState(false)
+    const [selectedHolidayDates, setSelectedHolidayDates] = useState<Date[] | undefined>([])
+    const [isSavingHolidays, setIsSavingHolidays] = useState(false)
 
     const [formData, setFormData] = useState({
         name: '',
@@ -96,6 +103,7 @@ export default function CompanyProfilePage() {
     useEffect(() => {
         if (selectedShop) {
             loadSchedules()
+            loadHolidays()
         }
     }, [selectedShop])
 
@@ -180,8 +188,7 @@ export default function CompanyProfilePage() {
 
             const payload = {
                 shop_id: shopId,
-                start_day: selectedDays[0].toLowerCase(),
-                end_day: selectedDays[selectedDays.length - 1].toLowerCase(),
+                days: selectedDays.map(day => day.toLowerCase()),
                 start_time: businessHours.start_time,
                 end_time: businessHours.end_time
             }
@@ -258,6 +265,100 @@ export default function CompanyProfilePage() {
 
     const getDaySchedules = (day: string) => {
         return schedules.filter(s => s.day_of_week === day.toLowerCase())
+    }
+
+    const loadHolidays = async () => {
+        try {
+            setIsLoadingHolidays(true)
+            const token = await getToken()
+            if (!token) return
+
+            const data = await fetchHolidays(shopId, token)
+            setHolidays(data)
+        } catch (error) {
+            console.error("Failed to load holidays", error)
+            toast({
+                title: "Error",
+                description: "Failed to load holidays.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsLoadingHolidays(false)
+        }
+    }
+
+    const handleCreateHolidays = async () => {
+        if (!selectedHolidayDates || selectedHolidayDates.length === 0) return
+
+        try {
+            setIsSavingHolidays(true)
+            const token = await getToken()
+            if (!token) return
+
+            const dates = selectedHolidayDates.map(date => format(date, 'yyyy-MM-dd'))
+
+            await bulkCreateHolidays({
+                shop_id: shopId,
+                dates: dates,
+                name: 'Holiday'
+            }, token)
+
+            toast({
+                title: "Success",
+                description: "Holidays added successfully.",
+            })
+
+            await loadHolidays()
+            setSelectedHolidayDates([])
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.message || "Failed to add holidays.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsSavingHolidays(false)
+        }
+    }
+
+    const handleDeleteHolidays = async () => {
+        if (!selectedHolidayDates || selectedHolidayDates.length === 0) return
+
+        try {
+            setIsSavingHolidays(true)
+            const token = await getToken()
+            if (!token) return
+
+            const dates = selectedHolidayDates.map(date => format(date, 'yyyy-MM-dd'))
+
+            await bulkDeleteHolidays({
+                shop_id: shopId,
+                dates: dates
+            }, token)
+
+            toast({
+                title: "Success",
+                description: "Holidays removed successfully.",
+            })
+
+            await loadHolidays()
+            setSelectedHolidayDates([])
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.message || "Failed to remove holidays.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsSavingHolidays(false)
+        }
+    }
+
+    const areAllSelectedHolidays = () => {
+        if (!selectedHolidayDates || selectedHolidayDates.length === 0) return false
+
+        const holidayDatesSet = new Set(holidays.map(h => h.date))
+        return selectedHolidayDates.every(date => holidayDatesSet.has(format(date, 'yyyy-MM-dd')))
     }
 
     return (
@@ -427,8 +528,8 @@ export default function CompanyProfilePage() {
                                                         <div
                                                             key={day}
                                                             className={`flex items-center justify-between p-3 rounded-lg transition-all ${schedule
-                                                                    ? 'bg-white border border-blue-100'
-                                                                    : 'bg-gray-50 border border-gray-200 opacity-60'
+                                                                ? 'bg-white border border-blue-100'
+                                                                : 'bg-gray-50 border border-gray-200 opacity-60'
                                                                 }`}
                                                         >
                                                             <div className="flex items-center gap-3">
@@ -539,16 +640,7 @@ export default function CompanyProfilePage() {
                                                 </div>
                                             </div>
 
-                                            {selectedDays.length > 0 && (
-                                                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                                    <p className="text-sm text-blue-800">
-                                                        <strong>Selected days:</strong> {selectedDays.join(', ')}
-                                                    </p>
-                                                    <p className="text-sm text-blue-800 mt-1">
-                                                        <strong>Hours:</strong> {formatTimeTo12Hour(businessHours.start_time)} - {formatTimeTo12Hour(businessHours.end_time)}
-                                                    </p>
-                                                </div>
-                                            )}
+
                                         </div>
 
                                         {/* Save Button */}
@@ -574,6 +666,85 @@ export default function CompanyProfilePage() {
                                     </div>
                                 </div>
                             )}
+                        </div>
+
+                        {/* Holiday Management Card */}
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+                            <div className="flex items-center gap-2 mb-6">
+                                <Clock className="w-5 h-5 text-blue-600" />
+                                <h2 className="text-lg font-bold text-gray-900">Holiday Management</h2>
+                            </div>
+
+                            <div className="flex flex-col md:flex-row gap-8">
+                                <div className="p-4 border border-gray-100 rounded-xl bg-gray-50/50">
+                                    <Calendar
+                                        mode="multiple"
+                                        selected={selectedHolidayDates}
+                                        onSelect={setSelectedHolidayDates}
+                                        className="rounded-md border bg-white"
+                                        modifiers={{
+                                            holiday: holidays.map(h => new Date(h.date))
+                                        }}
+                                        modifiersStyles={{
+                                            holiday: {
+                                                color: 'red',
+                                                fontWeight: 'bold',
+                                                textDecoration: 'underline'
+                                            }
+                                        }}
+                                    />
+                                </div>
+
+                                <div className="flex-1 space-y-6">
+                                    <div>
+                                        <h3 className="text-base font-semibold text-gray-900 mb-2">Manage Holidays</h3>
+                                        <p className="text-sm text-gray-600 mb-4">
+                                            Select dates on the calendar to mark them as holidays (shop closed) or remove existing holidays.
+                                        </p>
+
+                                        <div className="flex flex-wrap gap-2 mb-4">
+                                            {holidays.filter(h => new Date(h.date) >= new Date()).slice(0, 5).map(h => (
+                                                <div key={h.date} className="text-xs bg-red-50 text-red-700 px-2.5 py-1 rounded-full border border-red-100 flex items-center gap-1">
+                                                    <span>{h.date}</span>
+                                                </div>
+                                            ))}
+                                            {holidays.length > 5 && (
+                                                <span className="text-xs text-gray-500 py-1">+{holidays.length - 5} more</span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-4 border-t border-gray-100">
+                                        <div className="flex gap-3">
+                                            {areAllSelectedHolidays() ? (
+                                                <Button
+                                                    onClick={handleDeleteHolidays}
+                                                    disabled={isSavingHolidays || !selectedHolidayDates?.length}
+                                                    variant="destructive"
+                                                    className="w-full sm:w-auto"
+                                                >
+                                                    {isSavingHolidays ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                                                    Remove Holidays
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    onClick={handleCreateHolidays}
+                                                    disabled={isSavingHolidays || !selectedHolidayDates?.length}
+                                                    className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white"
+                                                >
+                                                    {isSavingHolidays ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                                                    Mark as Holiday
+                                                </Button>
+                                            )}
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-2">
+                                            {areAllSelectedHolidays()
+                                                ? "Selected dates are currently holidays. Click to remove them."
+                                                : "Select dates to set as holidays. Existing holidays will be skipped."}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

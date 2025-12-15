@@ -274,10 +274,10 @@ export default function ServicesManagementPage() {
                 title: "Service removed",
                 description: "The service has been removed successfully.",
             })
-        } catch (error) {
+        } catch (error: any) {
             toast({
                 title: "Error",
-                description: "Failed to delete service. Please try again.",
+                description: error.message || "Failed to delete service. Please try again.",
                 variant: "destructive"
             })
         }
@@ -296,7 +296,6 @@ export default function ServicesManagementPage() {
             if (!token) return
 
             const staff = await fetchShopStaff(shopId, token)
-            // Filter to only show staff who have accepted the invite and are active
             const acceptedActiveStaff = staff.filter(s => !!s.invite_accepted_at && s.is_active)
             setAvailableStaff(acceptedActiveStaff)
         } catch (error) {
@@ -331,7 +330,6 @@ export default function ServicesManagementPage() {
 
             const serviceIds = [selectedServiceForStaff.id]
 
-            // Only assign staff that are NOT already assigned
             const newAssignments = selectedStaffIds.filter(id =>
                 !selectedServiceForStaff.assigned_staff?.some(as => as.staff_id === id)
             )

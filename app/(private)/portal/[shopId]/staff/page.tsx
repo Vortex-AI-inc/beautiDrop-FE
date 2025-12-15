@@ -185,10 +185,10 @@ export default function StaffManagementPage() {
                 description: `${name} has been removed from your team.`,
             })
             setStaffToDelete(null)
-        } catch (error) {
+        } catch (error: any) {
             toast({
                 title: "Error",
-                description: "Failed to remove staff member.",
+                description: error.message || "Failed to remove staff member.",
                 variant: "destructive"
             })
         }

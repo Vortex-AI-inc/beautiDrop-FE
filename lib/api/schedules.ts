@@ -354,8 +354,7 @@ export async function getDynamicAvailability(
 
 export interface BulkScheduleData {
     shop_id: string
-    start_day: string
-    end_day: string
+    days: string[]
     start_time: string
     end_time: string
 }
@@ -381,6 +380,143 @@ export async function bulkCreateSchedules(
 
         const responseData = await response.json()
         return { message: responseData.message || 'Schedules created successfully' }
+    } catch (error) {
+        throw error
+    }
+}
+
+export interface Holiday {
+    date: string
+    name: string
+    shop: string
+    created_at: string
+    updated_at: string
+}
+
+export interface HolidayCreateData {
+    shop_id: string
+    dates: string[]
+    name?: string
+}
+
+export interface HolidayDeleteData {
+    shop_id: string
+    dates: string[]
+}
+
+export async function fetchHolidays(
+    shopId: string,
+    token: string
+): Promise<Holiday[]> {
+    try {
+        const queryParams = new URLSearchParams({ shop_id: shopId })
+        const response = await fetch(`${API_BASE_URL}/api/v1/schedules/holidays/?${queryParams.toString()}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        })
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch holidays: ${response.statusText}`)
+        }
+
+        const data = await response.json()
+
+        if (Array.isArray(data)) {
+            return data
+        } else if (data.results && Array.isArray(data.results)) {
+            return data.results
+        } else if (data.data && Array.isArray(data.data)) {
+            return data.data
+        }
+
+        return []
+    } catch (error) {
+        throw error
+    }
+}
+
+export async function fetchPublicHolidays(
+    shopId: string
+): Promise<Holiday[]> {
+    try {
+        const queryParams = new URLSearchParams({ shop_id: shopId })
+        const response = await fetch(`${API_BASE_URL}/api/v1/schedules/holidays/?${queryParams.toString()}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch holidays: ${response.statusText}`)
+        }
+
+        const data = await response.json()
+
+        if (Array.isArray(data)) {
+            return data
+        } else if (data.results && Array.isArray(data.results)) {
+            return data.results
+        } else if (data.data && Array.isArray(data.data)) {
+            return data.data
+        }
+
+        return []
+    } catch (error) {
+        return []
+    }
+}
+
+export async function bulkCreateHolidays(
+    data: HolidayCreateData,
+    token: string
+): Promise<{ message?: string }> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/schedules/holidays/bulk_create/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(data),
+        })
+
+        if (!response.ok) {
+            const errorData = await response.json()
+            throw new Error(errorData.error || errorData.detail || `Failed to create holidays: ${response.statusText}`)
+        }
+
+        const responseData = await response.json()
+        return { message: responseData.message || 'Holidays created successfully' }
+    } catch (error) {
+        throw error
+    }
+}
+
+export async function bulkDeleteHolidays(
+    data: HolidayDeleteData,
+    token: string
+): Promise<{ message?: string }> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/schedules/holidays/bulk_delete/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(data),
+        })
+
+        if (!response.ok) {
+            const errorData = await response.json()
+            throw new Error(errorData.error || errorData.detail || `Failed to delete holidays: ${response.statusText}`)
+        }
+
+        const responseData = await response.json()
+        return { message: responseData.message || 'Holidays deleted successfully' }
     } catch (error) {
         throw error
     }

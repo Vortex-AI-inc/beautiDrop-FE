@@ -179,8 +179,20 @@ export default function PortalPage() {
                                                 {togglingShopId === shop.id ? 'Updating...' : shop.is_active ? 'Active' : 'Inactive'}
                                             </span>
                                         </div>
-                                        <div className="flex items-center text-blue-600 text-sm font-medium group-hover:translate-x-1 transition-transform">
-                                            Manage <ArrowRight className="w-4 h-4 ml-1" />
+                                        <div className="flex items-center gap-4">
+                                            <div
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    router.push(`/portal/${shop.id}/widget`)
+                                                }}
+                                                className="flex items-center text-purple-600 text-sm font-medium hover:underline z-10"
+                                            >
+                                                <Rocket className="w-4 h-4 mr-1" />
+                                                Widget
+                                            </div>
+                                            <div className="flex items-center text-blue-600 text-sm font-medium group-hover:translate-x-1 transition-transform">
+                                                Manage <ArrowRight className="w-4 h-4 ml-1" />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

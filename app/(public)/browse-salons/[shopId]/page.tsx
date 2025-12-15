@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react"
 import { fetchPublicShop } from "@/lib/api/shop"
 import { fetchPublicServices } from "@/lib/api/services"
-import { fetchPublicShopSchedules } from "@/lib/api/schedules"
+import { fetchPublicShopSchedules, fetchPublicHolidays, Holiday } from "@/lib/api/schedules"
 import type { Shop } from "@/types/shop"
 import type { Service } from "@/types/service"
 import type { Schedule } from "@/types/schedule"
+import { format, addDays, getDay, parseISO, startOfToday, nextDay, isSameDay } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { MapPin, Star, Clock, Phone, Mail, Globe, Loader2, Calendar, ArrowLeft, Check, Sparkles, Users } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
@@ -23,6 +24,7 @@ export default function SalonDetailPage() {
     const [shop, setShop] = useState<Shop | null>(null)
     const [services, setServices] = useState<Service[]>([])
     const [schedules, setSchedules] = useState<Schedule[]>([])
+    const [holidays, setHolidays] = useState<Holiday[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
     const [selectedService, setSelectedService] = useState<Service | null>(null)
@@ -40,12 +42,14 @@ export default function SalonDetailPage() {
             setShop(shopData)
 
             if (shopData) {
-                const [servicesData, schedulesData] = await Promise.all([
+                const [servicesData, schedulesData, holidaysData] = await Promise.all([
                     fetchPublicServices(shopId),
-                    fetchPublicShopSchedules(shopId)
+                    fetchPublicShopSchedules(shopId),
+                    fetchPublicHolidays(shopId)
                 ])
                 setServices(servicesData)
                 setSchedules(schedulesData)
+                setHolidays(holidaysData)
             }
         } catch (error) {
 
@@ -345,10 +349,27 @@ export default function SalonDetailPage() {
                                     </div>
                                 ) : (
                                     <div className="space-y-3">
-                                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => {
+                                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day, index) => {
                                             const schedule = schedules.find(s => s.day_of_week.toLowerCase() === day.toLowerCase())
                                             const isActive = schedule?.is_active
-                                            const isToday = new Date().toLocaleDateString('en-US', { weekday: 'long' }) === day
+                                            const today = startOfToday()
+
+
+                                            const currentDayIndex = getDay(today)
+                                            const targetDayIndex = index + 1 > 6 ? 0 : index + 1
+
+
+                                            let targetDate = today
+                                            for (let i = 0; i < 7; i++) {
+                                                const d = addDays(today, i)
+                                                if (format(d, 'EEEE') === day) {
+                                                    targetDate = d
+                                                    break
+                                                }
+                                            }
+
+                                            const isHoliday = holidays.some(h => isSameDay(parseISO(h.date), targetDate))
+                                            const isToday = isSameDay(targetDate, today)
 
                                             const formatTime = (time: string) => {
                                                 const [hours, minutes] = time.split(':').map(Number)
@@ -368,12 +389,17 @@ export default function SalonDetailPage() {
                                                     <span className={`font-semibold ${isToday ? 'text-blue-700' : 'text-gray-700'}`}>
                                                         {day}
                                                         {isToday && <span className="ml-2 text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full">Today</span>}
+                                                        {isHoliday && <span className="ml-2 text-xs bg-red-100 text-red-600 border border-red-200 px-2 py-0.5 rounded-full">Holiday</span>}
                                                     </span>
-                                                    <span className={`text-sm font-medium ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
-                                                        {isActive && schedule ? (
-                                                            `${formatTime(schedule.start_time)} - ${formatTime(schedule.end_time)}`
+                                                    <span className={`text-sm font-medium ${isActive && !isHoliday ? 'text-gray-900' : 'text-gray-400'}`}>
+                                                        {isHoliday ? (
+                                                            <span className="text-red-500 font-medium">Closed</span>
                                                         ) : (
-                                                            'Closed'
+                                                            isActive && schedule ? (
+                                                                `${formatTime(schedule.start_time)} - ${formatTime(schedule.end_time)}`
+                                                            ) : (
+                                                                'Closed'
+                                                            )
                                                         )}
                                                     </span>
                                                 </div>

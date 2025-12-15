@@ -135,7 +135,11 @@ export async function deleteService(
         })
 
         if (!response.ok) {
-            throw new Error(`Failed to delete service: ${response.statusText}`)
+            const errorData = await response.json()
+            const errorMessage = (errorData.error && errorData.message)
+                ? `${errorData.error}: ${errorData.message}`
+                : (errorData.message || errorData.error || `Failed to delete service: ${response.statusText}`)
+            throw new Error(errorMessage)
         }
     } catch (error) {
         throw error
