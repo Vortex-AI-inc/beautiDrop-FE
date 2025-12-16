@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react"
 import { useUser, useAuth } from "@clerk/nextjs"
 import { Header } from "@/components/layout/header"
-import { Loader2, Calendar as CalendarIcon, List, Scissors, Clock, DollarSign, MapPin } from "lucide-react"
+import { Loader2, Calendar as CalendarIcon, List, Scissors, Clock, DollarSign, MapPin, Settings } from "lucide-react"
+import { GoogleCalendarConnect } from "@/components/calendar/google-calendar-connect"
 import { fetchMyServices, fetchMyBookings } from "@/lib/api/staff"
 import { BookingCalendar } from "@/components/ui/booking-calendar"
 import { Button } from "@/components/ui/button"
@@ -133,6 +134,7 @@ export default function StaffPortalPage() {
                         </TabsList>
 
                         <TabsContent value="schedule" className="space-y-6">
+                            <GoogleCalendarConnect />
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-xl font-bold text-gray-900">Your Apppointments</h2>
                                 <div className="flex bg-white rounded-lg border border-gray-200 p-1">
@@ -249,10 +251,12 @@ export default function StaffPortalPage() {
                                 </div>
                             )}
                         </TabsContent>
+
+
                     </Tabs>
                 </div>
             </div>
-        </main>
+        </main >
     )
 }
 

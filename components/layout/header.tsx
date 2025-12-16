@@ -6,6 +6,7 @@ import { Menu, X, Rocket, UserCircle } from "lucide-react"
 import { useState } from "react"
 import { Logo } from "@/components/ui/logo"
 import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/nextjs"
+import { NotificationsPopover } from "@/components/notifications/notifications-popover"
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -57,6 +58,7 @@ export function Header() {
               </Link>
             </SignedOut>
             <SignedIn>
+              <NotificationsPopover />
               <Link href={dashboardLink}>
                 <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50 font-medium px-4 rounded-lg flex items-center gap-2">
                   <UserCircle className="w-4 h-4" />
@@ -125,6 +127,10 @@ export function Header() {
                 </Link>
               </SignedOut>
               <SignedIn>
+                <div className="flex items-center justify-between px-2">
+                  <span className="text-sm font-medium text-gray-600">Notifications</span>
+                  <NotificationsPopover />
+                </div>
                 <Link
                   href={dashboardLink}
                   onClick={() => setIsMenuOpen(false)}
@@ -134,7 +140,7 @@ export function Header() {
                     {dashboardText}
                   </Button>
                 </Link>
-                <div className="py-2">
+                <div className="py-2 flex justify-center">
                   <UserButton
                     appearance={{
                       elements: {

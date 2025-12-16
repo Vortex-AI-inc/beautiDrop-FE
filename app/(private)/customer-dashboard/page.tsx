@@ -12,6 +12,7 @@ import { fetchMyBookings, cancelBooking } from "@/lib/api/bookings"
 import type { CustomerBooking } from "@/types/booking"
 import { BookingCalendar } from "@/components/ui/booking-calendar"
 import { DayBookingsModal } from "@/components/ui/day-bookings-modal"
+import { GoogleCalendarConnect } from "@/components/calendar/google-calendar-connect"
 import {
     Card,
     CardContent,
@@ -209,6 +210,8 @@ export default function CustomerDashboardPage() {
                         </Card>
                     </div>
 
+
+
                     {/* Upcoming Bookings */}
                     <div className="mb-8">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
@@ -242,6 +245,10 @@ export default function CustomerDashboardPage() {
                                     </Button>
                                 </Link>
                             </div>
+                        </div>
+
+                        <div className="mb-6">
+                            <GoogleCalendarConnect />
                         </div>
 
                         {viewMode === 'calendar' ? (

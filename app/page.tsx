@@ -329,7 +329,7 @@ export default function Home() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
               <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm hover:shadow-lg transition-all">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2" suppressHydrationWarning>
                   {starterPlan?.name}
                 </h3>
                 <p className="text-gray-500 text-sm mb-6">Perfect for solo stylists</p>
@@ -389,7 +389,7 @@ export default function Home() {
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg">
                   Most Popular
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2" suppressHydrationWarning>
                   {professionalPlan?.name}
                 </h3>
                 <p className="text-gray-500 text-sm mb-6">For growing salons</p>
@@ -447,7 +447,7 @@ export default function Home() {
               </div>
 
               <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm hover:shadow-lg transition-all">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2" suppressHydrationWarning>
                   {enterprisePlan?.name}
                 </h3>
                 <p className="text-gray-500 text-sm mb-6">For multi-location salons</p>

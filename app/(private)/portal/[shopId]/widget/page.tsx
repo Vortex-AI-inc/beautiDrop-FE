@@ -23,7 +23,7 @@ import {
     Save
 } from "lucide-react"
 import Link from "next/link"
-import { fetchShopDashboard } from "@/lib/api/shop"
+import { fetchShop } from "@/lib/api/shop"
 import type { Shop } from "@/types/shop"
 import { useToast } from "@/hooks/use-toast"
 import {
@@ -78,7 +78,7 @@ export default function WidgetPage() {
             try {
                 const token = await getToken()
                 if (!token) return
-                const data = await fetchShopDashboard(shopId, token)
+                const data = await fetchShop(shopId, token)
                 setShop(data)
                 if (data) {
                     setCustomTitle(data.name)

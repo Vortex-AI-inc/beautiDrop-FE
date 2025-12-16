@@ -24,6 +24,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { GoogleCalendarConnect } from "@/components/calendar/google-calendar-connect"
 import { BookingCalendar } from "@/components/ui/booking-calendar"
 import { BookingDetailModal } from "@/components/ui/booking-detail-modal"
 import { DayBookingsModal } from "@/components/ui/day-bookings-modal"
@@ -259,7 +260,7 @@ export default function SchedulingPage() {
                             </div>
                         </div>
 
-                        {/* Stats Cards */}
+
                         {isLoadingStats ? (
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 {[1, 2, 3].map((i) => (
@@ -315,7 +316,6 @@ export default function SchedulingPage() {
                             </div>
                         )}
 
-                        {/* Quick Stats */}
                         {stats && (
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-md hover:shadow-lg transition-all">
@@ -356,8 +356,8 @@ export default function SchedulingPage() {
                                 </div>
                             </div>
                         )}
+                        <GoogleCalendarConnect />
 
-                        {/* View Toggle */}
                         <div className="flex justify-center gap-2">
                             <Button
                                 onClick={() => setViewMode('calendar')}

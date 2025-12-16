@@ -20,6 +20,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
 import { useAuth } from "@clerk/nextjs"
 
+
 export default function CompanyProfilePage() {
     const params = useParams()
     const shopId = params.shopId as string
@@ -667,6 +668,9 @@ export default function CompanyProfilePage() {
                                 </div>
                             )}
                         </div>
+
+
+
 
                         {/* Holiday Management Card */}
                         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
