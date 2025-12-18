@@ -38,11 +38,20 @@ import {
 } from "@/lib/api/notifications"
 import { Notification, NotificationPreferences } from "@/types/notification"
 import { formatDistanceToNow } from "date-fns"
+import { useNotificationStore } from "@/lib/store/notification-store"
 
 export function NotificationsPopover() {
     const { getToken, userId } = useAuth()
-    const [notifications, setNotifications] = useState<Notification[]>([])
-    const [unreadCount, setUnreadCount] = useState(0)
+    const {
+        notifications,
+        unreadCount,
+        setNotifications,
+        setUnreadCount,
+        markAsRead,
+        markAllAsRead,
+        decrementUnreadCount
+    } = useNotificationStore()
+
     const [nextUrl, setNextUrl] = useState<string | null>(null)
     const [isOpen, setIsOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
@@ -80,7 +89,7 @@ export function NotificationsPopover() {
             const token = await getToken()
             if (!token) return
             const data = await fetchNotifications(token, nextUrl)
-            setNotifications(prev => [...prev, ...(data.results || [])])
+            setNotifications([...notifications, ...(data.results || [])])
             setNextUrl(data.next)
         } catch (error) {
             console.error(error)
@@ -132,8 +141,7 @@ export function NotificationsPopover() {
             const token = await getToken()
             if (!token) return
             await markAllNotificationsAsRead(token)
-            setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
-            setUnreadCount(0)
+            markAllAsRead()
         } catch (error) {
             console.error(error)
         }
@@ -145,8 +153,7 @@ export function NotificationsPopover() {
             const token = await getToken()
             if (!token) return
             await markNotificationAsRead(id, token)
-            setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n))
-            setUnreadCount(prev => Math.max(0, prev - 1))
+            markAsRead(id)
         } catch (error) {
             console.error(error)
         }
@@ -158,12 +165,10 @@ export function NotificationsPopover() {
             const token = await getToken()
             if (!token) return
             await deleteNotification(id, token)
-            setNotifications(prev => {
-                const updated = prev.filter(n => n.id !== id)
-                const wasUnread = prev.find(n => n.id === id && !n.is_read)
-                if (wasUnread) setUnreadCount(c => Math.max(0, c - 1))
-                return updated
-            })
+
+            const wasUnread = notifications.find(n => n.id === id && !n.is_read)
+            if (wasUnread) decrementUnreadCount()
+            setNotifications(notifications.filter(n => n.id !== id))
         } catch (error) {
             console.error(error)
         }

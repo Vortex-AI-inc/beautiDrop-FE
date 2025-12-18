@@ -9,7 +9,7 @@ firebase.initializeApp({
     projectId: "beautydropai",
     storageBucket: "beautydropai.firebasestorage.app",
     messagingSenderId: "208038531709",
-    appId: "1:208038531709:web:97e6c40f389ae3bf50d714",
+    appId: "1:208038531709:web:f7b1e6cf982c8dc750d714",
 });
 
 const messaging = firebase.messaging();
