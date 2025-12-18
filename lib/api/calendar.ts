@@ -58,7 +58,6 @@ export async function fetchCalendarStatus(token: string): Promise<CalendarStatus
 
         return await response.json()
     } catch (error) {
-        console.error("Error fetching calendar status:", error)
         return {
             is_connected: false,
             google_calendar_id: null,

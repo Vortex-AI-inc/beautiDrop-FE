@@ -24,7 +24,7 @@ import { useAuth } from "@clerk/nextjs"
 import { useToast } from "@/hooks/use-toast"
 import { createCheckoutSession } from "@/lib/api/subscriptions"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 export default function Home() {
   const { getPlanByName, isLoading } = usePricingPlans()
@@ -33,6 +33,15 @@ export default function Home() {
   const router = useRouter()
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly')
+  const [hasMounted, setHasMounted] = useState(false)
+
+  useState(() => {
+    // This runs once during initialization, but useEffect is safer for hydration
+  })
+
+  useEffect(() => {
+    setHasMounted(true)
+  }, [])
 
   const getActivePlan = (baseName: string) => {
     if (billingPeriod === 'yearly') {
@@ -335,10 +344,10 @@ export default function Home() {
                 <p className="text-gray-500 text-sm mb-6">Perfect for solo stylists</p>
                 <div className="mb-6">
                   <div className="flex items-baseline justify-center gap-2">
-                    <span className="text-4xl font-bold text-gray-900">
-                      ${getDisplayPrice(starterPlan)}
+                    <span className="text-4xl font-bold text-gray-900" suppressHydrationWarning>
+                      {hasMounted ? `$${getDisplayPrice(starterPlan)}` : '$0'}
                     </span>
-                    <span className="text-gray-500">{getBillingLabel()}</span>
+                    <span className="text-gray-500" suppressHydrationWarning>{getBillingLabel()}</span>
                   </div>
                   {billingPeriod === 'yearly' && starterPlan?.billing_period === 'year' && (
                     <div className="mt-2">
@@ -395,10 +404,10 @@ export default function Home() {
                 <p className="text-gray-500 text-sm mb-6">For growing salons</p>
                 <div className="mb-6">
                   <div className="flex items-baseline justify-center gap-2">
-                    <span className="text-4xl font-bold text-gray-900">
-                      ${getDisplayPrice(professionalPlan)}
+                    <span className="text-4xl font-bold text-gray-900" suppressHydrationWarning>
+                      {hasMounted ? `$${getDisplayPrice(professionalPlan)}` : '$0'}
                     </span>
-                    <span className="text-gray-500">{getBillingLabel()}</span>
+                    <span className="text-gray-500" suppressHydrationWarning>{getBillingLabel()}</span>
                   </div>
                   {billingPeriod === 'yearly' && professionalPlan?.billing_period === 'year' && (
                     <div className="mt-2">
@@ -453,10 +462,10 @@ export default function Home() {
                 <p className="text-gray-500 text-sm mb-6">For multi-location salons</p>
                 <div className="mb-6">
                   <div className="flex items-baseline justify-center gap-2">
-                    <span className="text-4xl font-bold text-gray-900">
-                      ${getDisplayPrice(enterprisePlan)}
+                    <span className="text-4xl font-bold text-gray-900" suppressHydrationWarning>
+                      {hasMounted ? `$${getDisplayPrice(enterprisePlan)}` : '$0'}
                     </span>
-                    <span className="text-gray-500">{getBillingLabel()}</span>
+                    <span className="text-gray-500" suppressHydrationWarning>{getBillingLabel()}</span>
                   </div>
                   {billingPeriod === 'yearly' && enterprisePlan?.billing_period === 'year' && (
                     <div className="mt-2">

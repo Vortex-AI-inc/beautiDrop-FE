@@ -25,6 +25,7 @@ export interface NotificationPreferences {
     email_shop_holiday: boolean
     email_marketing: boolean
     push_enabled: boolean
+    updated_at: string
 }
 
 export interface NotificationCount {

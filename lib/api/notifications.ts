@@ -19,7 +19,6 @@ export async function fetchNotifications(token: string, pageUrl?: string | null)
 
         return await response.json()
     } catch (error) {
-        console.error("Error fetching notifications:", error)
         return { count: 0, next: null, previous: null, results: [] }
     }
 }
@@ -40,7 +39,6 @@ export async function fetchNotificationCount(token: string): Promise<Notificatio
 
         return await response.json()
     } catch (error) {
-        console.error("Error fetching notification count:", error)
         return { total: 0, unread: 0 }
     }
 }
@@ -91,7 +89,7 @@ export async function markNotificationAsRead(id: string, token: string): Promise
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ ids: [id] })
+        body: JSON.stringify({ notification_ids: [id] })
     })
 
     if (!response.ok) {
@@ -127,5 +125,37 @@ export async function updateNotificationPreferences(preferences: Partial<Notific
 
     if (!response.ok) {
         throw new Error('Failed to update preferences')
+    }
+}
+
+export async function registerFCMToken(token: string, authToken: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/api/v1/notifications/fcm-token/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+            fcm_token: token,
+            device_type: 'web',
+            device_name: typeof window !== 'undefined' ? window.navigator.userAgent : 'web'
+        })
+    })
+
+    if (!response.ok) {
+        throw new Error('Failed to register FCM token')
+    }
+}
+
+export async function unregisterFCMToken(authToken: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/api/v1/notifications/fcm-token/`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${authToken}`,
+        },
+    })
+
+    if (!response.ok) {
+        throw new Error('Failed to unregister FCM token')
     }
 }

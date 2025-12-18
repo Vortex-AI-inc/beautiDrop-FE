@@ -277,7 +277,6 @@ export default function CompanyProfilePage() {
             const data = await fetchHolidays(shopId, token)
             setHolidays(data)
         } catch (error) {
-            console.error("Failed to load holidays", error)
             toast({
                 title: "Error",
                 description: "Failed to load holidays.",

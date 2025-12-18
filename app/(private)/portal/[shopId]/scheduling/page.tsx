@@ -543,7 +543,6 @@ export default function SchedulingPage() {
                             </div>
                         )}
 
-                        {/* Day Bookings Modal */}
                         <DayBookingsModal
                             date={selectedDate}
                             bookings={selectedDayBookings}

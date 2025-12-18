@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { ClerkProvider } from '@clerk/nextjs'
 import RoleSync from '@/components/RoleSync'
+import FCMHandler from '@/components/FCMHandler'
 import { Toaster } from '@/components/ui/toaster'
 
 import { Analytics } from "@vercel/analytics/next"
@@ -56,6 +57,7 @@ export default function RootLayout({
       <html lang="en" suppressHydrationWarning>
         <body className={`${poppins.variable} ${inter.variable} font-sans antialiased`}>
           <RoleSync />
+          <FCMHandler />
           {children}
           <Toaster />
           <Analytics />
