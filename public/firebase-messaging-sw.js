@@ -1,8 +1,7 @@
 importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js");
 
-// These values will be replaced by the client-side registration if needed,
-// or should be hardcoded here for the background listener to work.
+
 firebase.initializeApp({
     apiKey: "AIzaSyDYnNO44rDyBT5XbciO5-SblCtAajJRw5A",
     authDomain: "beautydrop-dev.firebaseapp.com",

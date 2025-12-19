@@ -35,9 +35,7 @@ export default function Home() {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly')
   const [hasMounted, setHasMounted] = useState(false)
 
-  useState(() => {
-    // This runs once during initialization, but useEffect is safer for hydration
-  })
+
 
   useEffect(() => {
     setHasMounted(true)

@@ -26,7 +26,6 @@ export const useFCM = () => {
                     return
                 }
 
-                // Explicitly wait for the service worker to be ready
                 console.log('⏳ Registering Service Worker...')
                 const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
                     scope: '/'
@@ -80,7 +79,7 @@ export const useFCM = () => {
                         id: payload.messageId || Math.random().toString(36).substr(2, 9),
                         title: payload.notification?.title || payload.data?.title || 'New Notification',
                         message: payload.notification?.body || payload.data?.body || '',
-                        notification_type: payload.data?.type || 'info', // Default to info if not specified
+                        notification_type: payload.data?.type || 'info',
                         is_read: false,
                         created_at: new Date().toISOString(),
                         data: payload.data

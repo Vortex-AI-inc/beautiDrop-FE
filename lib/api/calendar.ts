@@ -43,8 +43,6 @@ export async function fetchCalendarStatus(token: string): Promise<CalendarStatus
         })
 
         if (!response.ok) {
-            // If 404 or other error, return default unconnected status
-            // The API doc implies it returns default values if no integration exists, but just in case
             if (response.status === 404) {
                 return {
                     is_connected: false,
@@ -80,7 +78,6 @@ export async function syncCalendar(token: string): Promise<SyncResponse> {
         throw new Error('Failed to init sync')
     }
 
-    // Status 202 is typical for async processing
     if (response.status === 202) {
         return await response.json()
     }
