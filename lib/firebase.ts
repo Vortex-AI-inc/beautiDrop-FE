@@ -2,13 +2,13 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getMessaging, Messaging } from "firebase/messaging";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyAfzLslKqmQNHQMQTCcULPawzXoxqZYwFc",
-    authDomain: "beautydropai.firebaseapp.com",
-    projectId: "beautydropai",
-    storageBucket: "beautydropai.firebasestorage.app",
-    messagingSenderId: "208038531709",
-    appId: "1:208038531709:web:f7b1e6cf982c8dc750d714",
-    measurementId: "G-WK1DWQDYH7"
+    apiKey: "AIzaSyDYnNO44rDyBT5XbciO5-SblCtAajJRw5A",
+    authDomain: "beautydrop-dev.firebaseapp.com",
+    projectId: "beautydrop-dev",
+    storageBucket: "beautydrop-dev.firebasestorage.app",
+    messagingSenderId: "497422674710",
+    appId: "1:497422674710:web:9466014c287ab03399be37",
+    measurementId: "G-MLSH0ZFFS8"
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
