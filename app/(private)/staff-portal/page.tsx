@@ -53,7 +53,6 @@ export default function StaffPortalPage() {
             setServices(servicesList)
             setBookings(bookingsList)
         } catch (error) {
-            console.error("Failed to load staff data:", error)
             toast({
                 title: "Error",
                 description: "Failed to load dashboard data.",
@@ -163,7 +162,6 @@ export default function StaffPortalPage() {
                                 <BookingCalendar
                                     bookings={bookings}
                                     onBookingClick={(booking) => {
-                                        console.log("Clicked booking:", booking)
                                     }}
                                 />
                             ) : (
