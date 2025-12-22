@@ -551,7 +551,6 @@ export default function SchedulingPage() {
                             onBookingClick={handleBookingClick}
                         />
 
-                        {/* Booking Detail Modal */}
                         <BookingDetailModal
                             booking={selectedBooking}
                             isOpen={isModalOpen}
