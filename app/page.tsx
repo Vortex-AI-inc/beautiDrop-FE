@@ -285,7 +285,6 @@ export default function Home() {
               Choose the perfect plan for your salon. No hidden fees.
             </p>
 
-            {/* Billing Period Toggle */}
             <div className="flex items-center justify-center gap-4 mb-8">
               <div className="inline-flex items-center bg-white rounded-full p-1 shadow-md">
                 <button
