@@ -1,32 +1,14 @@
-FROM node:20-slim AS base
-
-# Install dependencies needed for native modules
-RUN apt-get update && apt-get install -y \
-    python3 \
-    make \
-    g++ \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install dependencies only when needed
-FROM base AS deps
+FROM node:20-slim AS builder
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Clean install with platform-specific binaries forced
-RUN npm ci --include=optional --force
+# Delete package-lock and do a clean install to get correct native bindings
+RUN rm -f package-lock.json && npm install
 
-# Rebuild the source code only when needed
-FROM base AS builder
-WORKDIR /app
-
-# Copy node_modules first
-COPY --from=deps /app/node_modules ./node_modules
+# Copy source code
 COPY . .
-
-# Re-install lightningcss to get the correct platform binary
-RUN npm install lightningcss --force
 
 # Build arguments for environment variables
 ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
@@ -56,7 +38,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Build Next.js application
 RUN npm run build
 
-# Production image, copy all the files and run next
+# Production image
 FROM node:20-slim AS runner
 WORKDIR /app
 
