@@ -1,11 +1,11 @@
 FROM node:20-slim AS builder
 WORKDIR /app
 
-# Copy package files
+# Copy package files including package-lock.json
 COPY package*.json ./
 
-# Delete package-lock and do a clean install to get correct native bindings
-RUN rm -f package-lock.json && npm install
+# Install dependencies with legacy peer deps flag to avoid conflicts
+RUN npm ci --legacy-peer-deps
 
 # Copy source code
 COPY . .
