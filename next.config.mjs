@@ -7,9 +7,6 @@ const nextConfig = {
     unoptimized: true,
   },
   output: "standalone",
-  experimental: {
-    turbo: false,
-  },
 };
 
 export default nextConfig;

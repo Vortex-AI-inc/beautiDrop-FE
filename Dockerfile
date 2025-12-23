@@ -4,7 +4,12 @@ WORKDIR /app
 # Copy package files including package-lock.json
 COPY package*.json ./
 
-# Install dependencies with legacy peer deps flag to avoid conflicts
+# Force npm to install binaries for linux platform
+ENV npm_config_platform=linux
+ENV npm_config_arch=x64
+ENV npm_config_libc=glibc
+
+# Install dependencies with forced platform
 RUN npm ci --legacy-peer-deps
 
 # Copy source code
