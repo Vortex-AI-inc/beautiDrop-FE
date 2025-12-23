@@ -1,12 +1,21 @@
 FROM node:20-slim AS base
 
+# Install dependencies needed for native modules
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install dependencies only when needed
 FROM base AS deps
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-RUN npm ci --include=optional
+
+# Install dependencies and rebuild native modules for linux
+RUN npm ci --include=optional && npm rebuild
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -16,7 +25,6 @@ COPY . .
 
 # Build arguments for environment variables
 ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-
 ARG CLERK_SECRET_KEY
 ARG NEXT_PUBLIC_BACKEND_URL
 ARG NEXT_PUBLIC_FIREBASE_API_KEY
@@ -29,7 +37,6 @@ ARG NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 
 # Set environment variables for build
 ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-
 ENV CLERK_SECRET_KEY=$CLERK_SECRET_KEY
 ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
 ENV NEXT_PUBLIC_FIREBASE_API_KEY=$NEXT_PUBLIC_FIREBASE_API_KEY
@@ -45,7 +52,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # Production image, copy all the files and run next
-FROM base AS runner
+FROM node:20-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -67,4 +74,3 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 CMD ["node", "server.js"]
-
