@@ -47,6 +47,6 @@ next-env.d.ts
 # OS
 .DS_Store
 Thumbs.db
-
+.package-lock.json
 # clerk configuration (can include secrets)
 /.clerk/

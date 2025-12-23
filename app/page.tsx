@@ -712,7 +712,6 @@ export default function Home() {
                   className="relative w-full h-auto rounded-2xl shadow-2xl border-4 border-gray-800"
                 />
 
-                {/* Testimonial Card */}
                 <div className="absolute -bottom-12 left-8 right-8 bg-white p-6 rounded-xl shadow-xl">
                   <div className="flex gap-1 mb-3">
                     {[1, 2, 3, 4, 5].map(i => (
