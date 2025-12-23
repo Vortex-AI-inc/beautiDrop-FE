@@ -17,7 +17,7 @@ COPY . .
 
 # Build arguments for environment variables
 ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-ARG CLERK_SECRET_KEY
+# ARG CLERK_SECRET_KEY
 ARG NEXT_PUBLIC_BACKEND_URL
 
 # Set environment variables for build
