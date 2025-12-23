@@ -14,14 +14,19 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies and rebuild native modules for linux
-RUN npm ci --include=optional && npm rebuild
+# Clean install with platform-specific binaries forced
+RUN npm ci --include=optional --force
 
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
+
+# Copy node_modules first
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# Re-install lightningcss to get the correct platform binary
+RUN npm install lightningcss --force
 
 # Build arguments for environment variables
 ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
