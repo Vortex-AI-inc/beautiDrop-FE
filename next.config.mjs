@@ -6,7 +6,10 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  output: 'standalone',
-}
+  output: "standalone",
+  experimental: {
+    turbo: false,
+  },
+};
 
-export default nextConfig
+export default nextConfig;
