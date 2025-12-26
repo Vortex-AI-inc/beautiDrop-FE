@@ -13,6 +13,9 @@ export async function fetchMyBookings(token: string): Promise<CustomerBooking[]>
         })
 
         if (!response.ok) {
+            if (response.status === 404) {
+                return []
+            }
             throw new Error(`Failed to fetch bookings: ${response.statusText}`)
         }
 
@@ -43,6 +46,9 @@ export async function fetchAllBookings(token: string): Promise<CustomerBooking[]
         })
 
         if (!response.ok) {
+            if (response.status === 404) {
+                return []
+            }
             throw new Error(`Failed to fetch bookings: ${response.statusText}`)
         }
 
@@ -76,6 +82,9 @@ export async function fetchShopBookings(
         })
 
         if (!response.ok) {
+            if (response.status === 404) {
+                return []
+            }
             throw new Error(`Failed to fetch shop bookings: ${response.statusText}`)
         }
 

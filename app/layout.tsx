@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { ClerkProvider } from '@clerk/nextjs'
 import RoleSync from '@/components/RoleSync'
 import FCMHandler from '@/components/FCMHandler'
+import Chatbot from '@/components/Chatbot'
 import { Toaster } from '@/components/ui/toaster'
 
 import { Analytics } from "@vercel/analytics/next"
@@ -59,6 +60,7 @@ export default function RootLayout({
           <RoleSync />
           <FCMHandler />
           {children}
+          <Chatbot />
           <Toaster />
           <Analytics />
         </body>

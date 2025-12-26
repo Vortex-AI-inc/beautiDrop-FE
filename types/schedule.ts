@@ -51,3 +51,11 @@ export interface TimeSlot {
     staff_member_name?: string
     staff_name?: string
 }
+
+export interface Holiday {
+    date: string
+    name: string
+    shop: string
+    created_at: string
+    updated_at: string
+}

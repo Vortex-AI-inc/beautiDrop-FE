@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react"
 import { fetchPublicShop } from "@/lib/api/shop"
 import { fetchPublicServices } from "@/lib/api/services"
-import { fetchPublicShopSchedules, fetchPublicHolidays, Holiday } from "@/lib/api/schedules"
+import { fetchPublicShopSchedules, fetchPublicHolidays } from "@/lib/api/schedules"
 import type { Shop } from "@/types/shop"
 import type { Service } from "@/types/service"
-import type { Schedule } from "@/types/schedule"
+import type { Schedule, Holiday } from "@/types/schedule"
 import { format, addDays, getDay, parseISO, startOfToday, nextDay, isSameDay } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { MapPin, Star, Clock, Phone, Mail, Globe, Loader2, Calendar, ArrowLeft, Check, Sparkles, Users } from "lucide-react"
@@ -15,7 +15,7 @@ import BookingModal from "@/components/BookingModal"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import Image from "next/image"
-import Chatbot from "@/components/Chatbot"
+import { useShopStore } from "@/lib/store/shop-store"
 
 export default function SalonDetailPage() {
     const params = useParams()
@@ -28,6 +28,7 @@ export default function SalonDetailPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
     const [selectedService, setSelectedService] = useState<Service | null>(null)
+    const { setSelectedShop, setShopData } = useShopStore()
 
     useEffect(() => {
         if (shopId) {
@@ -50,6 +51,8 @@ export default function SalonDetailPage() {
                 setServices(servicesData)
                 setSchedules(schedulesData)
                 setHolidays(holidaysData)
+                setSelectedShop(shopData)
+                setShopData(servicesData, schedulesData, holidaysData)
             }
         } catch (error) {
 
@@ -497,14 +500,7 @@ export default function SalonDetailPage() {
                 service={selectedService}
                 shopId={shopId}
             />
-            <Chatbot
-                shopName={shop.name}
-                phone={shop.phone}
-                services={services}
-                schedules={schedules}
-                address={shop.address}
-                email={shop.email}
-            />
+
         </main>
     )
 }

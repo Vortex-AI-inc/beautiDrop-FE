@@ -261,6 +261,9 @@ export async function fetchMyServices(
         })
 
         if (!response.ok) {
+            if (response.status === 404) {
+                return []
+            }
             throw new Error(`Failed to fetch my services: ${response.statusText}`)
         }
 
@@ -304,6 +307,9 @@ export async function fetchMyBookings(
         })
 
         if (!response.ok) {
+            if (response.status === 404) {
+                return []
+            }
             throw new Error(`Failed to fetch my bookings: ${response.statusText}`)
         }
 

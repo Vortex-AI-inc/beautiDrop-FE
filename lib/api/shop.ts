@@ -119,6 +119,9 @@ export async function fetchMyShops(token: string): Promise<Shop[]> {
         })
 
         if (!response.ok) {
+            if (response.status === 404) {
+                return []
+            }
             throw new Error(`Failed to fetch shops: ${response.statusText}`)
         }
 

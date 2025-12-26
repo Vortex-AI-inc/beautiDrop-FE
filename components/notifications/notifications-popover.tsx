@@ -195,6 +195,9 @@ export function NotificationsPopover() {
                 if (open) {
                     loadNotifications()
                     setUserInteracted(true)
+                    if (unreadCount > 0) {
+                        handleMarkAllRead()
+                    }
                 }
             }}>
                 <TooltipProvider>

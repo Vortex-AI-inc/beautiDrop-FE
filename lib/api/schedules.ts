@@ -1,4 +1,4 @@
-import type { Schedule, CreateScheduleData, UpdateScheduleData, TimeSlotGenerateData, TimeSlot } from '@/types/schedule'
+import type { Schedule, CreateScheduleData, UpdateScheduleData, TimeSlotGenerateData, TimeSlot, Holiday } from '@/types/schedule'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || ''
 
@@ -385,13 +385,7 @@ export async function bulkCreateSchedules(
     }
 }
 
-export interface Holiday {
-    date: string
-    name: string
-    shop: string
-    created_at: string
-    updated_at: string
-}
+
 
 export interface HolidayCreateData {
     shop_id: string

@@ -1,18 +1,26 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
+import { useAuth } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { MessageCircle, X, Send, Bot, Sparkles, Clock, Scissors, Calendar } from "lucide-react"
+import { MessageCircle, X, Send, Bot, Sparkles, Clock, Scissors, Calendar, LogOut, MapPin } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import type { Service } from "@/types/service"
 import type { Schedule } from "@/types/schedule"
+import { useShopStore } from "@/lib/store/shop-store"
+
+import { useChatStore } from "@/lib/store/chat-store"
+import { endChatSession, sendMessageToAgent } from "@/lib/api/agent"
+import { useToast } from "@/hooks/use-toast"
 
 interface Message {
     id: string
     role: 'user' | 'assistant'
     content: string
     timestamp: Date
+    actions?: any[]
 }
 
 interface ChatbotProps {
@@ -25,116 +33,241 @@ interface ChatbotProps {
 }
 
 export default function Chatbot({ shopName = "Salon", phone, services = [], schedules = [], address, email }: ChatbotProps) {
-    const [isOpen, setIsOpen] = useState(false)
+    const { selectedShop, services: storeServices, schedules: storeSchedules } = useShopStore()
+
+    // Use props if provided, otherwise fallback to store
+    const effectiveShopName = shopName !== "Salon" ? shopName : (selectedShop?.name || "Salon")
+    const effectivePhone = phone || selectedShop?.phone
+    const effectiveServices = services.length > 0 ? services : storeServices
+    const effectiveSchedules = schedules.length > 0 ? schedules : storeSchedules
+    const effectiveAddress = address || selectedShop?.address
+    const effectiveEmail = email || selectedShop?.email
+
+    const { messages: storeMessages, isOpen, setIsOpen, addMessage, checkExpiry, clearSession, sessionId, setSessionId } = useChatStore()
+    const { getToken } = useAuth()
     const [messages, setMessages] = useState<Message[]>([])
     const [inputValue, setInputValue] = useState("")
     const [isTyping, setIsTyping] = useState(false)
     const scrollRef = useRef<HTMLDivElement>(null)
+    const viewportRef = useRef<HTMLDivElement>(null)
+    const { toast } = useToast()
+    const router = useRouter()
+
+    // Sync store messages to local state with Date conversion and check expiry
+    useEffect(() => {
+        checkExpiry()
+    }, [])
+
+    useEffect(() => {
+        const convertedMessages = storeMessages.map(msg => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp)
+        }))
+        setMessages(convertedMessages)
+    }, [storeMessages])
 
     useEffect(() => {
         if (messages.length === 0 && isOpen) {
-            setMessages([
-                {
-                    id: '1',
-                    role: 'assistant',
-                    content: `Hi there! 👋 Welcome to ${shopName}. How can I make your day beautiful? ✨`,
-                    timestamp: new Date()
-                }
-            ])
+            const welcomeMsg = {
+                id: '1',
+                role: 'assistant' as const,
+                content: `Hi there! 👋 Welcome to BeautyDrop AI. How can I make your day beautiful? ✨`,
+                timestamp: new Date().toISOString()
+            }
+            addMessage(welcomeMsg)
         }
-    }, [shopName, isOpen, messages.length])
+    }, [isOpen, messages.length])
 
     useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollIntoView({ behavior: "smooth" })
-        }
+        const timer = setTimeout(() => {
+            if (scrollRef.current) {
+                scrollRef.current.scrollIntoView({ behavior: "smooth", block: "end" })
+            }
+        }, 150)
+        return () => clearTimeout(timer)
     }, [messages, isOpen, isTyping])
 
-    const handleSend = (text: string = inputValue) => {
+    const handleEndSession = async () => {
+        try {
+            if (sessionId) {
+                await endChatSession(sessionId)
+            }
+        } catch (error) {
+            // Silently fail or log if needed, but still clear local session
+        } finally {
+            clearSession()
+            toast({
+                title: "Session Ended",
+                description: "Your chat session has been closed.",
+            })
+        }
+    }
+
+    const handleSend = async (text: string = inputValue) => {
         if (!text.trim()) return
 
-        const userMsg: Message = {
+        const userMsg = {
             id: Date.now().toString(),
-            role: 'user',
+            role: 'user' as const,
             content: text,
-            timestamp: new Date()
+            timestamp: new Date().toISOString()
         }
 
-        setMessages(prev => [...prev, userMsg])
+        addMessage(userMsg)
         setInputValue("")
         setIsTyping(true)
 
-        setTimeout(() => {
-            let responseContent = ""
-            const lowerInput = text.toLowerCase()
+        try {
+            const token = await getToken()
+            const result = await sendMessageToAgent(text, sessionId, token)
 
-            if (lowerInput.includes('time') || lowerInput.includes('timing') || lowerInput.includes('open') || lowerInput.includes('hour') || lowerInput.includes('when')) {
-                if (schedules.length > 0) {
-                    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
-                    const todaySchedule = schedules.find(s => s.day_of_week.toLowerCase() === today.toLowerCase());
-
-                    const daysOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-                    const sortedSchedules = [...schedules].sort((a, b) => daysOrder.indexOf(a.day_of_week) - daysOrder.indexOf(b.day_of_week));
-
-                    const hours = sortedSchedules
-                        .filter(s => s.is_active)
-                        .map(s => `• ${s.day_of_week}: ${s.start_time.slice(0, 5)} - ${s.end_time.slice(0, 5)}`)
-                        .join('\n');
-
-                    if (todaySchedule?.is_active) {
-                        responseContent = `We are open today (${today}) from ${todaySchedule.start_time.slice(0, 5)} to ${todaySchedule.end_time.slice(0, 5)}.\n\nHere are our weekly hours:\n${hours}`;
-                    } else {
-                        responseContent = `We are closed today (${today}).\n\nHere are our weekly hours:\n${hours}`;
-                    }
-                } else {
-                    responseContent = `We are usually open Monday to Saturday from 9:00 AM to 8:00 PM. Please check the "Business Hours" section on this page for exact details!`;
-                }
-            }
-            else if (lowerInput.includes('service') || lowerInput.includes('price') || lowerInput.includes('cost') || lowerInput.includes('menu')) {
-                if (services.length > 0) {
-                    const topServices = services.slice(0, 3).map(s => `• ${s.name} ($${parseFloat(s.price).toFixed(0)})`).join('\n');
-                    responseContent = `Here are some of our popular services:\n\n${topServices}\n\n...and much more! You can view our full menu on the page.`;
-                } else {
-                    responseContent = `We offer a wide range of services! You can view our full service menu and prices on this page.`;
-                }
-            }
-            else if (lowerInput.includes('book') || lowerInput.includes('appointment') || lowerInput.includes('schedule')) {
-                responseContent = `I'd love to help you with that! 😍 You can book an appointment directly by clicking the "Book Now" button next to any service in our list above.`;
-            }
-            else if (lowerInput.includes('contact') || lowerInput.includes('call') || lowerInput.includes('phone') || lowerInput.includes('location') || lowerInput.includes('address') || lowerInput.includes('email')) {
-                const contactParts = [];
-                if (address) contactParts.push(`📍 ${address}`);
-                if (phone) contactParts.push(`📞 ${phone}`);
-                if (email) contactParts.push(`✉️ ${email}`);
-
-                if (contactParts.length > 0) {
-                    responseContent = `Here is our contact information:\n\n${contactParts.join('\n')}\n\nYou can also find us on the map in the "Get in Touch" section!`;
-                } else {
-                    responseContent = `You can find our contact details below in the "Get in Touch" section. 📍`;
-                }
-            }
-            else if (lowerInput.includes('hello') || lowerInput.includes('hi') || lowerInput.includes('hey')) {
-                responseContent = `Hello! 👋 How can I assist you today? Feel free to ask about our services or timings!`;
-            }
-            else {
-                responseContent = `I'm just a demo assistant, but I think you're asking something interesting! 😊 For now, I can help you with timings, services, or booking info.`;
+            if (result.session_id && result.session_id !== sessionId) {
+                setSessionId(result.session_id)
             }
 
-            const botMsg: Message = {
+            const botMsg = {
+                id: result.message_id || (Date.now() + 1).toString(),
+                role: 'assistant' as const,
+                content: result.response,
+                timestamp: new Date().toISOString(),
+                actions: result.actions_taken
+            }
+            addMessage(botMsg)
+        } catch (error) {
+            const errorMsg = {
                 id: (Date.now() + 1).toString(),
-                role: 'assistant',
-                content: responseContent,
-                timestamp: new Date()
+                role: 'assistant' as const,
+                content: "I'm sorry, I encountered an error. Please try again later.",
+                timestamp: new Date().toISOString()
             }
-            setMessages(prev => [...prev, botMsg])
+            addMessage(errorMsg)
+        } finally {
             setIsTyping(false)
-        }, 1500)
+        }
     }
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
             handleSend()
         }
+    }
+
+    const renderActions = (msg: Message) => {
+        if (!msg.actions) return null
+
+        return (
+            <div className="mt-4 space-y-4">
+                {msg.actions.map((action, idx) => {
+                    if (action.action_type === 'get_services' && action.details?.services) {
+                        return (
+                            <div key={idx} className="space-y-3">
+                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Available Services</h4>
+                                <div className="grid grid-cols-1 gap-3">
+                                    {action.details.services.map((s: any, i: number) => (
+                                        <div key={i} className="bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-100/50 p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow group relative overflow-hidden">
+                                            <div className="absolute top-0 right-0 w-16 h-16 bg-blue-400/10 rounded-full -mr-8 -mt-8 blur-xl"></div>
+                                            <div className="flex justify-between items-start relative z-10">
+                                                <div>
+                                                    <h5 className="font-bold text-blue-900 text-base">{s.name}</h5>
+                                                    <div className="flex items-center gap-2 mt-1 text-blue-700/70 text-xs font-medium">
+                                                        <Clock className="w-3 h-3" />
+                                                        <span>{s.duration_minutes || s.duration} mins</span>
+                                                    </div>
+                                                </div>
+                                                <div className="bg-white/80 px-3 py-1 rounded-full text-blue-600 font-bold text-sm shadow-sm border border-blue-100">
+                                                    ${parseFloat(s.price).toFixed(0)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )
+                    }
+
+                    if (action.action_type === 'get_business_hours' && action.details?.schedules) {
+                        return (
+                            <div key={idx} className="space-y-3">
+                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Business Hours</h4>
+                                <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100/50 p-4 rounded-2xl shadow-sm">
+                                    <div className="space-y-2">
+                                        {action.details.schedules.map((s: any, i: number) => (
+                                            <div key={i} className="flex justify-between items-center text-sm">
+                                                <span className="font-semibold text-amber-900">{s.day_of_week}</span>
+                                                <span className="text-amber-800/80 font-medium">
+                                                    {s.is_active ? `${s.start_time.slice(0, 5)} - ${s.end_time.slice(0, 5)}` : 'Closed'}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    }
+
+                    if (action.action_type === 'search_shops' && action.details?.shops) {
+                        return (
+                            <div key={idx} className="space-y-3">
+                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Found Salons</h4>
+                                <div className="space-y-3">
+                                    {action.details.shops.map((shop: any, i: number) => (
+                                        <div
+                                            key={i}
+                                            onClick={() => {
+                                                if (shop.id) {
+                                                    setIsOpen(false)
+                                                    router.push(`/browse-salons/${shop.id}`)
+                                                }
+                                            }}
+                                            className="bg-white border border-purple-100 p-4 rounded-2xl shadow-sm hover:border-purple-300 transition-colors group cursor-pointer active:scale-95"
+                                        >
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex-1">
+                                                    <h5 className="font-bold text-gray-900 group-hover:text-purple-600 transition-colors">{shop.name}</h5>
+                                                    <div className="flex items-center gap-2 mt-1 text-gray-500 text-xs leading-tight">
+                                                        <MapPin className="w-3 h-3 text-purple-400" />
+                                                        <span>{shop.address}, {shop.city}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="bg-purple-50 text-purple-600 p-2 rounded-xl group-hover:bg-purple-600 group-hover:text-white transition-all">
+                                                    <Scissors className="w-4 h-4" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )
+                    }
+
+                    return null
+                })}
+            </div>
+        )
+    }
+
+    // Helper to clean markdown from text when cards are already rendered
+    // If the text contains structured data patterns, we might want to hide them if cards are present
+    const cleanContent = (content: string, actions?: any[]) => {
+        if (!actions || actions.length === 0) return content
+
+        const hasServices = actions.some(a => a.action_type === 'get_services')
+        const hasHours = actions.some(a => a.action_type === 'get_business_hours')
+        const hasShops = actions.some(a => a.action_type === 'search_shops')
+
+        let cleaned = content
+        if (hasServices) {
+            cleaned = cleaned.split(/### Services|Services:|# Services/i)[0]
+        }
+        if (hasHours) {
+            cleaned = cleaned.split(/### Business Hours|Business Hours:|# Business Hours|### Hours/i)[0]
+        }
+        if (hasShops) {
+            // Split at the first double asterisk (often used for shop names) or common shop headers
+            cleaned = cleaned.split(/\*\*|### Found Salons|Found Salons:|I found a salon/i)[0]
+        }
+
+        return cleaned.trim()
     }
 
     const quickActions = [
@@ -176,16 +309,30 @@ export default function Chatbot({ shopName = "Salon", phone, services = [], sche
                                 <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-indigo-600 rounded-full animate-pulse"></span>
                             </div>
                             <div>
-                                <h3 className="font-bold text-white text-xl tracking-tight">{shopName}</h3>
+                                <h3 className="font-bold text-white text-xl tracking-tight">BeautyDrop AI</h3>
                                 <p className="text-blue-100 text-xs font-medium bg-white/10 px-2 py-0.5 rounded-full inline-block backdrop-blur-sm border border-white/10">
                                     AI Assistant
                                 </p>
                             </div>
                         </div>
+
+                        {messages.length > 0 && (
+                            <Button
+                                onClick={handleEndSession}
+                                variant="ghost"
+                                size="sm"
+                                className="absolute top-6 right-6 text-white/70 hover:text-white hover:bg-white/10 rounded-full h-8 px-2 md:px-3 text-xs gap-1.5"
+                            >
+                                <LogOut className="w-3.5 h-3.5" />
+                                <span className="hidden md:inline">End Session</span>
+                            </Button>
+                        )}
                     </div>
 
-                    <div className="flex-1 bg-gray-50/80 -mt-6 rounded-t-[2rem] overflow-hidden flex flex-col relative z-10 backdrop-blur-sm">
-                        <ScrollArea className="flex-1 p-4 pt-8">
+                    <div className="flex-1 min-h-0 bg-gray-50/80 -mt-6 rounded-t-[2rem] overflow-hidden flex flex-col relative z-20 backdrop-blur-sm">
+                        <div
+                            className="flex-1 overflow-y-auto p-4 pt-8 overscroll-contain scroll-smooth scrollbar-thin scrollbar-thumb-gray-200/50 scrollbar-track-transparent"
+                        >
                             <div className="flex justify-center mb-6">
                                 <span className="text-[10px] uppercase tracking-wider font-semibold text-gray-400 bg-gray-200/50 px-3 py-1 rounded-full">
                                     {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
@@ -204,13 +351,16 @@ export default function Chatbot({ shopName = "Salon", phone, services = [], sche
                                             </div>
                                         )}
                                         <div
-                                            className={`max-w-[80%] p-4 shadow-sm relative group ${msg.role === 'user'
+                                            className={`max-w-[85%] p-4 shadow-sm relative group ${msg.role === 'user'
                                                 ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-2xl rounded-tr-none'
                                                 : 'bg-white text-gray-800 border border-gray-100/50 rounded-2xl rounded-tl-none'
                                                 }`}
                                         >
-                                            <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                                            <span className={`text-[10px] absolute bottom-1 right-3 opacity-0 group-hover:opacity-60 transition-opacity ${msg.role === 'user' ? 'text-white' : 'text-gray-400'
+                                            <p className="text-sm leading-relaxed whitespace-pre-wrap">{cleanContent(msg.content, msg.actions)}</p>
+
+                                            {msg.role === 'assistant' && renderActions(msg)}
+
+                                            <span className={`text-[10px] mt-2 block opacity-40 transition-opacity ${msg.role === 'user' ? 'text-white' : 'text-gray-400'
                                                 }`}>
                                                 {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </span>
@@ -232,7 +382,7 @@ export default function Chatbot({ shopName = "Salon", phone, services = [], sche
                                 )}
                             </div>
                             <div ref={scrollRef} className="h-2" />
-                        </ScrollArea>
+                        </div>
                     </div>
 
                     {/* Quick Actions & Input */}
