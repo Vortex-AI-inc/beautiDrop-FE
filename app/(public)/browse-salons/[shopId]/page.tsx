@@ -16,6 +16,7 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import Image from "next/image"
 import { useShopStore } from "@/lib/store/shop-store"
+import { VoiceCallModal } from "@/components/portal/voice-call-modal"
 
 export default function SalonDetailPage() {
     const params = useParams()
@@ -27,6 +28,7 @@ export default function SalonDetailPage() {
     const [holidays, setHolidays] = useState<Holiday[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
+    const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false)
     const [selectedService, setSelectedService] = useState<Service | null>(null)
     const { setSelectedShop, setShopData } = useShopStore()
 
@@ -165,6 +167,13 @@ export default function SalonDetailPage() {
                                     <span className="font-medium">Visit Website</span>
                                 </a>
                             )}
+                            <button
+                                onClick={() => setIsVoiceCallOpen(true)}
+                                className="flex items-center gap-2 bg-blue-600/90 backdrop-blur-md px-5 py-3 rounded-full text-white border border-blue-400/30 shadow-lg hover:bg-blue-600 transition-all font-bold animate-pulse"
+                            >
+                                <Phone className="w-5 h-5" />
+                                <span>Speak with AI</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -500,6 +509,30 @@ export default function SalonDetailPage() {
                 service={selectedService}
                 shopId={shopId}
             />
+
+            <VoiceCallModal
+                isOpen={isVoiceCallOpen}
+                onClose={() => setIsVoiceCallOpen(false)}
+                shopName={shop.name}
+            />
+
+            {/* Floating AI Agent Button */}
+            <button
+                onClick={() => setIsVoiceCallOpen(true)}
+                className="fixed bottom-24 right-6 z-40 bg-gradient-to-br from-blue-600 to-purple-600 p-4 rounded-full shadow-2xl hover:scale-110 transition-all group border-2 border-white/20"
+                title="Speakกับ AI Agent"
+            >
+                <div className="relative">
+                    <Phone className="w-7 h-7 text-white" />
+                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                    </span>
+                </div>
+                <div className="absolute right-full mr-4 top-1/2 -translate-y-1/2 bg-white px-4 py-2 rounded-xl border border-gray-100 shadow-xl opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100 transition-all pointer-events-none whitespace-nowrap">
+                    <p className="text-gray-900 font-bold text-sm">Have Questions? Call AI Agent!</p>
+                </div>
+            </button>
 
         </main>
     )
