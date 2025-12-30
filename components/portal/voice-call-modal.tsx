@@ -17,6 +17,7 @@ interface VoiceCallModalProps {
     isOpen: boolean
     onClose: () => void
     shopName: string
+    shopId?: string
 }
 
 interface Message {
@@ -24,7 +25,7 @@ interface Message {
     text: string
 }
 
-export function VoiceCallModal({ isOpen, onClose, shopName }: VoiceCallModalProps) {
+export function VoiceCallModal({ isOpen, onClose, shopName, shopId }: VoiceCallModalProps) {
     const [messages, setMessages] = useState<Message[]>([])
     const [status, setStatus] = useState("Initializing...")
     const transcriptRef = useRef<HTMLDivElement>(null)
@@ -38,6 +39,7 @@ export function VoiceCallModal({ isOpen, onClose, shopName }: VoiceCallModalProp
         startRecording,
         stopRecording,
     } = useVoiceAgent({
+        shopId,
         onTranscript: (role, text) => {
             setMessages((prev) => [...prev, { role, text }])
         },

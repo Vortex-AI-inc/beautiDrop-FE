@@ -246,10 +246,10 @@ export default function Chatbot({ shopName = "Salon", phone, services = [], sche
         )
     }
 
-    // Helper to clean markdown from text when cards are already rendered
-    // If the text contains structured data patterns, we might want to hide them if cards are present
     const cleanContent = (content: string, actions?: any[]) => {
-        if (!actions || actions.length === 0) return content
+        if (!actions || actions.length === 0) {
+            return stripMarkdown(content)
+        }
 
         const hasServices = actions.some(a => a.action_type === 'get_services')
         const hasHours = actions.some(a => a.action_type === 'get_business_hours')
@@ -263,11 +263,22 @@ export default function Chatbot({ shopName = "Salon", phone, services = [], sche
             cleaned = cleaned.split(/### Business Hours|Business Hours:|# Business Hours|### Hours/i)[0]
         }
         if (hasShops) {
-            // Split at the first double asterisk (often used for shop names) or common shop headers
             cleaned = cleaned.split(/\*\*|### Found Salons|Found Salons:|I found a salon/i)[0]
         }
 
-        return cleaned.trim()
+        return stripMarkdown(cleaned.trim())
+    }
+
+    const stripMarkdown = (text: string) => {
+        return text
+            .replace(/\*\*(.+?)\*\*/g, '$1')
+            .replace(/\*(.+?)\*/g, '$1')
+            .replace(/\_\_(.+?)\_\_/g, '$1')
+            .replace(/\_(.+?)\_/g, '$1')
+            .replace(/\~\~(.+?)\~\~/g, '$1')
+            .replace(/\`(.+?)\`/g, '$1')
+            .replace(/^#+\s+/gm, '')
+            .replace(/\[(.+?)\]\(.+?\)/g, '$1')
     }
 
     const quickActions = [

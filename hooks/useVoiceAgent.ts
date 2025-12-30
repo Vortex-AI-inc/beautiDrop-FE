@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 
 interface VoiceAgentOptions {
+    shopId?: string;
     wsUrl?: string;
     onTranscript?: (role: "user" | "assistant", text: string) => void;
     onStatusChange?: (status: string) => void;
@@ -13,6 +14,11 @@ export function useVoiceAgent(options: VoiceAgentOptions = {}) {
         const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
         const wsProtocol = baseUrl.startsWith('https') ? 'wss' : 'ws';
         const cleanBaseUrl = baseUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+        
+        if (options.shopId) {
+            return `${wsProtocol}://${cleanBaseUrl}/ws/voice/shop/${options.shopId}/`;
+        }
+        
         return `${wsProtocol}://${cleanBaseUrl}/ws/voice/`;
     };
 

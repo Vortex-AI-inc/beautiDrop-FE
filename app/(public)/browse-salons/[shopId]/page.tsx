@@ -514,25 +514,10 @@ export default function SalonDetailPage() {
                 isOpen={isVoiceCallOpen}
                 onClose={() => setIsVoiceCallOpen(false)}
                 shopName={shop.name}
+                shopId={shopId}
             />
 
-            {/* Floating AI Agent Button */}
-            <button
-                onClick={() => setIsVoiceCallOpen(true)}
-                className="fixed bottom-24 right-6 z-40 bg-gradient-to-br from-blue-600 to-purple-600 p-4 rounded-full shadow-2xl hover:scale-110 transition-all group border-2 border-white/20"
-                title="Speakกับ AI Agent"
-            >
-                <div className="relative">
-                    <Phone className="w-7 h-7 text-white" />
-                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
-                    </span>
-                </div>
-                <div className="absolute right-full mr-4 top-1/2 -translate-y-1/2 bg-white px-4 py-2 rounded-xl border border-gray-100 shadow-xl opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100 transition-all pointer-events-none whitespace-nowrap">
-                    <p className="text-gray-900 font-bold text-sm">Have Questions? Call AI Agent!</p>
-                </div>
-            </button>
+
 
         </main>
     )

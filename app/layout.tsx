@@ -4,6 +4,7 @@ import { ClerkProvider } from '@clerk/nextjs'
 import RoleSync from '@/components/RoleSync'
 import FCMHandler from '@/components/FCMHandler'
 import Chatbot from '@/components/Chatbot'
+import { GlobalVoiceAgent } from '@/components/GlobalVoiceAgent'
 import { Toaster } from '@/components/ui/toaster'
 
 import { Analytics } from "@vercel/analytics/next"
@@ -61,6 +62,7 @@ export default function RootLayout({
           <FCMHandler />
           {children}
           <Chatbot />
+          <GlobalVoiceAgent />
           <Toaster />
           <Analytics />
         </body>
