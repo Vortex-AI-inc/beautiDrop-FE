@@ -16,7 +16,7 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import Image from "next/image"
 import { useShopStore } from "@/lib/store/shop-store"
-import { VoiceCallModal } from "@/components/portal/voice-call-modal"
+import { useVoiceStore } from "@/lib/store/voice-store"
 
 export default function SalonDetailPage() {
     const params = useParams()
@@ -28,9 +28,9 @@ export default function SalonDetailPage() {
     const [holidays, setHolidays] = useState<Holiday[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
-    const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false)
     const [selectedService, setSelectedService] = useState<Service | null>(null)
     const { setSelectedShop, setShopData } = useShopStore()
+    const { openWithShop } = useVoiceStore()
 
     useEffect(() => {
         if (shopId) {
@@ -168,7 +168,7 @@ export default function SalonDetailPage() {
                                 </a>
                             )}
                             <button
-                                onClick={() => setIsVoiceCallOpen(true)}
+                                onClick={() => openWithShop(shop.id, shop.name)}
                                 className="flex items-center gap-2 bg-blue-600/90 backdrop-blur-md px-5 py-3 rounded-full text-white border border-blue-400/30 shadow-lg hover:bg-blue-600 transition-all font-bold animate-pulse"
                             >
                                 <Phone className="w-5 h-5" />
@@ -509,16 +509,6 @@ export default function SalonDetailPage() {
                 service={selectedService}
                 shopId={shopId}
             />
-
-            <VoiceCallModal
-                isOpen={isVoiceCallOpen}
-                onClose={() => setIsVoiceCallOpen(false)}
-                shopName={shop.name}
-                shopId={shopId}
-            />
-
-
-
         </main>
     )
 }

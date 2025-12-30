@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   title: "BeautyDrop AI - AI for Beauty Salons",
   description: "Transform your salon with AI-powered voice agents, appointment booking, and customer engagement.",
   generator: "v0.app",
-  metadataBase: new URL("https://beautydrop-ai.com"),
+  metadataBase: new URL("https://beautydrop.ai/"),
   icons: {
     icon: "/icon.svg",
     apple: "/apple-icon.png",

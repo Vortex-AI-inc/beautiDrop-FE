@@ -65,11 +65,7 @@ export default function SchedulingPage() {
             setBookings(bookingsData)
 
         } catch (error) {
-            toast({
-                title: "Error",
-                description: "Failed to load bookings. Please try again.",
-                variant: "destructive"
-            })
+            console.error("Failed to load bookings:", error)
         } finally {
             setIsLoadingBookings(false)
         }
@@ -85,11 +81,7 @@ export default function SchedulingPage() {
             setStats(statsData)
 
         } catch (error) {
-            toast({
-                title: "Error",
-                description: "Failed to load stats. Please try again.",
-                variant: "destructive"
-            })
+            console.error("Failed to load stats:", error)
         } finally {
             setIsLoadingStats(false)
         }

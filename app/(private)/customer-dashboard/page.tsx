@@ -60,13 +60,11 @@ export default function CustomerDashboardPage() {
             if (!token) return
 
             const data = await fetchMyBookings(token)
-            setBookings(data)
+            setBookings(data || [])
         } catch (error) {
-            toast({
-                title: "Error",
-                description: "Failed to load your bookings. Please try again.",
-                variant: "destructive"
-            })
+            // Silently fail or log to console as requested to avoid showing error toasts
+            // when no bookings are found or other intermittent fetch issues occur
+            console.error("Failed to load bookings:", error)
         } finally {
             setIsLoading(false)
         }

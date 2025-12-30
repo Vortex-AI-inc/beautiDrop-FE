@@ -53,11 +53,7 @@ export default function StaffPortalPage() {
             setServices(servicesList)
             setBookings(bookingsList)
         } catch (error) {
-            toast({
-                title: "Error",
-                description: "Failed to load dashboard data.",
-                variant: "destructive"
-            })
+            console.error("Failed to load dashboard data:", error)
         } finally {
             setIsLoading(false)
         }

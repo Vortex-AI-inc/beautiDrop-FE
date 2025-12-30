@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Phone, PhoneOff, Mic, MicOff, Volume2, User, Bot, Loader2, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useVoiceAgent } from "@/hooks/useVoiceAgent"
+import { useAuth } from "@clerk/nextjs"
 import { cn } from "@/lib/utils"
 import {
     Dialog,
@@ -28,7 +29,29 @@ interface Message {
 export function VoiceCallModal({ isOpen, onClose, shopName, shopId }: VoiceCallModalProps) {
     const [messages, setMessages] = useState<Message[]>([])
     const [status, setStatus] = useState("Initializing...")
+    const [token, setToken] = useState<string | undefined>()
+    const { getToken } = useAuth()
     const transcriptRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        const fetchToken = async () => {
+            try {
+                const t = await getToken()
+                setToken(t || undefined)
+            } catch (error) {
+                console.error("Error fetching token:", error)
+            }
+        }
+        fetchToken()
+    }, [getToken])
+
+    const handleTranscript = useCallback((role: "user" | "assistant", text: string) => {
+        setMessages((prev) => [...prev, { role, text }])
+    }, [])
+
+    const handleError = useCallback((error: string) => {
+        setStatus(`Error: ${error}`)
+    }, [])
 
     const {
         isConnected,
@@ -40,13 +63,10 @@ export function VoiceCallModal({ isOpen, onClose, shopName, shopId }: VoiceCallM
         stopRecording,
     } = useVoiceAgent({
         shopId,
-        onTranscript: (role, text) => {
-            setMessages((prev) => [...prev, { role, text }])
-        },
+        token,
+        onTranscript: handleTranscript,
         onStatusChange: setStatus,
-        onError: (error) => {
-            setStatus(`Error: ${error}`)
-        },
+        onError: handleError,
     })
 
     useEffect(() => {
@@ -58,7 +78,7 @@ export function VoiceCallModal({ isOpen, onClose, shopName, shopId }: VoiceCallM
         return () => {
             disconnect()
         }
-    }, [isOpen])
+    }, [isOpen, connect, disconnect])
 
     useEffect(() => {
         if (isConnected && isOpen && !isRecording) {
