@@ -35,7 +35,6 @@ interface ChatbotProps {
 export default function Chatbot({ shopName = "Salon", phone, services = [], schedules = [], address, email }: ChatbotProps) {
     const { selectedShop, services: storeServices, schedules: storeSchedules } = useShopStore()
 
-    // Use props if provided, otherwise fallback to store
     const effectiveShopName = shopName !== "Salon" ? shopName : (selectedShop?.name || "Salon")
     const effectivePhone = phone || selectedShop?.phone
     const effectiveServices = services.length > 0 ? services : storeServices
@@ -53,7 +52,6 @@ export default function Chatbot({ shopName = "Salon", phone, services = [], sche
     const { toast } = useToast()
     const router = useRouter()
 
-    // Sync store messages to local state with Date conversion and check expiry
     useEffect(() => {
         checkExpiry()
     }, [])
@@ -93,7 +91,6 @@ export default function Chatbot({ shopName = "Salon", phone, services = [], sche
                 await endChatSession(sessionId)
             }
         } catch (error) {
-            // Silently fail or log if needed, but still clear local session
         } finally {
             clearSession()
             toast({

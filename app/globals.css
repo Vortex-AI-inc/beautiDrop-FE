@@ -138,6 +138,11 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-gray-400 opacity-100;
+  }
 }
 
 .darkveil-canvas {

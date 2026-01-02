@@ -22,15 +22,29 @@ import {
     ExternalLink,
     Plus,
     Store,
-    ArrowRight
+    ArrowRight,
+    Trash2,
+    Globe
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/hooks/use-toast"
 import { useRoleProtection } from "@/hooks/useRoleProtection"
-import { fetchMyShops, fetchShopDashboard, toggleShopActive } from "@/lib/api/shop"
+import { fetchMyShops, fetchShopDashboard, toggleShopActive, deleteShop } from "@/lib/api/shop"
+import { listScrapeJobs, getScrapeJob, deleteScrapeJob, confirmScrapeJob, type ScrapeJob } from "@/lib/api/scraper"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import type { ShopDashboardData, Shop } from "@/types/shop"
 import { CreateAgentDialog } from "@/components/portal/create-agent-dialog"
+import { ScrapedDataReview } from "@/components/portal/scraped-data-review"
 
 import { useShopStore } from "@/lib/store/shop-store"
 
@@ -47,6 +61,12 @@ export default function PortalPage() {
     const [shops, setShops] = useState<Shop[]>([])
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
     const [togglingShopId, setTogglingShopId] = useState<string | null>(null)
+    const [shopToDelete, setShopToDelete] = useState<string | null>(null)
+    const [recentScrapes, setRecentScrapes] = useState<ScrapeJob[]>([])
+    const [isLoadingScrapes, setIsLoadingScrapes] = useState(false)
+    const [selectedScrapeJob, setSelectedScrapeJob] = useState<ScrapeJob | null>(null)
+    const [showReviewModal, setShowReviewModal] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const loadShops = async () => {
         try {
@@ -59,6 +79,21 @@ export default function PortalPage() {
         } catch (error) {
         } finally {
             setIsLoading(false)
+        }
+    }
+
+    const loadRecentScrapes = async () => {
+        try {
+            setIsLoadingScrapes(true)
+            const token = await getToken()
+            if (!token) return
+
+            const jobs = await listScrapeJobs(token)
+            const pendingJobs = jobs.filter(job => job.status !== 'confirmed')
+            setRecentScrapes(pendingJobs.slice(0, 10))
+        } catch (error) {
+        } finally {
+            setIsLoadingScrapes(false)
         }
     }
 
@@ -95,13 +130,148 @@ export default function PortalPage() {
         }
     }
 
+    const handleDeleteShop = async () => {
+        if (!shopToDelete) return
+
+        const shopToRemove = shops.find(s => s.id === shopToDelete)
+        if (!shopToRemove) return
+
+        setShops(prev => prev.filter(s => s.id !== shopToDelete))
+        setShopToDelete(null)
+
+        try {
+            const token = await getToken()
+            if (!token) {
+                setShops(prev => [...prev, shopToRemove])
+                toast({
+                    title: "Error",
+                    description: "Authentication required.",
+                    variant: "destructive"
+                })
+                return
+            }
+
+            await deleteShop(shopToDelete, token)
+            toast({
+                title: "Shop deleted",
+                description: "The shop has been permanently deleted.",
+            })
+        } catch (error) {
+            setShops(prev => [...prev, shopToRemove])
+            toast({
+                title: "Error",
+                description: "Failed to delete shop. It has been restored.",
+                variant: "destructive"
+            })
+        }
+    }
+
+    const handleDeleteScrape = async (scrapeId: string) => {
+        const scrapeToRemove = recentScrapes.find(s => s.id === scrapeId)
+        if (!scrapeToRemove) return
+
+        setRecentScrapes(prev => prev.filter(s => s.id !== scrapeId))
+
+        try {
+            const token = await getToken()
+            if (!token) {
+                setRecentScrapes(prev => [...prev, scrapeToRemove])
+                toast({
+                    title: "Error",
+                    description: "Authentication required.",
+                    variant: "destructive"
+                })
+                return
+            }
+
+            await deleteScrapeJob(scrapeId, token)
+            toast({
+                title: "Scrape deleted",
+                description: "The scrape job has been cancelled.",
+            })
+        } catch (error) {
+            setRecentScrapes(prev => [...prev, scrapeToRemove])
+            toast({
+                title: "Error",
+                description: "Failed to delete scrape. It has been restored.",
+                variant: "destructive"
+            })
+        }
+    }
+
+    const handleReviewScrape = async (scrapeId: string) => {
+        try {
+            const token = await getToken()
+            if (!token) {
+                toast({
+                    title: "Error",
+                    description: "Authentication required.",
+                    variant: "destructive"
+                })
+                return
+            }
+
+            const fullJob = await getScrapeJob(scrapeId, token)
+
+            if (!fullJob.extracted_data) {
+                toast({
+                    title: "No Data",
+                    description: "This scrape job has no extracted data.",
+                    variant: "destructive"
+                })
+                return
+            }
+
+
+            setSelectedScrapeJob(fullJob)
+            setShowReviewModal(true)
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to load scrape details.",
+                variant: "destructive"
+            })
+        }
+    }
+
+    const handleConfirmScrapeImport = async (overrides?: any) => {
+        if (!selectedScrapeJob?.id) return
+        setIsSubmitting(true)
+        try {
+            const token = await getToken()
+            if (!token) throw new Error("Not authenticated")
+
+            const newShop = await confirmScrapeJob(selectedScrapeJob.id, token, true, overrides) as unknown as Shop
+            toast({
+                title: "Success!",
+                description: "Shop created from website data.",
+            })
+            setShowReviewModal(false)
+            setSelectedScrapeJob(null)
+            loadShops()
+            loadRecentScrapes()
+        } catch (error) {
+            toast({
+                title: "Creation Failed",
+                description: "Could not create shop from extracted data.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
     useEffect(() => {
         if (isLoaded && !isSignedIn) {
             router.push('/login')
         } else if (isLoaded && isSignedIn) {
             loadShops()
+            loadRecentScrapes()
         }
     }, [isLoaded, isSignedIn, router])
+
+    useEffect(() => {
+    }, [showReviewModal, selectedScrapeJob])
 
     if (isCheckingRole || !isAuthorized) {
         return (
@@ -160,9 +330,22 @@ export default function PortalPage() {
                                         <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center group-hover:bg-blue-100 transition-colors">
                                             <Store className="w-6 h-6 text-blue-600" />
                                         </div>
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${shop.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
-                                            {shop.is_active ? 'Active' : 'Inactive'}
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${shop.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                                                {shop.is_active ? 'Active' : 'Inactive'}
+                                            </span>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-6 w-6 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    setShopToDelete(shop.id)
+                                                }}
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </div>
                                     </div>
                                     <h3 className="text-xl font-bold text-gray-900 mb-2">{shop.name}</h3>
                                     <p className="text-sm text-gray-500 mb-4 line-clamp-2">{shop.description}</p>
@@ -210,6 +393,75 @@ export default function PortalPage() {
                             </div>
                         </div>
                     </div>
+
+                    <div className="max-w-5xl mx-auto mt-8">
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-xl font-bold text-gray-900">Pending Scrapes</h2>
+                                <Button variant="outline" size="sm" onClick={() => setIsCreateDialogOpen(true)}>
+                                    <Wand2 className="w-4 h-4 mr-2" />
+                                    New Import
+                                </Button>
+                            </div>
+                            {isLoadingScrapes ? (
+                                <div className="text-center py-8">
+                                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-gray-400" />
+                                </div>
+                            ) : recentScrapes.length > 0 ? (
+                                <div className="space-y-3">
+                                    {recentScrapes.map((job) => (
+                                        <div key={job.id} className="bg-gray-50 border rounded-lg p-4 flex items-center justify-between hover:bg-gray-100 transition-colors">
+                                            <div className="flex-1 min-w-0 mr-4">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <Globe className="w-4 h-4 text-gray-400" />
+                                                    <p className="text-sm font-medium text-gray-900 truncate">{job.url}</p>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-xs text-gray-500">
+                                                    <span className={`capitalize px-2 py-1 rounded-sm font-medium ${job.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                                        job.status === 'failed' ? 'bg-red-100 text-red-700' :
+                                                            'bg-blue-100 text-blue-700'
+                                                        }`}>
+                                                        {job.status}
+                                                    </span>
+                                                    <span>{new Date(job.created_at).toLocaleDateString()}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                {job.status === 'completed' && (
+                                                    <Button
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            handleReviewScrape(job.id)
+                                                        }}
+                                                    >
+                                                        Review & Create
+                                                    </Button>
+                                                )}
+                                                <Button
+                                                    size="sm"
+                                                    variant="destructive"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        handleDeleteScrape(job.id)
+                                                    }}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 bg-gray-50 rounded-lg">
+                                    <Wand2 className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                                    <p className="text-sm text-gray-500">No recent scrapes found.</p>
+                                    <Button variant="link" onClick={() => setIsCreateDialogOpen(true)} className="mt-2">
+                                        Start importing from a website
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
                 <Footer />
                 <CreateAgentDialog
@@ -218,6 +470,31 @@ export default function PortalPage() {
                     onSuccess={() => {
                         loadShops()
                     }}
+                />
+
+                <AlertDialog open={!!shopToDelete} onOpenChange={(open) => !open && setShopToDelete(null)}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete your shop and all associated data including appointments and customers.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDeleteShop} className="bg-red-600 hover:bg-red-700">
+                                Delete Shop
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+
+                <ScrapedDataReview
+                    open={showReviewModal && !!selectedScrapeJob?.extracted_data}
+                    onOpenChange={setShowReviewModal}
+                    data={selectedScrapeJob?.extracted_data || {}}
+                    onConfirm={handleConfirmScrapeImport}
+                    isSubmitting={isSubmitting}
                 />
             </main>
         )
@@ -317,6 +594,31 @@ export default function PortalPage() {
                 onSuccess={() => {
                     loadShops()
                 }}
+            />
+
+            <AlertDialog open={!!shopToDelete} onOpenChange={(open) => !open && setShopToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete your shop and all associated data including appointments and customers.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteShop} className="bg-red-600 hover:bg-red-700">
+                            Delete Shop
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <ScrapedDataReview
+                open={showReviewModal && !!selectedScrapeJob?.extracted_data}
+                onOpenChange={setShowReviewModal}
+                data={selectedScrapeJob?.extracted_data || {}}
+                onConfirm={handleConfirmScrapeImport}
+                isSubmitting={isSubmitting}
             />
         </main>
     )

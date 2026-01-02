@@ -60,6 +60,8 @@ export default function ServicesManagementPage() {
     const { getToken } = useAuth()
     const [services, setServices] = useState<Service[]>([])
     const [isLoading, setIsLoading] = useState(true)
+    const [nextPage, setNextPage] = useState<string | null>(null)
+    const [isLoadingMore, setIsLoadingMore] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [editingService, setEditingService] = useState<Service | null>(null)
@@ -101,7 +103,9 @@ export default function ServicesManagementPage() {
             const token = await getToken()
             if (!token) return
             const data = await fetchServices(shopId, token)
-            const safeData = data.map((s: any) => ({
+            setNextPage(data.next)
+
+            const safeData = data.results.map((s: any) => ({
                 ...s,
                 id: s.id || s._id || s.service_id
             }))
@@ -114,6 +118,38 @@ export default function ServicesManagementPage() {
             })
         } finally {
             setIsLoading(false)
+        }
+    }
+
+    const loadMoreServices = async () => {
+        if (!nextPage || isLoadingMore) return
+
+        try {
+            setIsLoadingMore(true)
+            const token = await getToken()
+            if (!token) return
+
+            const url = new URL(nextPage)
+            const pageParam = url.searchParams.get('page')
+            const page = pageParam ? parseInt(pageParam) : 1
+
+            const data = await fetchServices(shopId, token, page)
+
+            setNextPage(data.next)
+
+            const safeData = data.results.map((s: any) => ({
+                ...s,
+                id: s.id || s._id || s.service_id
+            }))
+            setServices(prev => [...prev, ...safeData])
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to load more services.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsLoadingMore(false)
         }
     }
 
@@ -406,22 +442,6 @@ export default function ServicesManagementPage() {
                         </Link>
                     </div>
 
-                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-8 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <Sparkles className="w-4 h-4 text-blue-600" />
-                            </div>
-                            <div>
-                                <h3 className="font-semibold text-gray-900">Let AI Fill This In</h3>
-                                <p className="text-sm text-gray-600">Save time by having our AI scan your website and automatically import your services, pricing, and durations.</p>
-                            </div>
-                        </div>
-                        <Button className="bg-teal-400 hover:bg-teal-500 text-black/50 hover:text-black border-0">
-                            <Sparkles className="w-4 h-4 mr-2" />
-                            Have AI Fill This In
-                            <span className="ml-2 bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-bold">Beta</span>
-                        </Button>
-                    </div>
 
                     {services.some(s => !s.assigned_staff || s.assigned_staff.length === 0) && (
                         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-8 flex items-center justify-between">
@@ -434,9 +454,7 @@ export default function ServicesManagementPage() {
                                     <p className="text-sm text-gray-600">These services won't appear in your booking system until staff members are assigned.</p>
                                 </div>
                             </div>
-                            <Button className="bg-yellow-500 hover:bg-yellow-600 text-white border-0">
-                                Go to Setup Wizard
-                            </Button>
+
                         </div>
                     )}
 
@@ -811,6 +829,26 @@ export default function ServicesManagementPage() {
                                 </Table>
                             </div>
                         )}
+
+                        {nextPage && (
+                            <div className="flex justify-center p-6 border-t border-gray-100">
+                                <Button
+                                    variant="outline"
+                                    onClick={loadMoreServices}
+                                    disabled={isLoadingMore}
+                                    className="min-w-[200px]"
+                                >
+                                    {isLoadingMore ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            Loading more...
+                                        </>
+                                    ) : (
+                                        "Load More Services"
+                                    )}
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -831,6 +869,6 @@ export default function ServicesManagementPage() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </main>
+        </main >
     )
 }

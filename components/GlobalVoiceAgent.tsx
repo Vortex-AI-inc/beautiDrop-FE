@@ -14,7 +14,6 @@ export function GlobalVoiceAgent() {
 
     const isShopPage = pathname?.includes('/browse-salons/') && selectedShop
 
-    // Priority: Store context -> Page context -> Default
     const finalShopName = storeShopName || (isShopPage ? selectedShop.name : "BeautyDrop AI")
     const finalShopId = storeShopId || (isShopPage ? selectedShop.id : undefined)
 

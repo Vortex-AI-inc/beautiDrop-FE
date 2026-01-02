@@ -93,24 +93,20 @@ export function useVoiceAgent(options: VoiceAgentOptions = {}) {
     const connect = useCallback(() => {
         if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
-        console.log('[VoiceAgent] Connecting to:', wsUrl);
         onStatusChange?.("connecting");
         const ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
-            console.log('[VoiceAgent] Connected successfully');
             setIsConnected(true);
             onStatusChange?.("connected");
         };
 
         ws.onclose = (event) => {
-            console.log('[VoiceAgent] Disconnected. Code:', event.code, 'Reason:', event.reason);
             setIsConnected(false);
             onStatusChange?.("disconnected");
         };
 
         ws.onerror = (error) => {
-            console.error('[VoiceAgent] WebSocket error:', error);
             onError?.("Connection failed");
         };
 

@@ -254,7 +254,8 @@ export default function StaffManagementPage() {
             const token = await getToken()
             if (!token) return
 
-            const servicesData = await fetchServices(shopId, token)
+            const servicesResponse = await fetchServices(shopId, token)
+            const servicesData = servicesResponse.results
             setAvailableServices(servicesData)
 
             const preSelected = servicesData

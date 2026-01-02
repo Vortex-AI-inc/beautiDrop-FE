@@ -7,9 +7,13 @@ import { fetchPublicShopSchedules, fetchPublicHolidays } from "@/lib/api/schedul
 import type { Shop } from "@/types/shop"
 import type { Service } from "@/types/service"
 import type { Schedule, Holiday } from "@/types/schedule"
+import type { Deal } from "@/types/deal"
+import { fetchPublicShopDeals } from "@/lib/api/deals"
 import { format, addDays, getDay, parseISO, startOfToday, nextDay, isSameDay } from "date-fns"
 import { Button } from "@/components/ui/button"
-import { MapPin, Star, Clock, Phone, Mail, Globe, Loader2, Calendar, ArrowLeft, Check, Sparkles, Users } from "lucide-react"
+import { Star, Clock, MapPin, Phone, Globe, Calendar, ChevronRight, Check, Sparkles, Users, Tag, Mail, ArrowLeft, Loader2 } from "lucide-react"
+import { DealCard } from "@/components/shop/deal-card"
+import { ServiceCard } from "@/components/shop/service-card"
 import { useParams, useRouter } from "next/navigation"
 import BookingModal from "@/components/BookingModal"
 import { Header } from "@/components/layout/header"
@@ -29,6 +33,11 @@ export default function SalonDetailPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
     const [selectedService, setSelectedService] = useState<Service | null>(null)
+    const [deals, setDeals] = useState<Deal[]>([])
+    const [activeTab, setActiveTab] = useState<'services' | 'deals'>('services')
+    const [nextPage, setNextPage] = useState<string | null>(null)
+    const [isLoadingMore, setIsLoadingMore] = useState(false)
+    const [totalServicesCount, setTotalServicesCount] = useState(0)
     const { setSelectedShop, setShopData } = useShopStore()
     const { openWithShop } = useVoiceStore()
 
@@ -45,21 +54,45 @@ export default function SalonDetailPage() {
             setShop(shopData)
 
             if (shopData) {
-                const [servicesData, schedulesData, holidaysData] = await Promise.all([
+                const [servicesData, schedulesData, holidaysData, dealsData] = await Promise.all([
                     fetchPublicServices(shopId),
                     fetchPublicShopSchedules(shopId),
-                    fetchPublicHolidays(shopId)
+                    fetchPublicHolidays(shopId),
+                    fetchPublicShopDeals(shopId)
                 ])
-                setServices(servicesData)
+                setServices(servicesData.results)
+                setNextPage(servicesData.next)
+                setTotalServicesCount(servicesData.count)
                 setSchedules(schedulesData)
                 setHolidays(holidaysData)
+                setDeals(dealsData)
                 setSelectedShop(shopData)
-                setShopData(servicesData, schedulesData, holidaysData)
+                setShopData(servicesData.results, schedulesData, holidaysData)
             }
         } catch (error) {
 
         } finally {
             setIsLoading(false)
+        }
+    }
+
+    const loadMoreServices = async () => {
+        if (!nextPage || isLoadingMore) return
+
+        try {
+            setIsLoadingMore(true)
+
+            const url = new URL(nextPage)
+            const pageParam = url.searchParams.get('page')
+            const page = pageParam ? parseInt(pageParam) : 1
+
+            const data = await fetchPublicServices(shopId, page)
+
+            setServices(prev => [...prev, ...data.results])
+            setNextPage(data.next)
+        } catch (error) {
+        } finally {
+            setIsLoadingMore(false)
         }
     }
 
@@ -187,124 +220,112 @@ export default function SalonDetailPage() {
                         <div className="lg:col-span-2 space-y-8">
                             {/* Services Section */}
                             <section id="services">
-                                <div className="flex items-center justify-between mb-8">
+                                {/* Tabs */}
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                                     <div>
-                                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Our Services</h2>
-                                        <p className="text-gray-600">Choose from our premium selection of beauty services</p>
+                                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+                                            {activeTab === 'services' ? 'Our Services' : 'Deals & Offers'}
+                                        </h2>
+                                        <p className="text-gray-600">
+                                            {activeTab === 'services'
+                                                ? 'Choose from our premium selection of beauty services'
+                                                : 'Exclusive packages and special offers just for you'}
+                                        </p>
                                     </div>
-                                    {services.length > 0 && (
-                                        <div className="hidden sm:block bg-blue-100 text-blue-700 px-4 py-2 rounded-full font-semibold">
-                                            {services.length} {services.length === 1 ? 'Service' : 'Services'}
-                                        </div>
-                                    )}
+
+                                    <div className="flex p-1 bg-gray-100 rounded-xl">
+                                        <button
+                                            onClick={() => setActiveTab('services')}
+                                            className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'services'
+                                                ? 'bg-white text-blue-600 shadow-sm'
+                                                : 'text-gray-500 hover:text-gray-900'
+                                                }`}
+                                        >
+                                            Services ({totalServicesCount})
+                                        </button>
+                                        <button
+                                            onClick={() => setActiveTab('deals')}
+                                            className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'deals'
+                                                ? 'bg-white text-purple-600 shadow-sm'
+                                                : 'text-gray-500 hover:text-gray-900'
+                                                }`}
+                                        >
+                                            Deals ({deals.length})
+                                        </button>
+                                    </div>
                                 </div>
 
-                                {services.length === 0 ? (
-                                    <div className="bg-white rounded-3xl p-16 text-center border border-gray-100 shadow-lg">
-                                        <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                                            <Calendar className="w-12 h-12 text-blue-600" />
-                                        </div>
-                                        <h3 className="text-2xl font-bold text-gray-900 mb-3">Services Coming Soon</h3>
-                                        <p className="text-gray-600 text-lg mb-6">We're currently updating our services. Please check back soon!</p>
-                                        {shop.phone && (
-                                            <p className="text-gray-500">
-                                                For inquiries, call us at <a href={`tel:${shop.phone}`} className="text-blue-600 font-semibold hover:underline">{shop.phone}</a>
-                                            </p>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <div className="grid grid-cols-1 gap-6">
-                                        {services.map((service, index) => (
-                                            <div
-                                                key={service.id}
-                                                className="group bg-white rounded-3xl p-8 border border-gray-100 shadow-md hover:shadow-2xl transition-all duration-500 hover:border-blue-200 hover:-translate-y-1 relative overflow-hidden"
-                                                style={{ animationDelay: `${index * 100}ms` }}
-                                            >
-                                                {/* Gradient accent */}
-                                                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-500"></div>
-
-                                                <div className="relative flex flex-col md:flex-row justify-between items-start gap-6">
-                                                    <div className="flex-1">
-                                                        <div className="flex items-start gap-3 mb-3">
-                                                            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center shrink-0 shadow-lg">
-                                                                <Sparkles className="w-6 h-6 text-white" />
-                                                            </div>
-                                                            <div className="flex-1">
-                                                                <h3 className="font-bold text-gray-900 text-2xl mb-2 group-hover:text-blue-600 transition-colors">
-                                                                    {service.name}
-                                                                </h3>
-                                                                {service.category && (
-                                                                    <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 border border-blue-200">
-                                                                        {service.category}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        </div>
-
-                                                        {service.description ? (
-                                                            <p className="text-gray-600 leading-relaxed mb-4 text-base">
-                                                                {service.description}
-                                                            </p>
-                                                        ) : (
-                                                            <p className="text-gray-400 italic mb-4">
-                                                                Professional {service.name.toLowerCase()} service
-                                                            </p>
-                                                        )}
-
-                                                        <div className="flex items-center gap-4">
-                                                            <div className="flex items-center gap-2 text-gray-600 bg-gray-50 px-4 py-2 rounded-full">
-                                                                <Clock className="w-4 h-4 text-blue-600" />
-                                                                <span className="font-medium">{service.duration_minutes} minutes</span>
-                                                            </div>
-                                                            {service.assigned_staff && service.assigned_staff.length > 0 && (
-                                                                <div className="flex items-center gap-2 text-gray-600 bg-gray-50 px-4 py-2 rounded-full">
-                                                                    <Users className="w-4 h-4 text-purple-600" />
-                                                                    <span className="font-medium">{service.assigned_staff.length} {service.assigned_staff.length === 1 ? 'Specialist' : 'Specialists'}</span>
-                                                                </div>
-                                                            )}
-                                                        </div>
-
-                                                        {/* Show assigned staff names */}
-                                                        {service.assigned_staff && service.assigned_staff.length > 0 && (
-                                                            <div className="mt-4 flex flex-wrap gap-2">
-                                                                {service.assigned_staff.map((staff) => (
-                                                                    <div key={staff.staff_id} className="flex items-center gap-2 bg-purple-50 px-3 py-1.5 rounded-full border border-purple-200">
-                                                                        <div className="w-6 h-6 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
-                                                                            <span className="text-white text-xs font-bold">
-                                                                                {staff.staff_name.charAt(0).toUpperCase()}
-                                                                            </span>
-                                                                        </div>
-                                                                        <span className="text-sm font-medium text-purple-900">{staff.staff_name}</span>
-                                                                        {staff.is_primary && (
-                                                                            <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                                                                        )}
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        )}
-                                                    </div>
-
-                                                    <div className="flex flex-col items-end gap-4 md:min-w-[180px]">
-                                                        <div className="text-right">
-                                                            <div className="text-sm text-gray-500 mb-1">Starting at</div>
-                                                            <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                                                ${parseFloat(service.price).toFixed(0)}
-                                                            </div>
-                                                        </div>
-                                                        <Button
-                                                            onClick={() => {
-                                                                setSelectedService(service)
-                                                                setIsBookingModalOpen(true)
-                                                            }}
-                                                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all px-8 py-6 text-lg rounded-xl"
-                                                        >
-                                                            Book Now
-                                                        </Button>
-                                                    </div>
-                                                </div>
+                                {/* Content */}
+                                {activeTab === 'services' ? (
+                                    services.length === 0 ? (
+                                        <div className="bg-white rounded-3xl p-16 text-center border border-gray-100 shadow-lg">
+                                            <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                                <Calendar className="w-12 h-12 text-blue-600" />
                                             </div>
-                                        ))}
-                                    </div>
+                                            <h3 className="text-2xl font-bold text-gray-900 mb-3">Services Coming Soon</h3>
+                                            <p className="text-gray-600 text-lg mb-6">We're currently updating our services. Please check back soon!</p>
+                                            {shop.phone && (
+                                                <p className="text-gray-500">
+                                                    For inquiries, call us at <a href={`tel:${shop.phone}`} className="text-blue-600 font-semibold hover:underline">{shop.phone}</a>
+                                                </p>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-6">
+                                            <div className="grid grid-cols-1 gap-6">
+                                                {services.map((service, index) => (
+                                                    <ServiceCard
+                                                        key={service.id}
+                                                        service={service}
+                                                        index={index}
+                                                        onBook={(s) => {
+                                                            setSelectedService(s)
+                                                            setIsBookingModalOpen(true)
+                                                        }}
+                                                    />
+                                                ))}
+                                            </div>
+
+                                            {nextPage && (
+                                                <div className="flex justify-center pt-4">
+                                                    <Button
+                                                        onClick={() => loadMoreServices()}
+                                                        disabled={isLoadingMore}
+                                                        variant="outline"
+                                                        className="min-w-[200px] border-blue-200 text-blue-600 hover:bg-blue-50"
+                                                    >
+                                                        {isLoadingMore ? (
+                                                            <>
+                                                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                                Loading more...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                Load More Services
+                                                                <ChevronRight className="w-4 h-4 ml-2" />
+                                                            </>
+                                                        )}
+                                                    </Button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )
+                                ) : (
+                                    deals.length === 0 ? (
+                                        <div className="bg-white rounded-3xl p-16 text-center border border-gray-100 shadow-lg">
+                                            <div className="w-24 h-24 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                                <Sparkles className="w-12 h-12 text-purple-600" />
+                                            </div>
+                                            <h3 className="text-2xl font-bold text-gray-900 mb-3">No Deals Available</h3>
+                                            <p className="text-gray-600 text-lg mb-6">Check back later for exclusive packages and offers!</p>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                            {deals.map((deal, index) => (
+                                                <DealCard key={deal.id} deal={deal} index={index} />
+                                            ))}
+                                        </div>
+                                    )
                                 )}
                             </section>
 

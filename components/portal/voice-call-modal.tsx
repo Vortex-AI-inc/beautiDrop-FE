@@ -39,7 +39,6 @@ export function VoiceCallModal({ isOpen, onClose, shopName, shopId }: VoiceCallM
                 const t = await getToken()
                 setToken(t || undefined)
             } catch (error) {
-                console.error("Error fetching token:", error)
             }
         }
         fetchToken()

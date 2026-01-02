@@ -65,7 +65,6 @@ export default function SchedulingPage() {
             setBookings(bookingsData)
 
         } catch (error) {
-            console.error("Failed to load bookings:", error)
         } finally {
             setIsLoadingBookings(false)
         }
@@ -81,7 +80,6 @@ export default function SchedulingPage() {
             setStats(statsData)
 
         } catch (error) {
-            console.error("Failed to load stats:", error)
         } finally {
             setIsLoadingStats(false)
         }

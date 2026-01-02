@@ -64,7 +64,7 @@ export async function fetchShop(
 export async function createShop(
     formData: ShopFormData,
     token: string
-): Promise<ShopDashboardData> {
+): Promise<Shop> {
     try {
         const response = await fetch(`${API_BASE_URL}/api/v1/shops/`, {
             method: 'POST',
@@ -80,7 +80,7 @@ export async function createShop(
             throw new Error(errorData.error || `Failed to create shop: ${response.statusText}`)
         }
 
-        const data: ApiResponse<ShopDashboardData> = await response.json()
+        const data: ApiResponse<Shop> = await response.json()
         return data.data
     } catch (error) {
         throw error
@@ -97,6 +97,7 @@ export async function updateShop(shopId: string, data: Partial<Shop>, token: str
             },
             body: JSON.stringify(data),
         })
+
 
         if (!response.ok) {
             throw new Error(`Failed to update shop: ${response.statusText}`)
@@ -232,5 +233,18 @@ export async function toggleShopActive(
         return data
     } catch (error) {
         throw error
+    }
+}
+
+export async function deleteShop(shopId: string, token: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/api/v1/shops/${shopId}/`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+        },
+    })
+
+    if (!response.ok) {
+        throw new Error('Failed to delete shop')
     }
 }

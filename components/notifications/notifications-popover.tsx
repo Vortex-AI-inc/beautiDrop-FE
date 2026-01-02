@@ -76,7 +76,6 @@ export function NotificationsPopover() {
             setNextUrl(data.next)
             setUnreadCount(countData.unread)
         } catch (error) {
-            console.error(error)
         } finally {
             setIsLoading(false)
         }
@@ -92,7 +91,6 @@ export function NotificationsPopover() {
             setNotifications([...notifications, ...(data.results || [])])
             setNextUrl(data.next)
         } catch (error) {
-            console.error(error)
         } finally {
             setIsLoadingMore(false)
         }
@@ -105,7 +103,6 @@ export function NotificationsPopover() {
             const prefs = await fetchNotificationPreferences(token)
             setPreferences(prefs)
         } catch (error) {
-            console.error(error)
         }
     }
 
@@ -118,7 +115,6 @@ export function NotificationsPopover() {
             await updateNotificationPreferences(preferences, token)
             setIsSettingsOpen(false)
         } catch (error) {
-            console.error(error)
         } finally {
             setIsSavingPrefs(false)
         }
@@ -143,7 +139,6 @@ export function NotificationsPopover() {
             await markAllNotificationsAsRead(token)
             markAllAsRead()
         } catch (error) {
-            console.error(error)
         }
     }
 
@@ -155,7 +150,6 @@ export function NotificationsPopover() {
             await markNotificationAsRead(id, token)
             markAsRead(id)
         } catch (error) {
-            console.error(error)
         }
     }
 
@@ -170,7 +164,6 @@ export function NotificationsPopover() {
             if (wasUnread) decrementUnreadCount()
             setNotifications(notifications.filter(n => n.id !== id))
         } catch (error) {
-            console.error(error)
         }
     }
 

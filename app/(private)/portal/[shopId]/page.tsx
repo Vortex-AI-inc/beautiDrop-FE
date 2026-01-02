@@ -24,6 +24,7 @@ import { fetchShopDashboard, fetchShop } from "@/lib/api/shop"
 import type { ShopDashboardData } from "@/types/shop"
 import { useShopStore } from "@/lib/store/shop-store"
 import { PricingModal } from "@/components/PricingModal"
+import { DealsCard } from "@/components/portal/deals-card"
 
 export default function ShopDashboardPage() {
     const { getToken } = useAuth()
@@ -139,79 +140,106 @@ export default function ShopDashboardPage() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                            <Link href={`/portal/${shopId}/company`} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-center group">
-                                <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                                    <Building2 className="w-5 h-5 text-blue-600" />
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <Link href={`/portal/${shopId}/company`} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-center group relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
+                                <div className="relative z-10">
+                                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                                        <Building2 className="w-5 h-5 text-blue-600" />
+                                    </div>
+                                    <h3 className="font-semibold text-gray-900 text-sm">Company</h3>
+                                    <p className="text-xs text-gray-500 mt-1">Business information</p>
                                 </div>
-                                <h3 className="font-semibold text-gray-900 text-sm">Company</h3>
-                                <p className="text-xs text-gray-500 mt-1">Business information</p>
                             </Link>
-                            <Link href={`/portal/${shopId}/staff`} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-center group">
-                                <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center mx-auto mb-3">
-                                    <Users className="w-5 h-5 text-orange-600" />
+                            <Link href={`/portal/${shopId}/staff`} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-center group relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-orange-50 rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
+                                <div className="relative z-10">
+                                    <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center mx-auto mb-3">
+                                        <Users className="w-5 h-5 text-orange-600" />
+                                    </div>
+                                    <h3 className="font-semibold text-gray-900 text-sm">Staff</h3>
+                                    <p className="text-xs text-gray-500 mt-1">Team management</p>
                                 </div>
-                                <h3 className="font-semibold text-gray-900 text-sm">Staff</h3>
-                                <p className="text-xs text-gray-500 mt-1">Team management</p>
                             </Link>
 
-                            <Link href={`/portal/${shopId}/services`} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-center group">
-                                <div className="w-10 h-10 bg-teal-50 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                                    <Scissors className="w-5 h-5 text-teal-600" />
+                            <Link href={`/portal/${shopId}/services`} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-center group relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-teal-50 rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
+                                <div className="relative z-10">
+                                    <div className="w-10 h-10 bg-teal-50 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                                        <Scissors className="w-5 h-5 text-teal-600" />
+                                    </div>
+                                    <h3 className="font-semibold text-gray-900 text-sm">Services</h3>
+                                    <p className="text-xs text-gray-500 mt-1">Service offerings</p>
                                 </div>
-                                <h3 className="font-semibold text-gray-900 text-sm">Services</h3>
-                                <p className="text-xs text-gray-500 mt-1">Service offerings</p>
                             </Link>
-                            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm text-center opacity-50 pointer-events-none">
-                                <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center mx-auto mb-3">
-                                    <Phone className="w-5 h-5 text-purple-600" />
+
+                            <DealsCard shopId={shopId} />
+
+                            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm text-center opacity-50 pointer-events-none group relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-purple-50 rounded-bl-full -mr-4 -mt-4 opacity-50"></div>
+                                <div className="relative z-10">
+                                    <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center mx-auto mb-3">
+                                        <Phone className="w-5 h-5 text-purple-600" />
+                                    </div>
+                                    <h3 className="font-semibold text-gray-900 text-sm">Phone</h3>
+                                    <p className="text-xs text-gray-500 mt-1">Call routing</p>
                                 </div>
-                                <h3 className="font-semibold text-gray-900 text-sm">Phone</h3>
-                                <p className="text-xs text-gray-500 mt-1">Call routing</p>
                             </div>
-                            <Link href={`/portal/${shopId}/scheduling`} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-center group">
-                                <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                                    <Calendar className="w-5 h-5 text-red-600" />
+                            <Link href={`/portal/${shopId}/scheduling`} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-center group relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-red-50 rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
+                                <div className="relative z-10">
+                                    <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                                        <Calendar className="w-5 h-5 text-red-600" />
+                                    </div>
+                                    <h3 className="font-semibold text-gray-900 text-sm">Scheduling</h3>
+                                    <p className="text-xs text-gray-500 mt-1">Appointment management</p>
                                 </div>
-                                <h3 className="font-semibold text-gray-900 text-sm">Scheduling</h3>
-                                <p className="text-xs text-gray-500 mt-1">Appointment management</p>
                             </Link>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div
                                 onClick={() => setShowPricingModal(true)}
-                                className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all cursor-pointer flex items-center gap-4 group"
+                                className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all cursor-pointer flex items-center gap-4 group relative overflow-hidden"
                             >
-                                <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                                    <CreditCard className="w-5 h-5 text-red-600" />
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-gray-900">Billing</h3>
-                                    <p className="text-sm text-gray-500">Manage subscription</p>
-                                </div>
-                            </div>
-
-                            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4 opacity-50 pointer-events-none">
-                                <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <Rocket className="w-5 h-5 text-orange-600" />
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-gray-900">Publish Agent</h3>
-                                    <p className="text-sm text-gray-500">Deploy your AI receptionist</p>
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-red-50 rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
+                                <div className="relative z-10 flex items-center gap-4 w-full">
+                                    <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                                        <CreditCard className="w-5 h-5 text-red-600" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-gray-900">Billing</h3>
+                                        <p className="text-sm text-gray-500">Manage subscription</p>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 shadow-sm flex items-center gap-4">
-                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <Headphones className="w-5 h-5 text-blue-600" />
+                            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4 opacity-50 pointer-events-none group relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-orange-50 rounded-bl-full -mr-4 -mt-4 opacity-50"></div>
+                                <div className="relative z-10 flex items-center gap-4 w-full">
+                                    <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <Rocket className="w-5 h-5 text-orange-600" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-gray-900">Publish Agent</h3>
+                                        <p className="text-sm text-gray-500">Deploy your AI receptionist</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 className="font-semibold text-gray-900">Need Help?</h3>
-                                    <p className="text-xs text-gray-600 mt-1 mb-2">Our support team is here to assist you</p>
-                                    <Link href="/contact" className="text-blue-600 text-sm font-semibold flex items-center hover:underline">
-                                        Contact Support <ExternalLink className="w-3 h-3 ml-1" />
-                                    </Link>
+                            </div>
+
+                            <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 shadow-sm flex items-center gap-4 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-blue-100 rounded-bl-full -mr-4 -mt-4 opacity-50"></div>
+                                <div className="relative z-10 flex items-center gap-4 w-full">
+                                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <Headphones className="w-5 h-5 text-blue-600" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-gray-900">Need Help?</h3>
+                                        <p className="text-xs text-gray-600 mt-1 mb-2">Our support team is here to assist you</p>
+                                        <Link href="/contact" className="text-blue-600 text-sm font-semibold flex items-center hover:underline">
+                                            Contact Support <ExternalLink className="w-3 h-3 ml-1" />
+                                        </Link>
+                                    </div>
                                 </div>
                             </div>
                         </div>
