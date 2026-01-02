@@ -38,6 +38,7 @@ export default function SalonDetailPage() {
     const [nextPage, setNextPage] = useState<string | null>(null)
     const [isLoadingMore, setIsLoadingMore] = useState(false)
     const [totalServicesCount, setTotalServicesCount] = useState(0)
+    const [hasError, setHasError] = useState(false)
     const { setSelectedShop, setShopData } = useShopStore()
     const { openWithShop } = useVoiceStore()
 
@@ -46,6 +47,15 @@ export default function SalonDetailPage() {
             loadShopDetails()
         }
     }, [shopId])
+
+    useEffect(() => {
+        if (hasError) {
+            const timer = setTimeout(() => {
+                router.push('/browse-salons')
+            }, 100)
+            return () => clearTimeout(timer)
+        }
+    }, [hasError, router])
 
     const loadShopDetails = async () => {
         try {
@@ -70,7 +80,7 @@ export default function SalonDetailPage() {
                 setShopData(servicesData.results, schedulesData, holidaysData)
             }
         } catch (error) {
-
+            setHasError(true)
         } finally {
             setIsLoading(false)
         }
@@ -110,7 +120,7 @@ export default function SalonDetailPage() {
         )
     }
 
-    if (!shop) {
+    if (!shop || hasError) {
         return (
             <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30 flex flex-col">
                 <Header />
