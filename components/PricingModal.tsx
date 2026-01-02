@@ -20,9 +20,9 @@ export function PricingModal({ isOpen, onClose }: PricingModalProps) {
     const { toast } = useToast()
     const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
 
-    const starterPlan = getPlanByName('Starter')
-    const professionalPlan = getPlanByName('Professional')
-    const enterprisePlan = getPlanByName('Enterprise')
+    const starterPlan = getPlanByName('Starter Monthly') || getPlanByName('Starter')
+    const professionalPlan = getPlanByName('Professional Monthly') || getPlanByName('Professional')
+    const enterprisePlan = getPlanByName('Enterprise Monthly') || getPlanByName('Enterprise')
 
     const handleCheckout = async (stripePriceId: string) => {
         setCheckoutLoading(stripePriceId)
