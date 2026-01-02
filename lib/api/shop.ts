@@ -162,18 +162,31 @@ export async function generateTimeSlots(
 }
 export async function fetchPublicShops(): Promise<Shop[]> {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/v1/shops/`, {
+        const apiUrl = `${API_BASE_URL}/api/v1/shops/`
+        console.log('[fetchPublicShops] Fetching from:', apiUrl)
+
+        const response = await fetch(apiUrl, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
             },
         })
 
+        console.log('[fetchPublicShops] Response status:', response.status)
+
         if (!response.ok) {
+            const errorText = await response.text()
+            console.error('[fetchPublicShops] Error response:', errorText)
             throw new Error(`Failed to fetch shops: ${response.statusText}`)
         }
 
         const data = await response.json()
+        console.log('[fetchPublicShops] Data received:', {
+            isArray: Array.isArray(data),
+            hasResults: !!data.results,
+            hasData: !!data.data,
+            count: data.count || data.length
+        })
 
         if (Array.isArray(data)) {
             return data
@@ -183,8 +196,10 @@ export async function fetchPublicShops(): Promise<Shop[]> {
             return data.data
         }
 
+        console.warn('[fetchPublicShops] Unexpected data format:', data)
         return []
     } catch (error) {
+        console.error('[fetchPublicShops] Exception:', error)
         throw error
     }
 }

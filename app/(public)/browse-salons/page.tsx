@@ -39,7 +39,7 @@ export default function BrowseSalonsPage() {
         }
     }
 
-    const filteredShops = shops.filter(shop =>
+    const filteredShops = shops?.filter(shop =>
         shop.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         shop.description?.toLowerCase().includes(searchQuery.toLowerCase())
     )
@@ -74,18 +74,18 @@ export default function BrowseSalonsPage() {
                         <div className="flex justify-center py-20">
                             <Loader2 className="w-10 h-10 text-purple-600 animate-spin" />
                         </div>
-                    ) : filteredShops.length === 0 ? (
+                    ) : filteredShops?.length === 0 ? (
                         <div className="text-center py-20">
                             <p className="text-gray-500 text-lg">No salons found matching your search.</p>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {filteredShops.map((shop) => (
-                                <Link href={`/browse-salons/${shop.id}`} key={shop.id}>
+                            {filteredShops?.map((shop) => (
+                                <Link href={`/browse-salons/${shop?.id}`} key={shop?.id}>
                                     <Card className="hover:shadow-lg transition-shadow duration-300 overflow-hidden border-gray-100 h-[400px] relative hover:cursor-pointer hover:translate-y-[-5px] hover:scale-[1.01] hover:z-10 hover:shadow-purple-500 hover:border-purple-500 hover:ring-2 hover:ring-purple-500 hover:ring-offset-2 hover:ring-offset-gray-50 hover:translate-y-[-5px] hover:scale-[1.01] hover:z-10 hover:shadow-purple-500 hover:border-purple-500 hover:ring-2 hover:ring-purple-500 hover:ring-offset-2 hover:ring-offset-gray-50 duration-500 delay-100">
                                         <Image
-                                            src={shop.cover_image_url || "/saloon-bg.jpg"}
-                                            alt={shop.name}
+                                            src={shop?.cover_image_url || "/saloon-bg.jpg"}
+                                            alt={shop?.name}
                                             fill
                                             className="object-cover"
                                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -99,15 +99,15 @@ export default function BrowseSalonsPage() {
                                             </div>
                                             <div className="space-y-3">
                                                 <h3 className="text-white text-3xl font-bold">
-                                                    {shop.name}
+                                                    {shop?.name}
                                                 </h3>
                                                 <div className="flex items-center text-white/90 text-sm">
                                                     <MapPin className="w-4 h-4 mr-2" />
-                                                    {shop.address || "Location not available"}
+                                                    {shop?.address || "Location not available"}
                                                 </div>
-                                                {shop.description && (
+                                                {shop?.description && (
                                                     <p className="text-white/80 text-sm line-clamp-2">
-                                                        {shop.description}
+                                                        {shop?.description}
                                                     </p>
                                                 )}
                                                 <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold">
