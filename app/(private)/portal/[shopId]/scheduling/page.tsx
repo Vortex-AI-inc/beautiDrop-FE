@@ -28,6 +28,7 @@ import { GoogleCalendarConnect } from "@/components/calendar/google-calendar-con
 import { BookingCalendar } from "@/components/ui/booking-calendar"
 import { BookingDetailModal } from "@/components/ui/booking-detail-modal"
 import { DayBookingsModal } from "@/components/ui/day-bookings-modal"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function SchedulingPage() {
     const params = useParams()
@@ -219,339 +220,286 @@ export default function SchedulingPage() {
     }
 
     return (
-        <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30">
+        <main className="min-h-screen bg-gray-50/50">
             <Header />
 
-            <div className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-7xl mx-auto">
-                    <Link
-                        href={`/portal/${shopId}`}
-                        className="mb-6 text-sm text-gray-500 hover:text-gray-900 flex items-center gap-1 inline-flex transition-colors"
-                    >
-                        ← Back to Dashboard
-                    </Link>
+            <div className="pt-28 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
+                {/* Breadcrumb */}
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Link href={`/portal/${shopId}`} className="hover:text-foreground transition-colors">Dashboard</Link>
+                    <span>/</span>
+                    <span className="text-foreground font-medium">Schedule</span>
+                </div>
 
-                    <div className="space-y-8">
-                        {/* Header */}
-                        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl"></div>
-                            <div className="relative">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg">
-                                        <Calendar className="w-7 h-7 text-white" />
-                                    </div>
-                                    <div>
-                                        <h1 className="text-4xl font-bold text-gray-900">Booking Management</h1>
-                                        <p className="text-gray-600 text-lg mt-1">
-                                            View and manage all your salon bookings
-                                        </p>
-                                    </div>
-                                </div>
+                {/* Page Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Bookings</h1>
+                        <p className="text-muted-foreground mt-1">Manage appointments and track your schedule.</p>
+                    </div>
+                    <div className="flex items-center gap-1 bg-white p-1 rounded-lg border shadow-sm self-start sm:self-auto">
+                        <button
+                            onClick={() => setViewMode('calendar')}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'calendar'
+                                ? 'bg-primary text-primary-foreground shadow-sm'
+                                : 'text-muted-foreground hover:bg-gray-100 hover:text-foreground'
+                                }`}
+                        >
+                            <CalendarDays className="w-4 h-4" />
+                            Calendar
+                        </button>
+                        <button
+                            onClick={() => setViewMode('list')}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'list'
+                                ? 'bg-primary text-primary-foreground shadow-sm'
+                                : 'text-muted-foreground hover:bg-gray-100 hover:text-foreground'
+                                }`}
+                        >
+                            <List className="w-4 h-4" />
+                            List
+                        </button>
+                    </div>
+                </div>
+
+                {/* Stats Grid */}
+                {isLoadingStats ? (
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        {[1, 2, 3, 4].map((i) => (
+                            <div key={i} className="h-32 bg-white rounded-xl border animate-pulse" />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Pending Requests</CardTitle>
+                                <Clock className="h-4 w-4 text-yellow-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{stats?.pending || 0}</div>
+                                <p className="text-xs text-muted-foreground">Requires attention</p>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Confirmed Upcoming</CardTitle>
+                                <Calendar className="h-4 w-4 text-blue-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{stats?.confirmed || 0}</div>
+                                <p className="text-xs text-muted-foreground">Scheduled visits</p>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Completed</CardTitle>
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{stats?.completed || 0}</div>
+                                <p className="text-xs text-muted-foreground">Successfully served</p>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+                                <TrendingUp className="h-4 w-4 text-gray-500" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{stats?.total_bookings || 0}</div>
+                                <p className="text-xs text-muted-foreground">All time</p>
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
+
+                <div className="bg-white rounded-xl border shadow-sm p-4">
+                    <GoogleCalendarConnect />
+                </div>
+
+                {/* Content Area */}
+                <div className="bg-white rounded-xl border shadow-sm min-h-[500px] overflow-hidden">
+                    {viewMode === 'calendar' ? (
+                        isLoadingBookings ? (
+                            <div className="flex items-center justify-center h-96">
+                                <Loader2 className="w-8 h-8 text-primary animate-spin" />
                             </div>
-                        </div>
-
-
-                        {isLoadingStats ? (
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                {[1, 2, 3].map((i) => (
-                                    <div key={i} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-md">
-                                        <Loader2 className="w-8 h-8 text-gray-300 animate-spin mx-auto" />
-                                    </div>
-                                ))}
-                            </div>
-                        ) : stats && (
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                {/* Total Bookings */}
-                                <div className="group bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl p-8 text-white shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-                                    <div className="relative">
-                                        <div className="flex items-center justify-between mb-6">
-                                            <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                <Calendar className="w-7 h-7" />
-                                            </div>
-                                            <TrendingUp className="w-6 h-6 opacity-60" />
-                                        </div>
-                                        <p className="text-white/90 text-sm font-semibold mb-2 uppercase tracking-wide">Total Bookings</p>
-                                        <p className="text-5xl font-bold">{stats.total_bookings || 0}</p>
-                                    </div>
-                                </div>
-
-                                {/* Upcoming */}
-                                <div className="group bg-gradient-to-br from-purple-500 to-purple-600 rounded-3xl p-8 text-white shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-                                    <div className="relative">
-                                        <div className="flex items-center justify-between mb-6">
-                                            <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                <Clock className="w-7 h-7" />
-                                            </div>
-                                        </div>
-                                        <p className="text-white/90 text-sm font-semibold mb-2 uppercase tracking-wide">Upcoming</p>
-                                        <p className="text-5xl font-bold">{stats.upcoming_bookings || 0}</p>
-                                    </div>
-                                </div>
-
-                                {/* Completed */}
-                                <div className="group bg-gradient-to-br from-green-500 to-green-600 rounded-3xl p-8 text-white shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-                                    <div className="relative">
-                                        <div className="flex items-center justify-between mb-6">
-                                            <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                <CheckCircle className="w-7 h-7" />
-                                            </div>
-                                        </div>
-                                        <p className="text-white/90 text-sm font-semibold mb-2 uppercase tracking-wide">Completed</p>
-                                        <p className="text-5xl font-bold">{stats.completed || 0}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {stats && (
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-md hover:shadow-lg transition-all">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                                            <CheckCircle className="w-5 h-5 text-green-600" />
-                                        </div>
-                                        <p className="text-xs text-gray-500 font-semibold uppercase">Confirmed</p>
-                                    </div>
-                                    <p className="text-3xl font-bold text-green-600">{stats.confirmed || 0}</p>
-                                </div>
-                                <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-md hover:shadow-lg transition-all">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
-                                            <Clock className="w-5 h-5 text-yellow-600" />
-                                        </div>
-                                        <p className="text-xs text-gray-500 font-semibold uppercase">Pending</p>
-                                    </div>
-                                    <p className="text-3xl font-bold text-yellow-600">{stats.pending || 0}</p>
-                                </div>
-                                <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-md hover:shadow-lg transition-all">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
-                                            <XCircle className="w-5 h-5 text-red-600" />
-                                        </div>
-                                        <p className="text-xs text-gray-500 font-semibold uppercase">Cancelled</p>
-                                    </div>
-                                    <p className="text-3xl font-bold text-red-600">{stats.cancelled || 0}</p>
-                                </div>
-                                <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-md hover:shadow-lg transition-all">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                                            <AlertCircle className="w-5 h-5 text-gray-600" />
-                                        </div>
-                                        <p className="text-xs text-gray-500 font-semibold uppercase">No-Show</p>
-                                    </div>
-                                    <p className="text-3xl font-bold text-gray-600">{stats.no_show || 0}</p>
-                                </div>
-                            </div>
-                        )}
-                        <GoogleCalendarConnect />
-
-                        <div className="flex justify-center gap-2">
-                            <Button
-                                onClick={() => setViewMode('calendar')}
-                                variant={viewMode === 'calendar' ? 'default' : 'outline'}
-                                className={`flex items-center gap-2 ${viewMode === 'calendar'
-                                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                                    : 'border-2 border-gray-300 text-gray-700 hover:border-blue-500'
-                                    }`}
-                            >
-                                <CalendarDays className="w-5 h-5" />
-                                Calendar View
-                            </Button>
-                            <Button
-                                onClick={() => setViewMode('list')}
-                                variant={viewMode === 'list' ? 'default' : 'outline'}
-                                className={`flex items-center gap-2 ${viewMode === 'list'
-                                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                                    : 'border-2 border-gray-300 text-gray-700 hover:border-blue-500'
-                                    }`}
-                            >
-                                <List className="w-5 h-5" />
-                                List View
-                            </Button>
-                        </div>
-
-                        {/* Calendar View */}
-                        {viewMode === 'calendar' && (
-                            isLoadingBookings ? (
-                                <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-16 flex flex-col items-center justify-center">
-                                    <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
-                                    <p className="text-gray-600 font-medium">Loading calendar...</p>
-                                </div>
-                            ) : (
+                        ) : (
+                            <div className="p-4">
                                 <BookingCalendar
                                     bookings={bookings}
                                     onBookingClick={handleBookingClick}
                                     onDayClick={handleDayClick}
                                 />
-                            )
-                        )}
-
-                        {/* List View (Bookings Table) */}
-                        {viewMode === 'list' && (
-                            <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-                                <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 px-8 py-8">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                                            <Calendar className="w-6 h-6 text-white" />
-                                        </div>
-                                        <div>
-                                            <h2 className="text-2xl font-bold text-white">All Bookings</h2>
-                                            <p className="text-white/90 mt-1">Manage and track all your appointments</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {isLoadingBookings ? (
-                                    <div className="p-16 flex flex-col items-center justify-center">
-                                        <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
-                                        <p className="text-gray-600 font-medium">Loading bookings...</p>
-                                    </div>
-                                ) : bookings.length === 0 ? (
-                                    <div className="p-20 text-center">
-                                        <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                                            <Calendar className="w-12 h-12 text-gray-400" />
-                                        </div>
-                                        <h3 className="text-2xl font-bold text-gray-900 mb-3">No Bookings Yet</h3>
-                                        <p className="text-gray-600 text-lg">Booked appointments will appear here.</p>
-                                    </div>
-                                ) : (
-                                    <div className="overflow-x-auto">
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow className="bg-gray-50 border-b-2 border-gray-200">
-                                                    <TableHead className="font-bold text-gray-900 text-sm">Customer</TableHead>
-                                                    <TableHead className="font-bold text-gray-900 text-sm">Service</TableHead>
-                                                    <TableHead className="font-bold text-gray-900 text-sm">Staff</TableHead>
-                                                    <TableHead className="font-bold text-gray-900 text-sm">Date & Time</TableHead>
-                                                    <TableHead className="font-bold text-gray-900 text-sm">Status</TableHead>
-                                                    <TableHead className="font-bold text-gray-900 text-sm">Price</TableHead>
-                                                    <TableHead className="font-bold text-gray-900 text-sm text-right">Actions</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {bookings.map((booking) => (
-                                                    <TableRow key={booking.id} className="hover:bg-blue-50/50 transition-colors border-b border-gray-100">
-                                                        <TableCell className="font-medium py-4">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-400 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">
-                                                                    {booking.customer_name.charAt(0).toUpperCase()}
-                                                                </div>
-                                                                <div>
-                                                                    <div className="font-semibold text-gray-900 text-base">{booking.customer_name}</div>
-                                                                    {booking.customer_email && (
-                                                                        <div className="text-xs text-gray-500 mt-0.5">{booking.customer_email}</div>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <span className="font-semibold text-gray-900">{booking.service_name}</span>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <div className="flex items-center gap-2">
-                                                                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                                                                    <Users className="w-4 h-4 text-purple-600" />
-                                                                </div>
-                                                                <span className="text-gray-700 font-medium">{booking.staff_member_name || '-'}</span>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <div className="flex flex-col">
-                                                                <span className="font-semibold text-gray-900">
-                                                                    {new Date(booking.booking_datetime).toLocaleDateString('en-US', {
-                                                                        month: 'short',
-                                                                        day: 'numeric',
-                                                                        year: 'numeric'
-                                                                    })}
-                                                                </span>
-                                                                <span className="text-sm text-gray-500 mt-0.5">{formatTime(booking.booking_datetime)}</span>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <span className={`px-3 py-1.5 rounded-xl text-xs font-bold border-2 ${getStatusColor(booking.status)}`}>
-                                                                {booking.status.charAt(0).toUpperCase() + booking.status.slice(1).replace('_', ' ')}
-                                                            </span>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <span className="font-bold text-gray-900 text-lg">${booking.total_price}</span>
-                                                        </TableCell>
-                                                        <TableCell className="text-right">
-                                                            <div className="flex items-center justify-end gap-2">
-                                                                {booking.status === 'pending' && (
-                                                                    <button
-                                                                        onClick={() => handleConfirmBooking(booking.id)}
-                                                                        disabled={actioningBookingId === booking.id}
-                                                                        className="w-10 h-10 rounded-full bg-green-100 hover:bg-green-600 text-green-600 hover:text-white transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center group"
-                                                                        title="Confirm Booking"
-                                                                    >
-                                                                        {actioningBookingId === booking.id ? (
-                                                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                                                        ) : (
-                                                                            <Check className="w-5 h-5" />
-                                                                        )}
-                                                                    </button>
-                                                                )}
-                                                                {booking.status === 'confirmed' && (
-                                                                    <>
-                                                                        <button
-                                                                            onClick={() => handleCompleteBooking(booking.id)}
-                                                                            disabled={actioningBookingId === booking.id}
-                                                                            className="w-10 h-10 rounded-full bg-blue-100 hover:bg-blue-600 text-blue-600 hover:text-white transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                                                                            title="Mark as Completed"
-                                                                        >
-                                                                            {actioningBookingId === booking.id ? (
-                                                                                <Loader2 className="w-5 h-5 animate-spin" />
-                                                                            ) : (
-                                                                                <CheckCircle className="w-5 h-5" />
-                                                                            )}
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={() => handleMarkNoShow(booking.id)}
-                                                                            disabled={actioningBookingId === booking.id}
-                                                                            className="w-10 h-10 rounded-full bg-red-100 hover:bg-red-600 text-red-600 hover:text-white transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                                                                            title="Mark as No-Show"
-                                                                        >
-                                                                            {actioningBookingId === booking.id ? (
-                                                                                <Loader2 className="w-5 h-5 animate-spin" />
-                                                                            ) : (
-                                                                                <X className="w-5 h-5" />
-                                                                            )}
-                                                                        </button>
-                                                                    </>
-                                                                )}
-                                                            </div>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    </div>
-                                )}
                             </div>
-                        )}
-
-                        <DayBookingsModal
-                            date={selectedDate}
-                            bookings={selectedDayBookings}
-                            isOpen={isDayModalOpen}
-                            onClose={handleCloseDayModal}
-                            onBookingClick={handleBookingClick}
-                        />
-
-                        <BookingDetailModal
-                            booking={selectedBooking}
-                            isOpen={isModalOpen}
-                            onClose={handleCloseModal}
-                            onConfirm={handleConfirmBooking}
-                            onComplete={handleCompleteBooking}
-                            onNoShow={handleMarkNoShow}
-                            isActioning={actioningBookingId === selectedBooking?.id}
-                        />
-                    </div>
+                        )
+                    ) : (
+                        // List View
+                        isLoadingBookings ? (
+                            <div className="flex flex-col items-center justify-center h-96">
+                                <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
+                                <p className="text-muted-foreground">Loading bookings...</p>
+                            </div>
+                        ) : bookings.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-96 text-center p-8">
+                                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                                    <Calendar className="w-8 h-8 text-gray-400" />
+                                </div>
+                                <h3 className="text-lg font-semibold text-gray-900">No bookings found</h3>
+                                <p className="text-gray-500 max-w-sm mt-1">Bookings will appear here when customers schedule appointments.</p>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow className="bg-gray-50/50">
+                                            <TableHead>Customer</TableHead>
+                                            <TableHead>Service</TableHead>
+                                            <TableHead>Staff</TableHead>
+                                            <TableHead>Date & Time</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Price</TableHead>
+                                            <TableHead className="text-right">Actions</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {bookings.map((booking) => (
+                                            <TableRow key={booking.id} className="hover:bg-gray-50/50">
+                                                <TableCell className="font-medium">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center text-blue-700 font-bold text-xs uppercase">
+                                                            {booking.customer_name.charAt(0)}
+                                                        </div>
+                                                        <div>
+                                                            <div className="font-medium text-gray-900">{booking.customer_name}</div>
+                                                            {booking.customer_email && (
+                                                                <div className="text-xs text-gray-500">{booking.customer_email}</div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div>
+                                                        <span className="font-medium text-gray-900">
+                                                            {booking.item_name || booking.service_name || booking.deal_name}
+                                                        </span>
+                                                        {booking.is_deal_booking && (
+                                                            <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-700">
+                                                                Deal
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex items-center gap-2">
+                                                        <Users className="w-3.5 h-3.5 text-gray-400" />
+                                                        <span className="text-gray-600">{booking.staff_member_name || 'Any Staff'}</span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-medium text-gray-900">
+                                                            {new Date(booking.booking_datetime).toLocaleDateString()}
+                                                        </span>
+                                                        <span className="text-xs text-gray-500">{formatTime(booking.booking_datetime)}</span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(booking.status)}`}>
+                                                        {booking.status.replace('_', ' ')}
+                                                    </span>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <span className="font-medium text-gray-900">${booking.total_price}</span>
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <div className="flex items-center justify-end gap-1">
+                                                        {booking.status === 'pending' && (
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                onClick={() => handleConfirmBooking(booking.id)}
+                                                                disabled={actioningBookingId === booking.id}
+                                                                className="h-8 w-8 p-0 hover:bg-green-50 hover:text-green-600 text-green-500"
+                                                                title="Confirm"
+                                                            >
+                                                                {actioningBookingId === booking.id ? (
+                                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                                ) : (
+                                                                    <Check className="w-4 h-4" />
+                                                                )}
+                                                            </Button>
+                                                        )}
+                                                        {booking.status === 'confirmed' && (
+                                                            <>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="ghost"
+                                                                    onClick={() => handleCompleteBooking(booking.id)}
+                                                                    disabled={actioningBookingId === booking.id}
+                                                                    className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 text-blue-500"
+                                                                    title="Complete"
+                                                                >
+                                                                    {actioningBookingId === booking.id ? (
+                                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                                    ) : (
+                                                                        <CheckCircle className="w-4 h-4" />
+                                                                    )}
+                                                                </Button>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="ghost"
+                                                                    onClick={() => handleMarkNoShow(booking.id)}
+                                                                    disabled={actioningBookingId === booking.id}
+                                                                    className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 text-red-500"
+                                                                    title="No Show"
+                                                                >
+                                                                    {actioningBookingId === booking.id ? (
+                                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                                    ) : (
+                                                                        <X className="w-4 h-4" />
+                                                                    )}
+                                                                </Button>
+                                                            </>
+                                                        )}
+                                                        {/* Always show details button? Or just row click? Row click is handled by nothing currently in Table. Let's add detail trigger */}
+                                                        <Button
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            onClick={() => handleBookingClick(booking)}
+                                                            className="h-8 w-8 p-0 text-gray-400 hover:text-gray-900"
+                                                            title="View Details"
+                                                        >
+                                                            <MoreVertical className="w-4 h-4" />
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        )
+                    )}
                 </div>
+
+                <DayBookingsModal
+                    date={selectedDate}
+                    bookings={selectedDayBookings}
+                    isOpen={isDayModalOpen}
+                    onClose={handleCloseDayModal}
+                    onBookingClick={handleBookingClick}
+                />
+
+                <BookingDetailModal
+                    booking={selectedBooking}
+                    isOpen={isModalOpen}
+                    onClose={handleCloseModal}
+                    onConfirm={handleConfirmBooking}
+                    onComplete={handleCompleteBooking}
+                    onNoShow={handleMarkNoShow}
+                    isActioning={actioningBookingId === selectedBooking?.id}
+                />
             </div>
         </main>
     )

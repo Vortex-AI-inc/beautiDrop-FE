@@ -4,11 +4,11 @@ import { useEffect, useState } from "react"
 import { useUser, useAuth } from "@clerk/nextjs"
 import { Header } from "@/components/layout/header"
 import { Button } from "@/components/ui/button"
-import { Calendar, Clock, MapPin, Loader2, Star, Heart, LayoutList, CalendarDays } from "lucide-react"
+import { Calendar, Clock, MapPin, Loader2, LayoutList, CalendarDays, CheckCircle, XCircle } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
 import { useRoleProtection } from "@/hooks/useRoleProtection"
-import { fetchMyBookings, cancelBooking } from "@/lib/api/bookings"
+import { fetchMyBookings, cancelBooking, fetchCustomerStats, type CustomerBookingStats } from "@/lib/api/bookings"
 import type { CustomerBooking } from "@/types/booking"
 import { BookingCalendar } from "@/components/ui/booking-calendar"
 import { DayBookingsModal } from "@/components/ui/day-bookings-modal"
@@ -36,6 +36,7 @@ export default function CustomerDashboardPage() {
     const { isAuthorized, isLoading: isCheckingRole } = useRoleProtection({ requiredRole: 'customer' })
 
     const [bookings, setBookings] = useState<CustomerBooking[]>([])
+    const [stats, setStats] = useState<CustomerBookingStats | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null)
     const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false)
@@ -49,18 +50,22 @@ export default function CustomerDashboardPage() {
 
     useEffect(() => {
         if (isLoaded && user) {
-            loadBookings()
+            loadData()
         }
     }, [isLoaded, user])
 
-    const loadBookings = async () => {
+    const loadData = async () => {
         try {
             setIsLoading(true)
             const token = await getToken()
             if (!token) return
 
-            const data = await fetchMyBookings(token)
-            setBookings(data || [])
+            const [bookingsData, statsData] = await Promise.all([
+                fetchMyBookings(token),
+                fetchCustomerStats(token)
+            ])
+            setBookings(bookingsData || [])
+            setStats(statsData)
         } catch (error) {
 
         } finally {
@@ -85,7 +90,7 @@ export default function CustomerDashboardPage() {
                 description: "Your booking has been cancelled successfully.",
             })
 
-            await loadBookings()
+            await loadData()
         } catch (error: any) {
             toast({
                 title: "Error",
@@ -174,34 +179,44 @@ export default function CustomerDashboardPage() {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Upcoming Bookings</CardTitle>
+                                <CardTitle className="text-sm font-medium">Total</CardTitle>
                                 <Calendar className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{upcomingBookings.length}</div>
+                                <div className="text-2xl font-bold">{stats?.total || 0}</div>
                             </CardContent>
                         </Card>
 
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Total Visits</CardTitle>
-                                <Star className="h-4 w-4 text-muted-foreground" />
+                                <CardTitle className="text-sm font-medium">Upcoming</CardTitle>
+                                <Clock className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{pastBookings.length}</div>
+                                <div className="text-2xl font-bold">{stats?.upcoming || 0}</div>
                             </CardContent>
                         </Card>
 
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Favorite Salons</CardTitle>
-                                <Heart className="h-4 w-4 text-muted-foreground" />
+                                <CardTitle className="text-sm font-medium">Completed</CardTitle>
+                                <CheckCircle className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">0</div>
+                                <div className="text-2xl font-bold">{stats?.completed || 0}</div>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Cancelled</CardTitle>
+                                <XCircle className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{stats?.cancelled || 0}</div>
                             </CardContent>
                         </Card>
                     </div>
@@ -284,7 +299,14 @@ export default function CustomerDashboardPage() {
                                                 <div className="flex items-start justify-between">
                                                     <div>
                                                         <CardTitle>{booking.shop_name}</CardTitle>
-                                                        <CardDescription>{booking.service_name}</CardDescription>
+                                                        <CardDescription>
+                                                            {booking.item_name || booking.service_name || booking.deal_name}
+                                                            {booking.is_deal_booking && (
+                                                                <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-800">
+                                                                    Deal
+                                                                </span>
+                                                            )}
+                                                        </CardDescription>
                                                     </div>
                                                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
                                                         {booking.status}
@@ -346,7 +368,7 @@ export default function CustomerDashboardPage() {
                                             <div className="flex items-start justify-between">
                                                 <div>
                                                     <CardTitle>{booking.shop_name}</CardTitle>
-                                                    <CardDescription>{booking.service_name}</CardDescription>
+                                                    <CardDescription>{booking.item_name || booking.service_name || booking.deal_name}</CardDescription>
                                                 </div>
                                                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
                                                     {booking.status}
@@ -388,7 +410,7 @@ export default function CustomerDashboardPage() {
                                 <div className="bg-gray-50 p-4 rounded-lg">
                                     <h4 className="font-semibold text-gray-900 mb-2">Current Booking</h4>
                                     <div className="space-y-1 text-sm text-gray-600">
-                                        <p><strong>Service:</strong> {selectedBookingForReschedule.service_name}</p>
+                                        <p><strong>Service/Deal:</strong> {selectedBookingForReschedule.item_name || selectedBookingForReschedule.service_name || selectedBookingForReschedule.deal_name}</p>
                                         <p><strong>Date & Time:</strong> {new Date(selectedBookingForReschedule.booking_datetime).toLocaleString()}</p>
                                         {selectedBookingForReschedule.staff_member_name && (
                                             <p><strong>Staff:</strong> {selectedBookingForReschedule.staff_member_name}</p>

@@ -43,6 +43,7 @@ export function CreateDealModal({ isOpen, onClose, onDealCreated, shopId, dealTo
     const [name, setName] = useState("")
     const [description, setDescription] = useState("")
     const [price, setPrice] = useState("")
+    const [duration, setDuration] = useState("60")
     const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([])
     const [manualItems, setManualItems] = useState<string[]>([])
     const [newItemText, setNewItemText] = useState("")
@@ -60,6 +61,7 @@ export function CreateDealModal({ isOpen, onClose, onDealCreated, shopId, dealTo
             setName(dealToEdit.name)
             setDescription(dealToEdit.description || "")
             setPrice(dealToEdit.price.toString())
+            setDuration(dealToEdit.duration_minutes ? dealToEdit.duration_minutes.toString() : "60")
 
             if (services.length > 0) {
                 const newSelectedServiceIds: string[] = []
@@ -139,6 +141,7 @@ export function CreateDealModal({ isOpen, onClose, onDealCreated, shopId, dealTo
         setName("")
         setDescription("")
         setPrice("")
+        setDuration("60")
         setSelectedServiceIds([])
         setManualItems([])
         setNewItemText("")
@@ -146,10 +149,10 @@ export function CreateDealModal({ isOpen, onClose, onDealCreated, shopId, dealTo
     }
 
     const handleSubmit = async () => {
-        if (!name || !price) {
+        if (!name || !price || !duration) {
             toast({
                 title: "Missing fields",
-                description: "Name and Price are required.",
+                description: "Name, Price, and Duration are required.",
                 variant: "destructive"
             })
             return
@@ -171,6 +174,7 @@ export function CreateDealModal({ isOpen, onClose, onDealCreated, shopId, dealTo
                 name,
                 description,
                 price,
+                duration_minutes: parseInt(duration) || 60,
                 included_items: allIncludedItems,
                 is_active: dealToEdit ? dealToEdit.is_active : true
             }
@@ -238,15 +242,27 @@ export function CreateDealModal({ isOpen, onClose, onDealCreated, shopId, dealTo
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="deal-price">Price ($) *</Label>
-                        <Input
-                            id="deal-price"
-                            type="number"
-                            placeholder="99.00"
-                            value={price}
-                            onChange={(e) => setPrice(e.target.value)}
-                        />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="deal-price">Price ($) *</Label>
+                            <Input
+                                id="deal-price"
+                                type="number"
+                                placeholder="99.00"
+                                value={price}
+                                onChange={(e) => setPrice(e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="deal-duration">Duration (min) *</Label>
+                            <Input
+                                id="deal-duration"
+                                type="number"
+                                placeholder="60"
+                                value={duration}
+                                onChange={(e) => setDuration(e.target.value)}
+                            />
+                        </div>
                     </div>
 
                     <div className="space-y-4 pt-2 border-t border-gray-100">

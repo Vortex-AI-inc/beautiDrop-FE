@@ -52,3 +52,4 @@ Thumbs.db
 /.clerk/
 *.md 
 *.html
+public/firebase-messaging-sw.js

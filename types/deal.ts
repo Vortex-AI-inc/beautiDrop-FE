@@ -5,6 +5,7 @@ export interface Deal {
     name: string
     description: string
     price: string
+    duration_minutes?: number
     included_items: string[]
     image_url?: string
     is_active: boolean
@@ -17,6 +18,7 @@ export interface CreateDealData {
     name: string
     description: string
     price: string
+    duration_minutes?: number
     included_items: string[]
     image_url?: string
     is_active: boolean
@@ -26,6 +28,7 @@ export interface UpdateDealData {
     name?: string
     description?: string
     price?: string
+    duration_minutes?: number
     included_items?: string[]
     image_url?: string
     is_active?: boolean

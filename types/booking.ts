@@ -6,7 +6,10 @@ export interface CustomerBooking {
     shop?: string
     shop_name: string
     service?: string
-    service_name: string
+    service_name: string | null
+    deal_name?: string | null
+    item_name?: string
+    is_deal_booking?: boolean
     service_price?: number
     staff_member_name?: string
     time_slot?: string

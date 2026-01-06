@@ -286,22 +286,7 @@ export default function Chatbot({ shopName = "Salon", phone, services = [], sche
 
     return (
         <>
-            <div className="fixed bottom-6 right-6 z-50 group">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75 animate-ping group-hover:hidden"></span>
-                <Button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className={`relative h-16 w-16 rounded-full shadow-2xl transition-all duration-500 hover:scale-110 hover:shadow-blue-500/50 ${isOpen
-                        ? 'bg-red-500 hover:bg-red-600 rotate-90'
-                        : 'bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600'
-                        }`}
-                >
-                    {isOpen ? (
-                        <X className="h-8 w-8 text-white transition-transform duration-300" />
-                    ) : (
-                        <MessageCircle className="h-8 w-8 text-white transition-transform duration-300" />
-                    )}
-                </Button>
-            </div>
+
 
             {isOpen && (
                 <div className="fixed bottom-28 right-6 w-[85vw] md:w-96 h-[600px] max-h-[80vh] bg-white rounded-[2rem] shadow-2xl flex flex-col animate-in slide-in-from-bottom-10 fade-in duration-300 z-50 overflow-hidden border border-gray-100/50 font-sans">

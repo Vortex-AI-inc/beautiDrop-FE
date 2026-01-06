@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Switch } from "@/components/ui/switch"
-import { ArrowLeft, Users, Sparkles, UserPlus, Trash2, Loader2 } from "lucide-react"
+import { ArrowLeft, Users, Sparkles, UserPlus, Trash2, Loader2, Mail, Phone as PhoneIcon, Check, Settings2 } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
@@ -49,6 +49,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 
 export default function StaffManagementPage() {
     const params = useParams()
@@ -348,353 +350,355 @@ export default function StaffManagementPage() {
     }
 
     return (
-        <main className="min-h-screen bg-slate-50">
+        <main className="min-h-screen bg-gray-50/50">
             <Header />
 
-            <div className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-4xl mx-auto">
-                    <div className="flex items-center justify-between mb-8">
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900">Staff Management</h1>
-                            <p className="text-gray-600">Manage your team members and their booking permissions</p>
+            <div className="pt-28 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                            <Link href={`/portal/${shopId}`} className="hover:text-foreground transition-colors">Dashboard</Link>
+                            <span>/</span>
+                            <span className="text-foreground font-medium">Staff</span>
                         </div>
-                        <Link href={`/portal/${shopId}`} className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
-                            <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-                        </Link>
+                        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Staff Management</h1>
+                        <p className="text-muted-foreground">Manage your team members and permissions.</p>
                     </div>
+                </div>
 
-                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-8 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <Sparkles className="w-4 h-4 text-blue-600" />
-                            </div>
-                            <div>
-                                <h3 className="font-semibold text-gray-900">Let AI Fill This In</h3>
-                                <p className="text-sm text-gray-600">Save time by having our AI scan your website and automatically import your team members and their information.</p>
-                            </div>
-                        </div>
-                        <Button className="bg-teal-400 hover:bg-teal-500 text-black/50 hover:text-black border-0">
-                            <Sparkles className="w-4 h-4 mr-2" />
-                            Have AI Fill This In
-                            <span className="ml-2 bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-bold">Beta</span>
-                        </Button>
-                    </div>
-
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-                        <div className="flex items-center gap-2 mb-6">
-                            <UserPlus className="w-5 h-5 text-blue-600" />
-                            <h2 className="text-lg font-bold text-gray-900">Add New Staff Member</h2>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <div className="space-y-2">
-                                <Label htmlFor="staffName">Name <span className="text-red-500">*</span></Label>
-                                <Input
-                                    id="staffName"
-                                    placeholder="Enter staff member name"
-                                    className="placeholder:text-gray-400"
-                                    value={newStaffName}
-                                    onChange={(e) => setNewStaffName(e.target.value)}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="staffEmail">Email <span className="text-red-500">*</span></Label>
-                                <Input
-                                    id="staffEmail"
-                                    type="email"
-                                    placeholder="email@example.com"
-                                    className="placeholder:text-gray-400"
-                                    value={newStaffEmail}
-                                    onChange={(e) => setNewStaffEmail(e.target.value)}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="staffPhone">Phone</Label>
-                                <Input
-                                    id="staffPhone"
-                                    type="tel"
-                                    placeholder="+1234567890"
-                                    className="placeholder:text-gray-400"
-                                    value={newStaffPhone}
-                                    onChange={(e) => setNewStaffPhone(e.target.value)}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="languages">Languages</Label>
-                                <Select>
-                                    <SelectTrigger>
-                                        <SelectValue>
-                                            <span className="text-sm">
-                                                {selectedLanguages.length === 1
-                                                    ? selectedLanguages[0]
-                                                    : `${selectedLanguages.length} languages selected`
-                                                }
-                                            </span>
-                                        </SelectValue>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {AVAILABLE_LANGUAGES.map((language) => (
-                                            <div
-                                                key={language}
-                                                className="flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-gray-100"
-                                                onClick={(e) => {
-                                                    e.preventDefault()
-                                                    toggleLanguage(language)
-                                                }}
-                                            >
-                                                <Checkbox
-                                                    checked={selectedLanguages.includes(language)}
-                                                    onCheckedChange={() => toggleLanguage(language)}
-                                                />
-                                                <span className="text-sm">{language}</span>
-                                            </div>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {selectedLanguages.length > 1 && (
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        {selectedLanguages.join(", ")}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <Checkbox
-                                    id="canBook"
-                                    checked={canBookAppointments}
-                                    onCheckedChange={(checked) => setCanBookAppointments(checked as boolean)}
-                                />
-                                <Label htmlFor="canBook" className="font-normal cursor-pointer">
-                                    Can book appointments
-                                </Label>
-                            </div>
-                            <Button
-                                className="bg-gradient-to-r from-blue-600 to-teal-400 hover:from-blue-700 hover:to-teal-500 text-white"
-                                onClick={handleAddStaffMember}
-                                disabled={isSubmitting || !newStaffName.trim()}
-                            >
-                                {isSubmitting ? (
-                                    <>
-                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                        Adding...
-                                    </>
-                                ) : (
-                                    <>
-                                        <UserPlus className="w-4 h-4 mr-2" />
-                                        Add Staff Member
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                        <div className="flex items-center gap-2 mb-6">
-                            <Users className="w-5 h-5 text-blue-600" />
-                            <h2 className="text-lg font-bold text-gray-900">Team Members</h2>
-                        </div>
-
-                        {isLoading ? (
-                            <div className="flex justify-center py-12">
-                                <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-                            </div>
-                        ) : staffMembers.length === 0 ? (
-                            <div className="text-center py-12">
-                                <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Staff Members</h3>
-                                <p className="text-gray-600">Get started by adding your first team member</p>
-                            </div>
-                        ) : (
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Services</TableHead>
-                                        <TableHead>Email</TableHead>
-                                        <TableHead>Phone</TableHead>
-                                        <TableHead>Can Book</TableHead>
-                                        <TableHead>Invite Status</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {staffMembers.map((member) => (
-                                        <TableRow key={member.id}>
-                                            <TableCell className="font-medium">{member.name}</TableCell>
-                                            <TableCell>
-                                                {(!member.assigned_services || member.assigned_services.length === 0) ? (
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
-                                                        <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full mr-1.5"></span>
-                                                        Not Assigned
-                                                    </span>
-                                                ) : (
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {member.assigned_services.map((service) => (
-                                                            <span
-                                                                key={service.service_id}
-                                                                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 group"
-                                                            >
-                                                                {service.service_name}
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation()
-                                                                        initiateRemoveService(member.id, service.service_id, service.service_name)
-                                                                    }}
-                                                                    className="ml-1.5 text-blue-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                                >
-                                                                    ×
-                                                                </button>
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </TableCell>
-                                            <TableCell>{member.email || '-'}</TableCell>
-                                            <TableCell>{member.phone || '-'}</TableCell>
-                                            <TableCell>
-                                                <Switch
-                                                    checked={member.is_active}
-                                                    onCheckedChange={() => handleToggleAvailability(member.id, member.is_active, member.name)}
-                                                />
-                                            </TableCell>
-                                            <TableCell>
-                                                {!member.invite_accepted_at ? (
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => handleResendInvite(member.id, member.name, member.email)}
-                                                        className="h-7 text-xs"
-                                                    >
-                                                        Resend Invite
-                                                    </Button>
-                                                ) : (
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                                        Accepted
-                                                    </span>
-                                                )}
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => initiateDelete(member.id, member.name)}
-                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                <div className="grid lg:grid-cols-3 gap-8">
+                    {/* Add Staff Form (Left Column) */}
+                    <div className="lg:col-span-1">
+                        <Card className="sticky top-32">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <UserPlus className="w-5 h-5 text-primary" />
+                                    Add Team Member
+                                </CardTitle>
+                                <CardDescription>Register a new staff member.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="staffName">Full Name <span className="text-red-500">*</span></Label>
+                                    <Input
+                                        id="staffName"
+                                        placeholder="e.g. Sarah Smith"
+                                        value={newStaffName}
+                                        onChange={(e) => setNewStaffName(e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="staffEmail">Email Address <span className="text-red-500">*</span></Label>
+                                    <Input
+                                        id="staffEmail"
+                                        type="email"
+                                        placeholder="sarah@example.com"
+                                        value={newStaffEmail}
+                                        onChange={(e) => setNewStaffEmail(e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="staffPhone">Phone Number</Label>
+                                    <Input
+                                        id="staffPhone"
+                                        type="tel"
+                                        placeholder="+1 (555) 000-0000"
+                                        value={newStaffPhone}
+                                        onChange={(e) => setNewStaffPhone(e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Languages Spoken</Label>
+                                    <Select>
+                                        <SelectTrigger>
+                                            <SelectValue>
+                                                <span className="text-sm truncate">
+                                                    {selectedLanguages.length === 0 ? "Select languages" :
+                                                        selectedLanguages.length === 1 ? selectedLanguages[0] :
+                                                            `${selectedLanguages.length} selected`}
+                                                </span>
+                                            </SelectValue>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {AVAILABLE_LANGUAGES.map((language) => (
+                                                <div
+                                                    key={language}
+                                                    className="flex items-center gap-2 px-2 py-2 cursor-pointer hover:bg-gray-100 transition-colors"
+                                                    onClick={(e) => {
+                                                        e.preventDefault()
+                                                        toggleLanguage(language)
+                                                    }}
                                                 >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => handleAssignServicesClick(member)}
-                                                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                                    title="Assign Services"
-                                                >
-                                                    <Sparkles className="w-4 h-4" />
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        )}
-                    </div>
-                    <Dialog open={isServiceModalOpen} onOpenChange={setIsServiceModalOpen}>
-                        <DialogContent className="sm:max-w-[500px]">
-                            <DialogHeader>
-                                <DialogTitle>Assign Services to {selectedStaffForService?.name}</DialogTitle>
-                                <DialogDescription>
-                                    Select services this staff member can perform.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="py-4">
-                                {isLoadingServices ? (
-                                    <div className="flex justify-center py-8">
-                                        <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
-                                    </div>
-                                ) : availableServices.length === 0 ? (
-                                    <div className="text-center py-8">
-                                        <p className="text-gray-500 mb-4">No services available.</p>
-                                        <Link href={`/portal/${shopId}/services`}>
-                                            <Button variant="outline" size="sm">
-                                                Add Services
-                                            </Button>
-                                        </Link>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-3 max-h-[300px] overflow-y-auto">
-                                        {availableServices.map((service) => (
-                                            <div
-                                                key={service.id}
-                                                className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                                                onClick={() => handleServiceToggle(service.id)}
-                                            >
-                                                <Checkbox
-                                                    checked={selectedServiceIds.includes(service.id)}
-                                                    className="pointer-events-none"
-                                                />
-                                                <div className="flex-1">
-                                                    <p className="font-medium text-gray-900">{service.name}</p>
-                                                    <p className="text-sm text-gray-500">${service.price} • {service.duration_minutes} min</p>
+                                                    <Checkbox
+                                                        checked={selectedLanguages.includes(language)}
+                                                        onCheckedChange={() => toggleLanguage(language)}
+                                                        className="pointer-events-none"
+                                                    />
+                                                    <span className="text-sm">{language}</span>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {selectedLanguages.length > 0 && (
+                                        <div className="flex flex-wrap gap-1 mt-2">
+                                            {selectedLanguages.map(lang => (
+                                                <Badge key={lang} variant="secondary" className="text-[10px] px-1.5 py-0">
+                                                    {lang}
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center justify-between pt-2">
+                                    <div className="space-y-0.5">
+                                        <Label htmlFor="canBook" className="text-sm font-medium">Online Booking</Label>
+                                        <p className="text-xs text-muted-foreground">Allow online appointments?</p>
                                     </div>
-                                )}
-                            </div>
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => setIsServiceModalOpen(false)}>
-                                    Cancel
-                                </Button>
+                                    <Switch
+                                        id="canBook"
+                                        checked={canBookAppointments}
+                                        onCheckedChange={setCanBookAppointments}
+                                    />
+                                </div>
+
                                 <Button
-                                    onClick={handleAssignServices}
-                                    disabled={isAssigningServices}
-                                    className="bg-blue-600 text-white"
+                                    className="w-full mt-4"
+                                    onClick={handleAddStaffMember}
+                                    disabled={isSubmitting || !newStaffName.trim()}
                                 >
-                                    {isAssigningServices ? (
+                                    {isSubmitting ? (
                                         <>
                                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                            Saving...
+                                            Adding Member...
                                         </>
                                     ) : (
-                                        "Save Assignments"
+                                        "Add Staff Member"
                                     )}
                                 </Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Staff List (Right Column) */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <Card>
+                            <CardHeader className="border-b border-gray-100 pb-4">
+                                <CardTitle>Team Directory</CardTitle>
+                                <CardDescription>View and manage all staff members.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                {isLoading ? (
+                                    <div className="flex flex-col items-center justify-center py-16">
+                                        <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
+                                        <p className="text-muted-foreground">Loading team...</p>
+                                    </div>
+                                ) : staffMembers.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-16 text-center px-4">
+                                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                                            <Users className="w-8 h-8 text-gray-400" />
+                                        </div>
+                                        <h3 className="text-lg font-semibold text-gray-900">No team members yet</h3>
+                                        <p className="text-gray-500 max-w-sm mt-1">Add your first staff member using the form on the left.</p>
+                                    </div>
+                                ) : (
+                                    <div className="overflow-x-auto">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow className="bg-gray-50/50">
+                                                    <TableHead className="w-[30%]">Member</TableHead>
+                                                    <TableHead className="w-[45%]">Services</TableHead>
+                                                    <TableHead className="text-right">Actions</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {staffMembers.map((member) => (
+                                                    <TableRow key={member.id} className="hover:bg-gray-50/50">
+                                                        <TableCell className="align-top">
+                                                            <div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <p className="font-semibold text-gray-900">{member.name}</p>
+                                                                    {!member.invite_accepted_at ? (
+                                                                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 border-yellow-200 bg-yellow-50 text-yellow-700 font-normal">Pending</Badge>
+                                                                    ) : (
+                                                                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 border-green-200 bg-green-50 text-green-700 font-normal gap-1">
+                                                                            <Check className="w-2.5 h-2.5" />
+                                                                        </Badge>
+                                                                    )}
+                                                                </div>
+
+                                                                <div className="mt-1 space-y-0.5">
+                                                                    {member.email ? (
+                                                                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                                                            <Mail className="w-3 h-3 text-gray-400" />
+                                                                            <span className="truncate max-w-[180px]" title={member.email}>{member.email}</span>
+                                                                        </div>
+                                                                    ) : <span className="text-gray-400 italic text-xs">No email</span>}
+                                                                    {member.phone && (
+                                                                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                                                            <PhoneIcon className="w-3 h-3 text-gray-400" />
+                                                                            <span>{member.phone}</span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </TableCell>
+
+                                                        <TableCell className="align-top">
+                                                            <div className="flex flex-wrap gap-1.5">
+                                                                {(!member.assigned_services || member.assigned_services.length === 0) ? (
+                                                                    <Badge variant="outline" className="text-xs font-normal text-gray-400 border-dashed border-gray-300">
+                                                                        No active services
+                                                                    </Badge>
+                                                                ) : (
+                                                                    member.assigned_services.map((service) => (
+                                                                        <Badge key={service.service_id} variant="secondary" className="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100 font-normal">
+                                                                            {service.service_name}
+                                                                        </Badge>
+                                                                    ))
+                                                                )}
+                                                            </div>
+                                                        </TableCell>
+
+                                                        <TableCell className="align-top text-right">
+                                                            <div className="flex items-center justify-end gap-3">
+                                                                <div className="flex items-center gap-2 mr-2">
+                                                                    <Switch
+                                                                        checked={member.is_active}
+                                                                        onCheckedChange={() => handleToggleAvailability(member.id, member.is_active, member.name)}
+                                                                        className="scale-75 origin-right"
+                                                                    />
+                                                                </div>
+
+                                                                {!member.invite_accepted_at && (
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="h-8 w-8 text-blue-600 hover:bg-blue-50"
+                                                                        onClick={() => handleResendInvite(member.id, member.name, member.email)}
+                                                                        title="Resend Invite"
+                                                                    >
+                                                                        <Mail className="w-4 h-4" />
+                                                                    </Button>
+                                                                )}
+
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="h-8 w-8 text-gray-400 hover:text-blue-600"
+                                                                    onClick={() => handleAssignServicesClick(member)}
+                                                                    title="Manage Services"
+                                                                >
+                                                                    <Settings2 className="w-4 h-4" />
+                                                                </Button>
+
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                                                                    onClick={() => initiateDelete(member.id, member.name)}
+                                                                    title="Remove Staff"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </Button>
+                                                            </div>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
             </div>
 
+            {/* Assign Services Modal - Cleaned Up */}
+            <Dialog open={isServiceModalOpen} onOpenChange={setIsServiceModalOpen}>
+                <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                        <DialogTitle>Services for {selectedStaffForService?.name}</DialogTitle>
+                        <DialogDescription>
+                            Select which services this team member can perform.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                        {isLoadingServices ? (
+                            <div className="flex justify-center py-8">
+                                <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                            </div>
+                        ) : availableServices.length === 0 ? (
+                            <div className="text-center py-8">
+                                <p className="text-gray-500 mb-4">No services assigned to the shop yet.</p>
+                                <Link href={`/portal/${shopId}/services`} onClick={() => setIsServiceModalOpen(false)}>
+                                    <Button variant="outline" size="sm">
+                                        Go to Services
+                                    </Button>
+                                </Link>
+                            </div>
+                        ) : (
+                            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
+                                {availableServices.map((service) => (
+                                    <div
+                                        key={service.id}
+                                        className={`flex items-start space-x-3 p-3 rounded-lg border cursor-pointer transition-all ${selectedServiceIds.includes(service.id)
+                                            ? "bg-blue-50 border-blue-200 shadow-sm"
+                                            : "bg-white border-transparent hover:bg-gray-50"
+                                            }`}
+                                        onClick={() => handleServiceToggle(service.id)}
+                                    >
+                                        <Checkbox
+                                            checked={selectedServiceIds.includes(service.id)}
+                                            className="mt-1 pointer-events-none data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                                        />
+                                        <div className="flex-1">
+                                            <p className={`font-medium text-sm ${selectedServiceIds.includes(service.id) ? "text-blue-900" : "text-gray-900"}`}>
+                                                {service.name}
+                                            </p>
+                                            <p className="text-xs text-gray-500 mt-0.5">${service.price} • {service.duration_minutes} min</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsServiceModalOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleAssignServices}
+                            disabled={isAssigningServices}
+                            className="bg-blue-600 text-white"
+                        >
+                            {isAssigningServices ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Saving...
+                                </>
+                            ) : (
+                                "Save Changes"
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Confirmation */}
             <AlertDialog open={!!staffToDelete} onOpenChange={() => setStaffToDelete(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogTitle>Remove Team Member?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently remove {staffToDelete?.name} from your staff. This action cannot be undone.
+                            Are you sure you want to remove {staffToDelete?.name}? This cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction onClick={handleDeleteStaffMember} className="bg-red-600 hover:bg-red-700">
-                            Delete
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-
-            <AlertDialog open={!!serviceRemovalData} onOpenChange={() => setServiceRemovalData(null)}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Remove Service?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Are you sure you want to remove the service "{serviceRemovalData?.serviceName}" from this staff member?
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleRemoveService} className="bg-red-600 hover:bg-red-700">
                             Remove
                         </AlertDialogAction>
                     </AlertDialogFooter>

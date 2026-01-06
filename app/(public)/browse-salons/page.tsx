@@ -81,39 +81,45 @@ export default function BrowseSalonsPage() {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {filteredShops?.map((shop) => (
-                                <Link href={`/browse-salons/${shop?.id}`} key={shop?.id}>
-                                    <Card className="hover:shadow-lg transition-shadow duration-300 overflow-hidden border-gray-100 h-[400px] relative hover:cursor-pointer hover:translate-y-[-5px] hover:scale-[1.01] hover:z-10 hover:shadow-purple-500 hover:border-purple-500 hover:ring-2 hover:ring-purple-500 hover:ring-offset-2 hover:ring-offset-gray-50 hover:translate-y-[-5px] hover:scale-[1.01] hover:z-10 hover:shadow-purple-500 hover:border-purple-500 hover:ring-2 hover:ring-purple-500 hover:ring-offset-2 hover:ring-offset-gray-50 duration-500 delay-100">
-                                        <Image
-                                            src={shop?.cover_image_url || "/saloon-bg.jpg"}
-                                            alt={shop?.name}
-                                            fill
-                                            className="object-cover"
-                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col justify-between p-6">
-                                            <div className="flex justify-end">
-                                                <div className="flex items-center bg-yellow-400/90 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                                                    <Star className="w-4 h-4 text-white mr-1 fill-white" />
-                                                    <span className="font-bold text-white">5.0</span>
+                                <Link href={`/browse-salons/${shop?.id}`} key={shop?.id} className="block h-full">
+                                    <Card className="group h-full flex flex-col overflow-hidden border border-gray-200/60 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl bg-white hover:-translate-y-1 p-0 gap-0">
+                                        <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-50">
+                                            <Image
+                                                src={shop?.cover_image_url || "/saloon-bg.jpg"}
+                                                alt={shop?.name}
+                                                fill
+                                                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                            />
+                                            <div className="absolute top-3 right-3">
+                                                <div className="flex items-center gap-1 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full shadow-sm border border-white/20">
+                                                    <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                                                    <span className="text-xs font-bold text-gray-900">5.0</span>
                                                 </div>
                                             </div>
-                                            <div className="space-y-3">
-                                                <h3 className="text-white text-3xl font-bold">
+                                        </div>
+
+                                        <div className="flex flex-col flex-1 p-5">
+                                            <div className="mb-1">
+                                                <h3 className="text-lg font-bold text-gray-900 line-clamp-1 group-hover:text-gray-600 transition-colors">
                                                     {shop?.name}
                                                 </h3>
-                                                <div className="flex items-center text-white/90 text-sm">
-                                                    <MapPin className="w-4 h-4 mr-2" />
-                                                    {shop?.address || "Location not available"}
-                                                </div>
-                                                {shop?.description && (
-                                                    <p className="text-white/80 text-sm line-clamp-2">
-                                                        {shop?.description}
-                                                    </p>
-                                                )}
-                                                <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold">
-                                                    View Services
-                                                </Button>
                                             </div>
+
+                                            <div className="flex items-center gap-1.5 text-gray-500 text-sm mb-4">
+                                                <MapPin className="w-3.5 h-3.5 shrink-0" />
+                                                <span className="truncate">{shop?.address || "Address available upon booking"}</span>
+                                            </div>
+
+                                            <div className="flex-1 mb-4">
+                                                <p className="text-gray-500 text-sm line-clamp-2 leading-relaxed">
+                                                    {shop?.description || "Experience top-tier beauty services tailored to your needs."}
+                                                </p>
+                                            </div>
+
+                                            <Button className="w-full bg-gray-900 hover:bg-black text-white font-medium h-11 rounded-xl shadow-none hover:shadow-lg transition-all duration-300">
+                                                View Salon
+                                            </Button>
                                         </div>
                                     </Card>
                                 </Link>

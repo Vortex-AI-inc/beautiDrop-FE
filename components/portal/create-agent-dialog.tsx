@@ -20,6 +20,7 @@ interface CreateAgentDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
     onSuccess: (shop: Shop) => void
+    initialUrl?: string
 }
 
 const TIMEZONES = [
@@ -33,10 +34,11 @@ const TIMEZONES = [
     { value: "Australia/Sydney", label: "Sydney (AEDT)" },
 ]
 
-export function CreateAgentDialog({ open, onOpenChange, onSuccess }: CreateAgentDialogProps) {
+export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }: CreateAgentDialogProps) {
     const { getToken } = useAuth()
     const { toast } = useToast()
     const [activeTab, setActiveTab] = useState("manual")
+    const [manualStep, setManualStep] = useState(1)
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     const [formData, setFormData] = useState<ShopFormData>({
@@ -55,7 +57,7 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess }: CreateAgent
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "America/New_York",
     })
 
-    const [scrapeUrl, setScrapeUrl] = useState("")
+    const [scrapeUrl, setScrapeUrl] = useState(initialUrl || "")
     const [scrapeJob, setScrapeJob] = useState<ScrapeJob | null>(null)
     const [isScraping, setIsScraping] = useState(false)
     const [recentScrapes, setRecentScrapes] = useState<ScrapeJob[]>([])
@@ -70,9 +72,11 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess }: CreateAgent
                 ...prev,
                 timezone: browserTimezone || "America/New_York"
             }))
-            setScrapeUrl("")
-            setScrapeJob(null)
-            setIsScraping(false)
+            setManualStep(1)
+            setScrapeUrl(initialUrl || "")
+            if (initialUrl) {
+                setActiveTab("import")
+            }
             setScrapeJob(null)
             setIsScraping(false)
             setShowReviewModal(false)
@@ -245,169 +249,208 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess }: CreateAgent
                     </TabsList>
 
                     <TabsContent value="manual">
+                        <div className="mb-6">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm font-medium text-gray-500">Step {manualStep} of 2</span>
+                                <span className="text-sm font-medium text-purple-600">{manualStep === 1 ? "Business Info" : "Location & Settings"}</span>
+                            </div>
+                            <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                                <div
+                                    className="bg-purple-600 h-full transition-all duration-300 ease-in-out"
+                                    style={{ width: manualStep === 1 ? '50%' : '100%' }}
+                                />
+                            </div>
+                        </div>
+
                         <form onSubmit={handleManualSubmit} className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="name">Business Name *</Label>
-                                    <Input
-                                        id="name"
-                                        value={formData.name}
-                                        onChange={(e) => updateField("name", e.target.value)}
-                                        required
-                                        placeholder="e.g., Blush Beauty Salon"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="email">Email *</Label>
-                                    <Input
-                                        id="email"
-                                        type="email"
-                                        value={formData.email}
-                                        onChange={(e) => updateField("email", e.target.value)}
-                                        required
-                                        placeholder="contact@example.com"
-                                    />
-                                </div>
-                            </div>
+                            {manualStep === 1 && (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="name">Business Name *</Label>
+                                            <Input
+                                                id="name"
+                                                value={formData.name}
+                                                onChange={(e) => updateField("name", e.target.value)}
+                                                required
+                                                placeholder="e.g., Blush Beauty Salon"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="email">Email *</Label>
+                                            <Input
+                                                id="email"
+                                                type="email"
+                                                value={formData.email}
+                                                onChange={(e) => updateField("email", e.target.value)}
+                                                required
+                                                placeholder="contact@example.com"
+                                            />
+                                        </div>
+                                    </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="description">Description *</Label>
-                                <Textarea
-                                    id="description"
-                                    value={formData.description}
-                                    onChange={(e) => updateField("description", e.target.value)}
-                                    required
-                                    placeholder="Describe your business..."
-                                    rows={3}
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="phone">Phone *</Label>
-                                    <Input
-                                        id="phone"
-                                        type="tel"
-                                        value={formData.phone}
-                                        onChange={(e) => updateField("phone", e.target.value)}
-                                        required
-                                        placeholder="(555) 123-4567"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="website">Website</Label>
-                                    <Input
-                                        id="website"
-                                        type="url"
-                                        value={formData.website}
-                                        onChange={(e) => updateField("website", e.target.value)}
-                                        placeholder="https://example.com"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Location Section */}
-                            <div className="space-y-4 pt-2 border-t border-gray-100">
-                                <h4 className="text-sm font-semibold text-gray-900">Location Details</h4>
-                                <div className="space-y-3">
-                                    <div>
-                                        <Label htmlFor="address">Address *</Label>
-                                        <Input
-                                            id="address"
-                                            value={formData.address}
-                                            onChange={(e) => updateField("address", e.target.value)}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="description">Description *</Label>
+                                        <Textarea
+                                            id="description"
+                                            value={formData.description}
+                                            onChange={(e) => updateField("description", e.target.value)}
                                             required
-                                            placeholder="123 Main Street"
+                                            placeholder="Describe your business..."
+                                            rows={3}
                                         />
                                     </div>
-                                    <div className="grid grid-cols-3 gap-3">
-                                        <div>
-                                            <Label htmlFor="city">City *</Label>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="phone">Phone *</Label>
                                             <Input
-                                                id="city"
-                                                value={formData.city}
-                                                onChange={(e) => updateField("city", e.target.value)}
+                                                id="phone"
+                                                type="tel"
+                                                value={formData.phone}
+                                                onChange={(e) => updateField("phone", e.target.value)}
                                                 required
+                                                placeholder="(555) 123-4567"
                                             />
                                         </div>
-                                        <div>
-                                            <Label htmlFor="state">State *</Label>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="website">Website</Label>
                                             <Input
-                                                id="state"
-                                                value={formData.state}
-                                                onChange={(e) => updateField("state", e.target.value)}
-                                                required
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="postal_code">Zip *</Label>
-                                            <Input
-                                                id="postal_code"
-                                                value={formData.postal_code}
-                                                onChange={(e) => updateField("postal_code", e.target.value)}
-                                                required
+                                                id="website"
+                                                type="url"
+                                                value={formData.website}
+                                                onChange={(e) => updateField("website", e.target.value)}
+                                                placeholder="https://example.com"
                                             />
                                         </div>
                                     </div>
-                                    <div>
-                                        <Label htmlFor="country">Country *</Label>
-                                        <Input
-                                            id="country"
-                                            value={formData.country}
-                                            onChange={(e) => updateField("country", e.target.value)}
-                                            required
-                                            defaultValue="United States"
+
+                                    <div className="flex gap-3 justify-end pt-4 border-t">
+                                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+                                        <Button
+                                            type="button"
+                                            onClick={(e) => {
+                                                const form = e.currentTarget.closest('form')
+                                                if (form?.checkValidity()) {
+                                                    setManualStep(2)
+                                                } else {
+                                                    form?.reportValidity()
+                                                }
+                                            }}
+                                            className="bg-purple-600 hover:bg-purple-700 text-white"
+                                        >
+                                            Next Step
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {manualStep === 2 && (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                                    <div className="space-y-3">
+                                        <h4 className="text-sm font-semibold text-gray-900">Location Details</h4>
+                                        <div>
+                                            <Label htmlFor="address">Address *</Label>
+                                            <Input
+                                                id="address"
+                                                value={formData.address}
+                                                onChange={(e) => updateField("address", e.target.value)}
+                                                required
+                                                placeholder="123 Main Street"
+                                            />
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-3">
+                                            <div>
+                                                <Label htmlFor="city">City *</Label>
+                                                <Input
+                                                    id="city"
+                                                    value={formData.city}
+                                                    onChange={(e) => updateField("city", e.target.value)}
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="state">State *</Label>
+                                                <Input
+                                                    id="state"
+                                                    value={formData.state}
+                                                    onChange={(e) => updateField("state", e.target.value)}
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="postal_code">Zip *</Label>
+                                                <Input
+                                                    id="postal_code"
+                                                    value={formData.postal_code}
+                                                    onChange={(e) => updateField("postal_code", e.target.value)}
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <Label htmlFor="country">Country *</Label>
+                                            <Input
+                                                id="country"
+                                                value={formData.country}
+                                                onChange={(e) => updateField("country", e.target.value)}
+                                                required
+                                                defaultValue="United States"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="timezone">Timezone *</Label>
+                                            <Select
+                                                value={formData.timezone}
+                                                onValueChange={(value) => updateField("timezone", value)}
+                                                required
+                                            >
+                                                <SelectTrigger id="timezone">
+                                                    <SelectValue placeholder="Select timezone" />
+                                                </SelectTrigger>
+                                                <SelectContent className="max-h-[300px]">
+                                                    {TIMEZONES.map((tz) => (
+                                                        <SelectItem key={tz.value} value={tz.value}>
+                                                            {tz.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="cover_image_url">Cover Image URL</Label>
+                                            <Input
+                                                id="cover_image_url"
+                                                value={formData.cover_image_url}
+                                                onChange={(e) => updateField("cover_image_url", e.target.value)}
+                                                placeholder="https://..."
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center space-x-3 pt-2 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                        <Switch
+                                            id="is_active"
+                                            checked={formData.is_active}
+                                            onCheckedChange={(checked) => updateField("is_active", checked)}
                                         />
+                                        <div className="space-y-0.5">
+                                            <Label htmlFor="is_active" className="text-sm font-semibold text-gray-900 cursor-pointer">Activate Shop immediately</Label>
+                                            <p className="text-xs text-gray-500">Your shop will be visible to customers right away.</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-3 justify-end pt-4 border-t">
+                                        <Button type="button" variant="outline" onClick={() => setManualStep(1)}>Back</Button>
+                                        <Button type="submit" disabled={isSubmitting} className="bg-purple-600 hover:bg-purple-700 text-white">
+                                            {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating...</> : "Create Shop"}
+                                        </Button>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="timezone">Timezone *</Label>
-                                    <Select
-                                        value={formData.timezone}
-                                        onValueChange={(value) => updateField("timezone", value)}
-                                        required
-                                    >
-                                        <SelectTrigger id="timezone">
-                                            <SelectValue placeholder="Select timezone" />
-                                        </SelectTrigger>
-                                        <SelectContent className="max-h-[300px]">
-                                            {TIMEZONES.map((tz) => (
-                                                <SelectItem key={tz.value} value={tz.value}>
-                                                    {tz.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="cover_image_url">Cover Image URL</Label>
-                                    <Input
-                                        id="cover_image_url"
-                                        value={formData.cover_image_url}
-                                        onChange={(e) => updateField("cover_image_url", e.target.value)}
-                                        placeholder="https://..."
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex items-center space-x-2 pt-2">
-                                <Switch
-                                    id="is_active"
-                                    checked={formData.is_active}
-                                    onCheckedChange={(checked) => updateField("is_active", checked)}
-                                />
-                                <Label htmlFor="is_active">Activate Shop immediately</Label>
-                            </div>
-
-                            <div className="flex gap-3 justify-end pt-4 border-t">
-                                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-                                <Button type="submit" disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700">
-                                    {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating...</> : "Create Shop"}
-                                </Button>
-                            </div>
+                            )}
                         </form>
                     </TabsContent>
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { Header } from "@/components/layout/header"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Tag, Plus, Loader2, Trash2, Edit2 } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import Image from "next/image"
 import { useParams } from "next/navigation"
@@ -157,91 +158,89 @@ export default function DealsPage() {
                                 </Button>
                             </div>
                         ) : (
-                            <div className="overflow-x-auto">
+                            <div className="overflow-hidden rounded-xl border border-gray-100">
                                 <Table>
                                     <TableHeader>
-                                        <TableRow className="bg-gray-50/50">
-                                            <TableHead className="w-[300px]">Deal Name</TableHead>
-                                            <TableHead>Included Items</TableHead>
-                                            <TableHead>Price</TableHead>
-                                            <TableHead>Status</TableHead>
-                                            <TableHead className="text-right">Actions</TableHead>
+                                        <TableRow className="bg-gray-50 hover:bg-gray-50 border-b border-gray-100">
+                                            <TableHead className="w-[350px] font-semibold text-gray-900 pl-6">DEAL NAME</TableHead>
+                                            <TableHead className="font-semibold text-gray-900">INCLUDED ITEMS</TableHead>
+                                            <TableHead className="font-semibold text-gray-900">PRICE</TableHead>
+                                            <TableHead className="font-semibold text-gray-900">DURATION</TableHead>
+                                            <TableHead className="font-semibold text-gray-900">STATUS</TableHead>
+                                            <TableHead className="text-right font-semibold text-gray-900 pr-6">ACTIONS</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {deals.map((deal) => (
-                                            <TableRow key={deal.id}>
-                                                <TableCell className="font-medium">
-                                                    <div className="flex items-center gap-3">
-                                                        {deal.image_url && (
-                                                            <div className="relative w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
-                                                                <Image
-                                                                    src={deal.image_url}
-                                                                    alt={deal.name}
-                                                                    fill
-                                                                    className="object-cover"
-                                                                />
-                                                            </div>
+                                            <TableRow key={deal.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
+                                                <TableCell className="font-medium align-top py-5 pl-6">
+                                                    <div>
+                                                        <div className="font-bold text-gray-900 text-base mb-1">{deal.name}</div>
+                                                        {deal.description && (
+                                                            <div className="text-sm text-gray-500 line-clamp-2 max-w-[280px] leading-relaxed">{deal.description}</div>
                                                         )}
-                                                        <div>
-                                                            <div className="text-gray-900">{deal.name}</div>
-                                                            {deal.description && (
-                                                                <div className="text-xs text-gray-500 truncate max-w-[250px]">{deal.description}</div>
-                                                            )}
-                                                        </div>
                                                     </div>
                                                 </TableCell>
-                                                <TableCell>
-                                                    <div className="flex flex-wrap gap-1">
+                                                <TableCell className="align-top py-5">
+                                                    <div className="flex flex-wrap gap-2">
                                                         {deal.included_items.slice(0, 3).map((item, idx) => (
-                                                            <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                                            <Badge key={idx} variant="secondary" className="font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100 rounded-lg px-2.5 py-1">
                                                                 {item}
-                                                            </span>
+                                                            </Badge>
                                                         ))}
                                                         {deal.included_items.length > 3 && (
-                                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">
+                                                            <Badge variant="outline" className="font-medium text-gray-500 border-dashed rounded-lg px-2.5 py-1">
                                                                 +{deal.included_items.length - 3} more
-                                                            </span>
+                                                            </Badge>
                                                         )}
                                                     </div>
                                                 </TableCell>
-                                                <TableCell className="font-semibold text-gray-900">
-                                                    ${deal.price}
+                                                <TableCell className="align-top py-5">
+                                                    <div className="text-lg font-bold text-gray-900">${deal.price}</div>
                                                 </TableCell>
-                                                <TableCell>
+                                                <TableCell className="align-top py-5">
+                                                    {deal.duration_minutes ? (
+                                                        <Badge variant="outline" className="font-medium text-gray-600 bg-gray-50 rounded-lg">
+                                                            {deal.duration_minutes} min
+                                                        </Badge>
+                                                    ) : '-'}
+                                                </TableCell>
+                                                <TableCell className="align-top py-5">
                                                     <div className="flex items-center gap-2">
                                                         <Switch
                                                             checked={deal.is_active}
                                                             onCheckedChange={() => handleToggleActive(deal)}
                                                             className="data-[state=checked]:bg-green-500"
                                                         />
-                                                        <span className={`text-xs ${deal.is_active ? 'text-green-600' : 'text-gray-500'}`}>
+                                                        <span className={`text-sm font-medium ${deal.is_active ? 'text-green-600' : 'text-gray-400'}`}>
                                                             {deal.is_active ? 'Active' : 'Inactive'}
                                                         </span>
                                                     </div>
                                                 </TableCell>
-                                                <TableCell className="text-right">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="text-gray-400 hover:text-blue-600 mr-2"
-                                                        onClick={() => handleEdit(deal)}
-                                                    >
-                                                        <Edit2 className="w-4 h-4" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="text-gray-400 hover:text-red-600"
-                                                        onClick={() => handleDelete(deal.id)}
-                                                        disabled={isDeleting === deal.id}
-                                                    >
-                                                        {isDeleting === deal.id ? (
-                                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                                        ) : (
-                                                            <Trash2 className="w-4 h-4" />
-                                                        )}
-                                                    </Button>
+                                                <TableCell className="text-right align-top py-5 pr-6">
+                                                    <div className="flex items-center justify-end gap-1">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-9 w-9 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl"
+                                                            onClick={() => handleEdit(deal)}
+                                                        >
+                                                            <Edit2 className="w-4 h-4" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-9 w-9 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl"
+                                                            onClick={() => handleDelete(deal.id)}
+                                                            disabled={isDeleting === deal.id}
+                                                        >
+                                                            {isDeleting === deal.id ? (
+                                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                            ) : (
+                                                                <Trash2 className="w-4 h-4" />
+                                                            )}
+                                                        </Button>
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                         ))}

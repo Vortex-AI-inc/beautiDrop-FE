@@ -6,7 +6,7 @@ import FCMHandler from '@/components/FCMHandler'
 import Chatbot from '@/components/Chatbot'
 import { GlobalVoiceAgent } from '@/components/GlobalVoiceAgent'
 import { Toaster } from '@/components/ui/toaster'
-
+import { ContactFab } from "@/components/ui/contact-fab"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 
@@ -49,6 +49,7 @@ export const metadata: Metadata = {
   },
 }
 
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -61,6 +62,7 @@ export default function RootLayout({
           <RoleSync />
           <FCMHandler />
           {children}
+          <ContactFab />
           <Chatbot />
           <GlobalVoiceAgent />
           <Toaster />

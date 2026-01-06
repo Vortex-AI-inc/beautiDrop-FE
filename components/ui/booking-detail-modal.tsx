@@ -62,177 +62,167 @@ export function BookingDetailModal({
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm sm:p-6 transition-opacity animate-in fade-in-0">
+            <div className="bg-white rounded-xl shadow-lg max-w-lg w-full max-h-[90vh] overflow-y-auto border border-gray-200 animate-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 px-8 py-6 relative">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                    <div>
+                        <h2 className="text-lg font-semibold text-gray-900">Booking Details</h2>
+                        <p className="text-sm text-gray-500">View and manage this appointment</p>
+                    </div>
                     <button
                         onClick={onClose}
-                        className="absolute top-6 right-6 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all"
+                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
-                    <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-400 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg">
-                            {booking.customer_name.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                            <h2 className="text-2xl font-bold text-white">{booking.customer_name}</h2>
-                            <p className="text-white/90 mt-1">Booking Details</p>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Content */}
-                <div className="p-8 space-y-6">
-                    {/* Status */}
+                <div className="p-6 space-y-6">
+                    {/* Customer Info */}
                     <div className="flex items-center justify-between">
-                        <span className="text-gray-600 font-medium">Status</span>
-                        <span className={`px-4 py-2 rounded-xl text-sm font-bold border-2 ${getStatusColor(booking.status)}`}>
-                            {booking.status.charAt(0).toUpperCase() + booking.status.slice(1).replace('_', ' ')}
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold text-lg">
+                                {booking.customer_name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <h3 className="font-medium text-gray-900 text-lg">{booking.customer_name}</h3>
+                                {booking.customer_email && (
+                                    <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                                        <Mail className="w-3.5 h-3.5" />
+                                        <a href={`mailto:${booking.customer_email}`} className="hover:text-blue-600 hover:underline">
+                                            {booking.customer_email}
+                                        </a>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusColor(booking.status)}`}>
+                            {booking.status.replace('_', ' ').toUpperCase()}
                         </span>
                     </div>
 
-                    {/* Date & Time */}
-                    <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6 space-y-4">
-                        <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                                <Calendar className="w-5 h-5 text-blue-600" />
+                    <div className="border-t border-gray-100"></div>
+
+                    {/* Details Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="p-3 bg-gray-50 rounded-lg space-y-1">
+                            <div className="flex items-center gap-2 text-xs font-medium text-gray-500 uppercase">
+                                <Calendar className="w-3.5 h-3.5" />
+                                Date
                             </div>
-                            <div>
-                                <div className="text-sm text-gray-600 font-medium mb-1">Date</div>
-                                <div className="text-lg font-bold text-gray-900">{formatDate(booking.booking_datetime)}</div>
+                            <div className="text-sm font-semibold text-gray-900">{formatDate(booking.booking_datetime)}</div>
+                        </div>
+                        <div className="p-3 bg-gray-50 rounded-lg space-y-1">
+                            <div className="flex items-center gap-2 text-xs font-medium text-gray-500 uppercase">
+                                <Clock className="w-3.5 h-3.5" />
+                                Time
+                            </div>
+                            <div className="text-sm font-semibold text-gray-900">{formatTime(booking.booking_datetime)}</div>
+                        </div>
+                        <div className="p-3 bg-gray-50 rounded-lg space-y-1 col-span-1 sm:col-span-2">
+                            <div className="flex items-center gap-2 text-xs font-medium text-gray-500 uppercase">
+                                <Tag className="w-3.5 h-3.5" />
+                                Service
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold text-gray-900">{booking.item_name || booking.service_name || booking.deal_name}</span>
+                                {booking.is_deal_booking && (
+                                    <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-[10px] font-bold">DEAL</span>
+                                )}
                             </div>
                         </div>
-                        <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                                <Clock className="w-5 h-5 text-purple-600" />
+                        <div className="p-3 bg-gray-50 rounded-lg space-y-1 col-span-1 sm:col-span-2">
+                            <div className="flex items-center gap-2 text-xs font-medium text-gray-500 uppercase">
+                                <Users className="w-3.5 h-3.5" />
+                                Staff Member
                             </div>
-                            <div>
-                                <div className="text-sm text-gray-600 font-medium mb-1">Time</div>
-                                <div className="text-lg font-bold text-gray-900">{formatTime(booking.booking_datetime)}</div>
-                            </div>
+                            <div className="text-sm font-semibold text-gray-900">{booking.staff_member_name || 'Unassigned'}</div>
                         </div>
                     </div>
 
-                    {/* Service Details */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center">
-                                <Tag className="w-5 h-5 text-pink-600" />
-                            </div>
-                            <div className="flex-1">
-                                <div className="text-sm text-gray-600 font-medium">Service</div>
-                                <div className="text-lg font-bold text-gray-900">{booking.service_name}</div>
-                            </div>
-                        </div>
-
-                        {booking.staff_member_name && (
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
-                                    <Users className="w-5 h-5 text-indigo-600" />
-                                </div>
-                                <div className="flex-1">
-                                    <div className="text-sm text-gray-600 font-medium">Staff Member</div>
-                                    <div className="text-lg font-bold text-gray-900">{booking.staff_member_name}</div>
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                                <DollarSign className="w-5 h-5 text-green-600" />
-                            </div>
-                            <div className="flex-1">
-                                <div className="text-sm text-gray-600 font-medium">Total Price</div>
-                                <div className="text-2xl font-bold text-green-600">${booking.total_price}</div>
-                            </div>
-                        </div>
+                    {/* Price */}
+                    <div className="flex justify-between items-center p-4 bg-green-50 border border-green-100 rounded-xl">
+                        <span className="text-sm font-medium text-green-800">Total Price</span>
+                        <span className="text-2xl font-bold text-green-700">${booking.total_price}</span>
                     </div>
 
-                    {/* Customer Contact */}
-                    {booking.customer_email && (
-                        <div className="border-t border-gray-200 pt-6 space-y-3">
-                            <h3 className="font-bold text-gray-900 text-lg mb-4">Customer Contact</h3>
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                                    <Mail className="w-5 h-5 text-blue-600" />
-                                </div>
-                                <div>
-                                    <div className="text-sm text-gray-600">Email</div>
-                                    <a href={`mailto:${booking.customer_email}`} className="text-blue-600 hover:underline font-medium">
-                                        {booking.customer_email}
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
+                </div>
+
+                {/* Footer Actions */}
+                <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row gap-3 rounded-b-xl">
+                    {booking.status === 'pending' && onConfirm && (
+                        <Button
+                            onClick={() => onConfirm(booking.id)}
+                            disabled={isActioning}
+                            className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 rounded-lg shadow-sm transition-all"
+                        >
+                            {isActioning ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Confirming...
+                                </>
+                            ) : (
+                                <>
+                                    <CheckCircle className="w-4 h-4 mr-2" />
+                                    Confirm Booking
+                                </>
+                            )}
+                        </Button>
                     )}
-
-                    {/* Actions */}
-                    <div className="border-t border-gray-200 pt-6 flex gap-3">
-                        {booking.status === 'pending' && onConfirm && (
-                            <Button
-                                onClick={() => onConfirm(booking.id)}
-                                disabled={isActioning}
-                                className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all"
-                            >
-                                {isActioning ? (
-                                    <>
-                                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                        Confirming...
-                                    </>
-                                ) : (
-                                    <>
-                                        <CheckCircle className="w-5 h-5 mr-2" />
-                                        Confirm Booking
-                                    </>
-                                )}
-                            </Button>
-                        )}
-                        {booking.status === 'confirmed' && (
-                            <>
-                                {onComplete && (
-                                    <Button
-                                        onClick={() => onComplete(booking.id)}
-                                        disabled={isActioning}
-                                        className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all"
-                                    >
-                                        {isActioning ? (
-                                            <>
-                                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                                Completing...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <CheckCircle className="w-5 h-5 mr-2" />
-                                                Mark Completed
-                                            </>
-                                        )}
-                                    </Button>
-                                )}
-                                {onNoShow && (
-                                    <Button
-                                        onClick={() => onNoShow(booking.id)}
-                                        disabled={isActioning}
-                                        variant="outline"
-                                        className="flex-1 border-2 border-red-200 text-red-600 hover:bg-red-50 font-bold py-3 rounded-xl transition-all"
-                                    >
-                                        {isActioning ? (
-                                            <>
-                                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                                Processing...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <X className="w-5 h-5 mr-2" />
-                                                Mark No-Show
-                                            </>
-                                        )}
-                                    </Button>
-                                )}
-                            </>
-                        )}
-                    </div>
+                    {booking.status === 'confirmed' && (
+                        <>
+                            {onComplete && (
+                                <Button
+                                    onClick={() => onComplete(booking.id)}
+                                    disabled={isActioning}
+                                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg shadow-sm transition-all"
+                                >
+                                    {isActioning ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            Saving...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CheckCircle className="w-4 h-4 mr-2" />
+                                            Complete
+                                        </>
+                                    )}
+                                </Button>
+                            )}
+                            {onNoShow && (
+                                <Button
+                                    onClick={() => onNoShow(booking.id)}
+                                    disabled={isActioning}
+                                    variant="outline"
+                                    className="flex-1 border-red-200 text-red-600 hover:bg-red-50 font-medium py-2 rounded-lg transition-all"
+                                >
+                                    {isActioning ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <X className="w-4 h-4 mr-2" />
+                                            No Show
+                                        </>
+                                    )}
+                                </Button>
+                            )}
+                        </>
+                    )}
+                    {!['pending', 'confirmed'].includes(booking.status) && (
+                        <Button
+                            onClick={onClose}
+                            variant="outline"
+                            className="w-full sm:w-auto ml-auto"
+                        >
+                            Close
+                        </Button>
+                    )}
                 </div>
             </div>
         </div>

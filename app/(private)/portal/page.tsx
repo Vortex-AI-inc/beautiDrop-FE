@@ -67,6 +67,8 @@ export default function PortalPage() {
     const [selectedScrapeJob, setSelectedScrapeJob] = useState<ScrapeJob | null>(null)
     const [showReviewModal, setShowReviewModal] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [showUrlModal, setShowUrlModal] = useState(false)
+    const [scrapeUrl, setScrapeUrl] = useState("")
 
     const loadShops = async () => {
         try {
@@ -89,8 +91,8 @@ export default function PortalPage() {
             if (!token) return
 
             const jobs = await listScrapeJobs(token)
-            const pendingJobs = jobs.filter(job => job.status !== 'confirmed')
-            setRecentScrapes(pendingJobs.slice(0, 10))
+            const completedJobs = jobs.filter(job => job.status === 'completed')
+            setRecentScrapes(completedJobs.slice(0, 10))
         } catch (error) {
         } finally {
             setIsLoadingScrapes(false)
@@ -576,10 +578,76 @@ export default function PortalPage() {
                                         </div>
                                     </div>
                                 </div>
-                                <Button className="bg-purple-600 hover:bg-purple-700 text-white whitespace-nowrap">
+                                <Button
+                                    className="bg-purple-600 hover:bg-purple-700 text-white whitespace-nowrap"
+                                    onClick={() => setShowUrlModal(true)}
+                                >
                                     <Wand2 className="w-4 h-4 mr-2" />
                                     Start Auto-Import
                                 </Button>
+                            </div>
+
+                            <div className="mt-6 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-xl font-bold text-gray-900">Pending Scrapes</h2>
+                                    <Button variant="outline" size="sm" onClick={() => setShowUrlModal(true)}>
+                                        <Wand2 className="w-4 h-4 mr-2" />
+                                        New Import
+                                    </Button>
+                                </div>
+                                {isLoadingScrapes ? (
+                                    <div className="text-center py-8">
+                                        <Loader2 className="w-8 h-8 animate-spin mx-auto text-gray-400" />
+                                    </div>
+                                ) : recentScrapes.length > 0 ? (
+                                    <div className="space-y-3">
+                                        {recentScrapes.map((job) => (
+                                            <div key={job.id} className="bg-gray-50 border rounded-lg p-4 flex items-center justify-between hover:bg-gray-100 transition-colors">
+                                                <div className="flex-1 min-w-0 mr-4">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <Globe className="w-4 h-4 text-gray-400" />
+                                                        <p className="text-sm font-medium text-gray-900 truncate">{job.url}</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                                                        <span className={`capitalize px-2 py-1 rounded-sm font-medium ${job.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                                            job.status === 'failed' ? 'bg-red-100 text-red-700' :
+                                                                'bg-blue-100 text-blue-700'
+                                                            }`}>
+                                                            {job.status}
+                                                        </span>
+                                                        <span>{new Date(job.created_at).toLocaleDateString()}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    {job.status === 'completed' && (
+                                                        <Button
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                handleReviewScrape(job.id)
+                                                            }}
+                                                        >
+                                                            Review & Create
+                                                        </Button>
+                                                    )}
+                                                    <Button
+                                                        size="sm"
+                                                        variant="destructive"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            handleDeleteScrape(job.id)
+                                                        }}
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-8 text-gray-500">
+                                        <p>No pending scrapes. Start an auto-import to get started!</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -591,8 +659,10 @@ export default function PortalPage() {
             <CreateAgentDialog
                 open={isCreateDialogOpen}
                 onOpenChange={setIsCreateDialogOpen}
+                initialUrl={scrapeUrl}
                 onSuccess={() => {
                     loadShops()
+                    setScrapeUrl("")
                 }}
             />
 
@@ -620,6 +690,57 @@ export default function PortalPage() {
                 onConfirm={handleConfirmScrapeImport}
                 isSubmitting={isSubmitting}
             />
+
+            <AlertDialog open={showUrlModal} onOpenChange={setShowUrlModal}>
+                <AlertDialogContent className="max-w-md">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                            <Wand2 className="w-5 h-5 text-purple-600" />
+                            Start Auto-Import
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Enter your website URL and we'll automatically extract your services, staff, and business details.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="py-4">
+                        <label className="text-sm font-medium text-gray-700 mb-2 block">
+                            Website URL
+                        </label>
+                        <div className="relative">
+                            <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <input
+                                type="url"
+                                value={scrapeUrl}
+                                onChange={(e) => setScrapeUrl(e.target.value)}
+                                placeholder="https://yourbusiness.com"
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">
+                            Make sure the URL is publicly accessible
+                        </p>
+                    </div>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => {
+                            setScrapeUrl("")
+                            setShowUrlModal(false)
+                        }}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                setShowUrlModal(false)
+                                setIsCreateDialogOpen(true)
+                            }}
+                            disabled={!scrapeUrl || !scrapeUrl.startsWith('http')}
+                            className="bg-purple-600 hover:bg-purple-700"
+                        >
+                            <Wand2 className="w-4 h-4 mr-2" />
+                            Start Scraping
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </main>
     )
 }

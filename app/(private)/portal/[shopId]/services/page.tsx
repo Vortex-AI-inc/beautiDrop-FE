@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, Sparkles, Scissors, Trash2, Loader2, Edit2, UserPlus } from "lucide-react"
+import { ArrowLeft, Sparkles, Scissors, Trash2, Loader2, Edit2, UserPlus, Check, X, AlertTriangle, AlertCircle, Plus, Search } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
@@ -52,6 +52,8 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 
 export default function ServicesManagementPage() {
     const params = useParams()
@@ -427,87 +429,299 @@ export default function ServicesManagementPage() {
     }
 
     return (
-        <main className="min-h-screen bg-slate-50">
+        <main className="min-h-screen bg-gray-50/50">
             <Header />
 
-            <div className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-6xl mx-auto">
-                    <div className="flex items-center justify-between mb-8">
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900">Services Management</h1>
-                            <p className="text-gray-600">Manage your services and assign staff members</p>
+            <div className="pt-28 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                            <Link href={`/portal/${shopId}`} className="hover:text-foreground transition-colors">Dashboard</Link>
+                            <span>/</span>
+                            <span className="text-foreground font-medium">Services</span>
                         </div>
-                        <Link href={`/portal/${shopId}`} className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
-                            <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-                        </Link>
+                        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Services</h1>
+                        <p className="text-muted-foreground">Manage your service menu and assign staff.</p>
+                    </div>
+                </div>
+
+                {/* Notifications */}
+                {services.some(s => !s.assigned_staff || s.assigned_staff.length === 0) && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 shrink-0" />
+                        <div>
+                            <h3 className="font-semibold text-yellow-900">Setup Required</h3>
+                            <p className="text-sm text-yellow-700 mt-1">Some services are not assigned to any staff members. These won't appear in the booking system until assigned.</p>
+                        </div>
+                    </div>
+                )}
+
+                <div className="grid lg:grid-cols-3 gap-8">
+                    {/* Add Service Card (Left Column) */}
+                    <div className="lg:col-span-1">
+                        <Card className="sticky top-32">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Plus className="w-5 h-5 text-primary" />
+                                    Add New Service
+                                </CardTitle>
+                                <CardDescription>Create a new service offering.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="serviceName">Name <span className="text-red-500">*</span></Label>
+                                    <Input
+                                        id="serviceName"
+                                        placeholder="e.g. Haircut"
+                                        value={formData.name}
+                                        onChange={(e) => handleInputChange('name', e.target.value)}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="duration">Minutes <span className="text-red-500">*</span></Label>
+                                        <Input
+                                            id="duration"
+                                            type="number"
+                                            placeholder="60"
+                                            value={formData.duration}
+                                            onChange={(e) => handleInputChange('duration', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="price">Price ($) <span className="text-red-500">*</span></Label>
+                                        <Input
+                                            id="price"
+                                            type="number"
+                                            step="0.01"
+                                            placeholder="50.00"
+                                            value={formData.price}
+                                            onChange={(e) => handleInputChange('price', e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="category">Category</Label>
+                                    <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {CATEGORIES.map((category) => (
+                                                <SelectItem key={category} value={category}>{category}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="description">Description (Optional)</Label>
+                                    <Textarea
+                                        id="description"
+                                        placeholder="Short description..."
+                                        className="h-20 resize-none"
+                                        value={formData.description}
+                                        onChange={(e) => handleInputChange('description', e.target.value)}
+                                    />
+                                </div>
+                                <Button
+                                    className="w-full"
+                                    onClick={handleSubmit}
+                                    disabled={isSubmitting || !formData.name.trim() || !formData.duration || parseFloat(formData.duration) <= 0 || !formData.price || parseFloat(formData.price) <= 0}
+                                >
+                                    {isSubmitting ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            Adding Service...
+                                        </>
+                                    ) : (
+                                        "Add Service"
+                                    )}
+                                </Button>
+                            </CardContent>
+                        </Card>
                     </div>
 
-
-                    {services.some(s => !s.assigned_staff || s.assigned_staff.length === 0) && (
-                        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-8 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
-                                    <span className="text-yellow-600 font-bold">!</span>
-                                </div>
+                    {/* Services List (Right Column) */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6 border-b border-gray-100">
                                 <div>
-                                    <h3 className="font-semibold text-gray-900">Action Required: Unassigned Services</h3>
-                                    <p className="text-sm text-gray-600">These services won't appear in your booking system until staff members are assigned.</p>
+                                    <CardTitle>Service Menu</CardTitle>
+                                    <CardDescription>Manage your existing services.</CardDescription>
                                 </div>
-                            </div>
+                                {/* Could add Search/Filter here later */}
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                {isLoading ? (
+                                    <div className="flex flex-col items-center justify-center py-16">
+                                        <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
+                                        <p className="text-muted-foreground">Loading service menu...</p>
+                                    </div>
+                                ) : services.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-16 text-center px-4">
+                                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                                            <Scissors className="w-8 h-8 text-gray-400" />
+                                        </div>
+                                        <h3 className="text-lg font-semibold text-gray-900">Your menu is empty</h3>
+                                        <p className="text-gray-500 max-w-sm mt-1">Add your first service using the form on the left to get started.</p>
+                                    </div>
+                                ) : (
+                                    <div className="overflow-x-auto">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow className="bg-gray-50/50">
+                                                    <TableHead className="w-[30%]">Service</TableHead>
+                                                    <TableHead>Details</TableHead>
+                                                    <TableHead className="w-[30%]">Staff</TableHead>
+                                                    <TableHead className="text-right">Actions</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {services.map((service) => (
+                                                    <TableRow key={service.id} className="hover:bg-gray-50/50">
+                                                        <TableCell className="align-top">
+                                                            <div>
+                                                                <div className="font-semibold text-gray-900 flex items-center gap-2">
+                                                                    {service.name}
+                                                                    {(!service.assigned_staff || service.assigned_staff.length === 0) && (
+                                                                        <AlertCircle className="w-4 h-4 text-yellow-500" />
+                                                                    )}
+                                                                </div>
+                                                                <div className="mt-2 text-xs font-medium text-blue-600 bg-blue-50 inline-block px-2 py-0.5 rounded-md">
+                                                                    {service.category || "General"}
+                                                                </div>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell className="align-top whitespace-nowrap">
+                                                            <div className="text-sm font-medium text-gray-900">${parseFloat(service.price).toFixed(2)}</div>
+                                                            <div className="text-xs text-gray-500">{service.duration_minutes} min</div>
+                                                        </TableCell>
+                                                        <TableCell className="align-top">
+                                                            {(!service.assigned_staff || service.assigned_staff.length === 0) ? (
+                                                                <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100">
+                                                                    Unassigned
+                                                                </Badge>
+                                                            ) : (
+                                                                <div className="flex flex-wrap gap-1.5">
+                                                                    {service.assigned_staff.map((staff) => (
+                                                                        <Badge
+                                                                            key={staff.staff_id}
+                                                                            variant="secondary"
+                                                                            className="bg-gray-100 text-gray-700 hover:bg-gray-200 gap-1 pr-1 pl-2 font-normal"
+                                                                        >
+                                                                            {staff.staff_name}
+                                                                            <button
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation()
+                                                                                    initiateRemoveStaffFromService(staff.staff_id, service.id, staff.staff_name)
+                                                                                }}
+                                                                                className="ml-0.5 rounded-full p-0.5 hover:bg-red-100 text-gray-400 hover:text-red-600 transition-colors"
+                                                                            >
+                                                                                <X className="w-3 h-3" />
+                                                                            </button>
+                                                                        </Badge>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </TableCell>
+                                                        <TableCell className="align-top text-right">
+                                                            <div className="flex items-center justify-end gap-1">
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant={(!service.assigned_staff || service.assigned_staff.length === 0) ? "default" : "outline"}
+                                                                    className={(!service.assigned_staff || service.assigned_staff.length === 0)
+                                                                        ? "h-8 bg-black hover:bg-gray-800 text-white shadow-sm"
+                                                                        : "h-8 border-dashed text-gray-500 hover:text-primary"}
+                                                                    onClick={() => handleAssignStaffClick(service)}
+                                                                >
+                                                                    <UserPlus className="w-3.5 h-3.5 mr-1.5" />
+                                                                    Assign
+                                                                </Button>
+                                                                <div className="w-px h-4 bg-gray-200 mx-1"></div>
+                                                                <Button
+                                                                    size="icon"
+                                                                    variant="ghost"
+                                                                    className="h-8 w-8 text-gray-400 hover:text-blue-600"
+                                                                    onClick={() => handleEditClick(service)}
+                                                                >
+                                                                    <Edit2 className="w-4 h-4" />
+                                                                </Button>
+                                                                <Button
+                                                                    size="icon"
+                                                                    variant="ghost"
+                                                                    className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                                                                    onClick={() => handleDeleteService(service.id)}
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </Button>
 
-                        </div>
-                    )}
+                                                            </div>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                )}
+                            </CardContent>
+                            {nextPage && (
+                                <div className="p-4 border-t flex justify-center">
+                                    <Button variant="outline" size="sm" onClick={loadMoreServices} disabled={isLoadingMore}>
+                                        {isLoadingMore ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                                        Load More
+                                    </Button>
+                                </div>
+                            )}
+                        </Card>
+                    </div>
+                </div>
+            </div>
 
-
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center gap-2">
-                                <Scissors className="w-5 h-5 text-blue-600" />
-                                <h2 className="text-lg font-bold text-gray-900">Add New Service</h2>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            {/* Edit Modal */}
+            <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                <DialogContent className="sm:max-w-[600px]">
+                    <DialogHeader>
+                        <DialogTitle>Edit Service</DialogTitle>
+                        <DialogDescription>
+                            Make changes to your service here. Click save when you're done.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="serviceName">Service Name <span className="text-red-500">*</span></Label>
+                                <Label htmlFor="edit-name">Service Name</Label>
                                 <Input
-                                    id="serviceName"
-                                    placeholder="e.g. Haircut, Color, Massage"
-                                    className="placeholder:text-gray-400"
+                                    id="edit-name"
                                     value={formData.name}
                                     onChange={(e) => handleInputChange('name', e.target.value)}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="duration">Duration (minutes) <span className="text-red-500">*</span></Label>
+                                <Label htmlFor="edit-duration">Duration (min)</Label>
                                 <Input
-                                    id="duration"
+                                    id="edit-duration"
                                     type="number"
-                                    placeholder="60"
-                                    className="placeholder:text-gray-400"
                                     value={formData.duration}
                                     onChange={(e) => handleInputChange('duration', e.target.value)}
                                 />
                             </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="price">Price ($) <span className="text-red-500">*</span></Label>
+                                <Label htmlFor="edit-price">Price ($)</Label>
                                 <Input
-                                    id="price"
+                                    id="edit-price"
                                     type="number"
                                     step="0.01"
-                                    placeholder="50.00"
-                                    className="placeholder:text-gray-400"
                                     value={formData.price}
                                     onChange={(e) => handleInputChange('price', e.target.value)}
                                 />
                             </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             <div className="space-y-2">
-                                <Label htmlFor="category">Category</Label>
+                                <Label htmlFor="edit-category">Category</Label>
                                 <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
-                                    <SelectTrigger>
+                                    <SelectTrigger id="edit-category">
                                         <SelectValue placeholder="Select category" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -519,340 +733,107 @@ export default function ServicesManagementPage() {
                                     </SelectContent>
                                 </Select>
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="description">Description</Label>
-                                <Input
-                                    id="description"
-                                    placeholder="Brief description of the service..."
-                                    className="placeholder:text-gray-400"
-                                    value={formData.description}
-                                    onChange={(e) => handleInputChange('description', e.target.value)}
-                                />
-                            </div>
                         </div>
-
-                        <div className="flex justify-end">
-                            <Button
-                                className="bg-blue-600 hover:bg-blue-700 text-white"
-                                onClick={handleSubmit}
-                                disabled={isSubmitting || !formData.name.trim() || !formData.duration || parseFloat(formData.duration) <= 0 || !formData.price || parseFloat(formData.price) <= 0}
-                            >
-                                {isSubmitting ? (
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                ) : (
-                                    <Scissors className="w-4 h-4 mr-2" />
-                                )}
-                                {isSubmitting ? "Adding..." : "Add Service"}
-                            </Button>
+                        <div className="space-y-2">
+                            <Label htmlFor="edit-description">Description</Label>
+                            <Textarea
+                                id="edit-description"
+                                value={formData.description}
+                                onChange={(e) => handleInputChange('description', e.target.value)}
+                            />
                         </div>
                     </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
+                        <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-blue-600 text-white">
+                            {isSubmitting ? "Saving..." : "Save Changes"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
-                    <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-                        <DialogContent className="sm:max-w-[600px]">
-                            <DialogHeader>
-                                <DialogTitle>Edit Service</DialogTitle>
-                                <DialogDescription>
-                                    Make changes to your service here. Click save when you're done.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="grid gap-4 py-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="edit-name">Service Name</Label>
-                                        <Input
-                                            id="edit-name"
-                                            value={formData.name}
-                                            onChange={(e) => handleInputChange('name', e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="edit-duration">Duration (min)</Label>
-                                        <Input
-                                            id="edit-duration"
-                                            type="number"
-                                            value={formData.duration}
-                                            onChange={(e) => handleInputChange('duration', e.target.value)}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="edit-price">Price ($)</Label>
-                                        <Input
-                                            id="edit-price"
-                                            type="number"
-                                            step="0.01"
-                                            value={formData.price}
-                                            onChange={(e) => handleInputChange('price', e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="edit-category">Category</Label>
-                                        <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
-                                            <SelectTrigger id="edit-category">
-                                                <SelectValue placeholder="Select category" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {CATEGORIES.map((category) => (
-                                                    <SelectItem key={category} value={category}>
-                                                        {category}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="edit-description">Description</Label>
-                                    <Textarea
-                                        id="edit-description"
-                                        value={formData.description}
-                                        onChange={(e) => handleInputChange('description', e.target.value)}
-                                    />
-                                </div>
+            {/* Staff Assignment Modal */}
+            <Dialog open={isStaffModalOpen} onOpenChange={setIsStaffModalOpen}>
+                <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                        <DialogTitle>Assign Staff to {selectedServiceForStaff?.name}</DialogTitle>
+                        <DialogDescription>
+                            Select staff members who can perform this service.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                        {isLoadingStaff ? (
+                            <div className="flex justify-center py-8">
+                                <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
                             </div>
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
-                                <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-blue-600 text-white">
-                                    {isSubmitting ? "Saving..." : "Save Changes"}
-                                </Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-
-                    <Dialog open={isStaffModalOpen} onOpenChange={setIsStaffModalOpen}>
-                        <DialogContent className="sm:max-w-[500px]">
-                            <DialogHeader>
-                                <DialogTitle>Assign Staff to {selectedServiceForStaff?.name}</DialogTitle>
-                                <DialogDescription>
-                                    Select staff members who can perform this service.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="py-4">
-                                {isLoadingStaff ? (
-                                    <div className="flex justify-center py-8">
-                                        <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
-                                    </div>
-                                ) : availableStaff.length === 0 ? (
-                                    <div className="text-center py-8">
-                                        <p className="text-gray-500 mb-4">No staff members available.</p>
-                                        <Link href={`/portal/${shopId}/staff`}>
-                                            <Button variant="outline" size="sm">
-                                                Add Staff Members
-                                            </Button>
-                                        </Link>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-3 max-h-[300px] overflow-y-auto">
-                                        {availableStaff.map((staff) => {
-                                            const isAlreadyAssigned = selectedServiceForStaff?.assigned_staff?.some(s => s.staff_id === staff.id)
-
-                                            return (
-                                                <div
-                                                    key={staff.id}
-                                                    className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${isAlreadyAssigned
-                                                        ? 'bg-gray-50 opacity-60 cursor-not-allowed'
-                                                        : 'hover:bg-gray-50 cursor-pointer'
-                                                        }`}
-                                                    onClick={() => !isAlreadyAssigned && handleStaffToggle(staff.id)}
-                                                >
-                                                    <Checkbox
-                                                        checked={selectedStaffIds.includes(staff.id)}
-                                                        className="pointer-events-none"
-                                                        disabled={isAlreadyAssigned}
-                                                    />
-                                                    <div className="flex-1">
-                                                        <p className="font-medium text-gray-900">{staff.name}</p>
-                                                        {staff.email && (
-                                                            <p className="text-sm text-gray-500">{staff.email}</p>
-                                                        )}
-                                                    </div>
-                                                    {staff.is_active ? (
-                                                        <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">
-                                                            Active
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
-                                                            Inactive
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            )
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => setIsStaffModalOpen(false)}>
-                                    Cancel
-                                </Button>
-                                <Button
-                                    onClick={handleAssignStaff}
-                                    disabled={isAssigningStaff || selectedStaffIds.length === 0}
-                                    className="bg-blue-600 text-white"
-                                >
-                                    {isAssigningStaff ? (
-                                        <>
-                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                            Assigning...
-                                        </>
-                                    ) : (
-                                        `Assign ${selectedStaffIds.length} Staff`
-                                    )}
-                                </Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="bg-teal-500 px-6 py-4 flex items-center gap-2">
-                            <Scissors className="w-5 h-5 text-white" />
-                            <h2 className="text-lg font-bold text-white">Your Services</h2>
-                        </div>
-
-                        {isLoading ? (
-                            <div className="text-center py-12">
-                                <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-4" />
-                                <p className="text-gray-600">Loading services...</p>
-                            </div>
-                        ) : services.length === 0 ? (
-                            <div className="text-center py-12">
-                                <Scissors className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Services Yet</h3>
-                                <p className="text-gray-600">Start by adding your first service offering</p>
+                        ) : availableStaff.length === 0 ? (
+                            <div className="text-center py-8">
+                                <p className="text-gray-500 mb-4">No staff members available.</p>
+                                <Link href={`/portal/${shopId}/staff`}>
+                                    <Button variant="outline" size="sm">
+                                        Add Staff Members
+                                    </Button>
+                                </Link>
                             </div>
                         ) : (
-                            <div className="overflow-x-auto">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead className="font-bold text-gray-900">Service</TableHead>
-                                            <TableHead className="font-bold text-gray-900">Duration</TableHead>
-                                            <TableHead className="font-bold text-gray-900">Price</TableHead>
-                                            <TableHead className="font-bold text-gray-900">Description</TableHead>
-                                            <TableHead className="font-bold text-gray-900"> Category</TableHead>
-                                            <TableHead className="font-bold text-gray-900">Staff</TableHead>
-                                            <TableHead className="text-right font-bold text-gray-900">Actions</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {services.map((service) => (
-                                            <TableRow key={service.id} className={(!service.assigned_staff || service.assigned_staff.length === 0) ? "bg-yellow-50/50 hover:bg-yellow-50" : ""}>
-                                                <TableCell className="font-medium">
-                                                    <div className="flex items-center gap-2">
-                                                        {(!service.assigned_staff || service.assigned_staff.length === 0) && (
-                                                            <div className="w-4 h-4 rounded-full bg-yellow-400 flex items-center justify-center text-[10px] font-bold text-white">!</div>
-                                                        )}
-                                                        {service.name}
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>{service.duration_minutes} min</TableCell>
-                                                <TableCell>${parseFloat(service.price).toFixed(2)}</TableCell>
-                                                <TableCell className="max-w-xs truncate">
-                                                    {service.description || "-"}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                        {service.category || "General"}
-                                                    </span>
-                                                </TableCell>
-                                                <TableCell>
-                                                    {(!service.assigned_staff || service.assigned_staff.length === 0) ? (
-                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
-                                                            <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full mr-1.5"></span>
-                                                            Not Assigned
-                                                        </span>
-                                                    ) : (
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {service.assigned_staff.map((staff, index) => (
-                                                                <span
-                                                                    key={staff.staff_id}
-                                                                    className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 group"
-                                                                >
-                                                                    {staff.staff_name}
-                                                                    {staff.is_primary && (
-                                                                        <span className="ml-1 text-[10px]">★</span>
-                                                                    )}
-                                                                    <button
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation()
-                                                                            initiateRemoveStaffFromService(staff.staff_id, service.id, staff.staff_name)
-                                                                        }}
-                                                                        className="ml-1.5 text-blue-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                                    >
-                                                                        ×
-                                                                    </button>
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    <div className="flex items-center justify-end gap-1">
-                                                        <Button
-                                                            size="sm"
-                                                            variant={(!service.assigned_staff || service.assigned_staff.length === 0) ? "default" : "ghost"}
-                                                            className={(!service.assigned_staff || service.assigned_staff.length === 0)
-                                                                ? "bg-yellow-400 hover:bg-yellow-500 text-black border-0 text-xs font-semibold h-7"
-                                                                : "h-8 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"}
-                                                            onClick={() => handleAssignStaffClick(service)}
-                                                            title="Assign Staff"
-                                                        >
-                                                            {(!service.assigned_staff || service.assigned_staff.length === 0) ? (
-                                                                "+ Assign Now"
-                                                            ) : (
-                                                                <UserPlus className="w-4 h-4" />
-                                                            )}
-                                                        </Button>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => handleEditClick(service)}
-                                                            className="h-8 px-2 text-gray-500 hover:text-blue-600"
-                                                        >
-                                                            <Edit2 className="w-3 h-3" />
-                                                        </Button>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => handleDeleteService(service.id)}
-                                                            className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-50 text-xs font-medium"
-                                                        >
-                                                            <Trash2 className="w-3 h-3  mr-1" />
+                            <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                                {availableStaff.map((staff) => {
+                                    const isAlreadyAssigned = selectedServiceForStaff?.assigned_staff?.some(s => s.staff_id === staff.id)
 
-                                                        </Button>
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </div>
-                        )}
-
-                        {nextPage && (
-                            <div className="flex justify-center p-6 border-t border-gray-100">
-                                <Button
-                                    variant="outline"
-                                    onClick={loadMoreServices}
-                                    disabled={isLoadingMore}
-                                    className="min-w-[200px]"
-                                >
-                                    {isLoadingMore ? (
-                                        <>
-                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                            Loading more...
-                                        </>
-                                    ) : (
-                                        "Load More Services"
-                                    )}
-                                </Button>
+                                    return (
+                                        <div
+                                            key={staff.id}
+                                            className={`flex items-center space-x-3 p-3 rounded-lg transition-colors border border-transparent ${isAlreadyAssigned
+                                                ? 'bg-gray-50 opacity-60 cursor-not-allowed'
+                                                : 'hover:bg-gray-50 hover:border-gray-100 cursor-pointer'
+                                                }`}
+                                            onClick={() => !isAlreadyAssigned && handleStaffToggle(staff.id)}
+                                        >
+                                            <Checkbox
+                                                checked={selectedStaffIds.includes(staff.id)}
+                                                className="pointer-events-none"
+                                                disabled={isAlreadyAssigned}
+                                            />
+                                            <div className="flex-1">
+                                                <p className="font-medium text-gray-900">{staff.name}</p>
+                                                {staff.email && (
+                                                    <p className="text-sm text-gray-500">{staff.email}</p>
+                                                )}
+                                            </div>
+                                            {staff.is_active ? (
+                                                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Active</Badge>
+                                            ) : (
+                                                <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">Inactive</Badge>
+                                            )}
+                                        </div>
+                                    )
+                                })}
                             </div>
                         )}
                     </div>
-                </div>
-            </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsStaffModalOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleAssignStaff}
+                            disabled={isAssigningStaff || selectedStaffIds.length === 0}
+                            className="bg-blue-600 text-white"
+                        >
+                            {isAssigningStaff ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Assigning...
+                                </>
+                            ) : (
+                                `Assign ${selectedStaffIds.length} Staff`
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
+            {/* Alert Dialog */}
             <AlertDialog open={!!staffRemovalData} onOpenChange={() => setStaffRemovalData(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>

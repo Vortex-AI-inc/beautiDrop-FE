@@ -33,6 +33,7 @@ export default function SalonDetailPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
     const [selectedService, setSelectedService] = useState<Service | null>(null)
+    const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null)
     const [deals, setDeals] = useState<Deal[]>([])
     const [activeTab, setActiveTab] = useState<'services' | 'deals'>('services')
     const [nextPage, setNextPage] = useState<string | null>(null)
@@ -330,9 +331,17 @@ export default function SalonDetailPage() {
                                             <p className="text-gray-600 text-lg mb-6">Check back later for exclusive packages and offers!</p>
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             {deals.map((deal, index) => (
-                                                <DealCard key={deal.id} deal={deal} index={index} />
+                                                <DealCard
+                                                    key={deal.id}
+                                                    deal={deal}
+                                                    index={index}
+                                                    onBook={(d) => {
+                                                        setSelectedDeal(d)
+                                                        setIsBookingModalOpen(true)
+                                                    }}
+                                                />
                                             ))}
                                         </div>
                                     )
@@ -536,8 +545,13 @@ export default function SalonDetailPage() {
 
             <BookingModal
                 isOpen={isBookingModalOpen}
-                onClose={() => setIsBookingModalOpen(false)}
+                onClose={() => {
+                    setIsBookingModalOpen(false)
+                    setSelectedService(null)
+                    setSelectedDeal(null)
+                }}
                 service={selectedService}
+                deal={selectedDeal}
                 shopId={shopId}
             />
         </main>
