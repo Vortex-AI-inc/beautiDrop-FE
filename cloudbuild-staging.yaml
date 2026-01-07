@@ -6,10 +6,11 @@ steps:
     args:
       - "-c"
       - |
+        CLEAN_BACKEND_URL="$${NEXT_PUBLIC_BACKEND_URL%/}"
         docker build \
           --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="$$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" \
           --build-arg CLERK_SECRET_KEY="$$CLERK_SECRET_KEY" \
-          --build-arg NEXT_PUBLIC_BACKEND_URL="$$NEXT_PUBLIC_BACKEND_URL" \
+          --build-arg NEXT_PUBLIC_BACKEND_URL="$CLEAN_BACKEND_URL" \
           --build-arg NEXT_PUBLIC_FIREBASE_API_KEY="$$NEXT_PUBLIC_FIREBASE_API_KEY" \
           --build-arg NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="$$NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN" \
           --build-arg NEXT_PUBLIC_FIREBASE_PROJECT_ID="$$NEXT_PUBLIC_FIREBASE_PROJECT_ID" \
@@ -47,6 +48,7 @@ steps:
     args:
       - "-c"
       - |
+        CLEAN_BACKEND_URL="$${NEXT_PUBLIC_BACKEND_URL%/}"
         gcloud run deploy beautydrop-frontend-staging \
           --image=us-east1-docker.pkg.dev/beautydrop-dev/beautydrop-frontend/app:staging-$COMMIT_SHA \
           --region=us-east1 \
@@ -59,7 +61,7 @@ steps:
           --port=3000 \
           --set-env-vars="NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" \
           --set-env-vars="CLERK_SECRET_KEY=$$CLERK_SECRET_KEY" \
-          --set-env-vars="NEXT_PUBLIC_BACKEND_URL=$$NEXT_PUBLIC_BACKEND_URL" \
+          --set-env-vars="NEXT_PUBLIC_BACKEND_URL=$CLEAN_BACKEND_URL" \
           --set-env-vars="NEXT_PUBLIC_FIREBASE_API_KEY=$$NEXT_PUBLIC_FIREBASE_API_KEY" \
           --set-env-vars="NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=$$NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN" \
           --set-env-vars="NEXT_PUBLIC_FIREBASE_PROJECT_ID=$$NEXT_PUBLIC_FIREBASE_PROJECT_ID" \
