@@ -139,9 +139,9 @@
     @apply bg-background text-foreground;
   }
 
-  input::placeholder,
-  textarea::placeholder {
-    @apply text-gray-400 opacity-100;
+  input,
+  textarea {
+    @apply text-gray-900 placeholder:text-gray-400;
   }
 }
 

@@ -11,6 +11,27 @@ export interface ScrapeJob {
     extracted_data?: any
 }
 
+export interface ScrapingLimits {
+    scraping_count: number
+    scraping_limit: number
+    scraping_remaining: number
+}
+
+export async function getScrapingLimits(token: string): Promise<ScrapingLimits> {
+    const response = await fetch(`${API_BASE_URL}/api/v1/scraper/limits/`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    })
+
+    if (!response.ok) {
+        throw new Error('Failed to get scraping limits')
+    }
+
+    return response.json()
+}
+
 export async function submitScrapeJob(url: string, token: string): Promise<ScrapeJob> {
     const response = await fetch(`${API_BASE_URL}/api/v1/scraper/submit/`, {
         method: 'POST',

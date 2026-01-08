@@ -31,7 +31,7 @@ import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/hooks/use-toast"
 import { useRoleProtection } from "@/hooks/useRoleProtection"
 import { fetchMyShops, fetchShopDashboard, toggleShopActive, deleteShop } from "@/lib/api/shop"
-import { listScrapeJobs, getScrapeJob, deleteScrapeJob, confirmScrapeJob, type ScrapeJob } from "@/lib/api/scraper"
+import { listScrapeJobs, getScrapeJob, deleteScrapeJob, confirmScrapeJob, getScrapingLimits, type ScrapeJob, type ScrapingLimits } from "@/lib/api/scraper"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -69,6 +69,7 @@ export default function PortalPage() {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [showUrlModal, setShowUrlModal] = useState(false)
     const [scrapeUrl, setScrapeUrl] = useState("")
+    const [scrapingLimits, setScrapingLimits] = useState<ScrapingLimits | null>(null)
 
     const loadShops = async () => {
         try {
@@ -90,10 +91,16 @@ export default function PortalPage() {
             const token = await getToken()
             if (!token) return
 
-            const jobs = await listScrapeJobs(token)
+            const [jobs, limits] = await Promise.all([
+                listScrapeJobs(token),
+                getScrapingLimits(token)
+            ])
+
+            setScrapingLimits(limits)
             const completedJobs = jobs.filter(job => job.status === 'completed')
             setRecentScrapes(completedJobs.slice(0, 10))
         } catch (error) {
+            console.error(error)
         } finally {
             setIsLoadingScrapes(false)
         }
@@ -405,6 +412,27 @@ export default function PortalPage() {
                                     New Import
                                 </Button>
                             </div>
+
+                            {scrapingLimits && (
+                                <div className="mb-6 px-4 py-3 bg-blue-50/50 rounded-lg border border-blue-100">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-sm font-medium text-gray-700">Monthly Import Limit</span>
+                                        <span className="text-xs font-semibold text-blue-700">{scrapingLimits.scraping_count} / {scrapingLimits.scraping_limit} Used</span>
+                                    </div>
+                                    <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full rounded-full transition-all duration-500 ${scrapingLimits.scraping_remaining === 0 ? 'bg-red-500' : 'bg-blue-600'
+                                                }`}
+                                            style={{ width: `${(scrapingLimits.scraping_count / scrapingLimits.scraping_limit) * 100}%` }}
+                                        />
+                                    </div>
+                                    {scrapingLimits.scraping_remaining === 0 && (
+                                        <p className="text-xs text-red-600 mt-2 font-medium">
+                                            You have reached your monthly import limit.
+                                        </p>
+                                    )}
+                                </div>
+                            )}
                             {isLoadingScrapes ? (
                                 <div className="text-center py-8">
                                     <Loader2 className="w-8 h-8 animate-spin mx-auto text-gray-400" />
@@ -521,7 +549,26 @@ export default function PortalPage() {
                     </div>
 
                     <div className="space-y-6">
-                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center relative">
+                            {scrapingLimits && (
+                                <div className="absolute top-6 right-6 flex flex-col items-end hidden sm:flex">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Auto Import Limit</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-1.5 w-24 bg-gray-100 rounded-full overflow-hidden">
+                                            <div
+                                                className={`h-full rounded-full transition-all duration-500 ${scrapingLimits.scraping_remaining === 0 ? 'bg-red-500' : 'bg-blue-600'
+                                                    }`}
+                                                style={{ width: `${(scrapingLimits.scraping_count / scrapingLimits.scraping_limit) * 100}%` }}
+                                            />
+                                        </div>
+                                        <span className={`text-xs font-bold ${scrapingLimits.scraping_remaining === 0 ? 'text-red-600' : 'text-gray-700'}`}>
+                                            {scrapingLimits.scraping_count}/{scrapingLimits.scraping_limit}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
                             <h2 className="text-2xl font-bold text-gray-900 mb-2">
                                 Welcome back, {user?.primaryEmailAddress?.emailAddress}!
                             </h2>
@@ -586,6 +633,28 @@ export default function PortalPage() {
                                     Start Auto-Import
                                 </Button>
                             </div>
+
+                            {scrapingLimits && (
+                                <div className="mt-4 px-4 py-2 bg-blue-50/50 rounded-lg border border-blue-100 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-2 w-24 bg-gray-200 rounded-full overflow-hidden">
+                                            <div
+                                                className={`h-full rounded-full transition-all duration-500 ${scrapingLimits.scraping_remaining === 0 ? 'bg-red-500' : 'bg-blue-600'
+                                                    }`}
+                                                style={{ width: `${(scrapingLimits.scraping_count / scrapingLimits.scraping_limit) * 100}%` }}
+                                            />
+                                        </div>
+                                        <span className="text-xs font-medium text-gray-600">
+                                            {scrapingLimits.scraping_count} / {scrapingLimits.scraping_limit} Imports Used
+                                        </span>
+                                    </div>
+                                    {scrapingLimits.scraping_remaining === 0 && (
+                                        <span className="text-xs font-semibold text-red-600">
+                                            Limit Reached
+                                        </span>
+                                    )}
+                                </div>
+                            )}
 
                             <div className="mt-6 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                                 <div className="flex items-center justify-between mb-6">
@@ -696,48 +765,66 @@ export default function PortalPage() {
                     <AlertDialogHeader>
                         <AlertDialogTitle className="flex items-center gap-2">
                             <Wand2 className="w-5 h-5 text-purple-600" />
-                            Start Auto-Import
+                            {scrapingLimits?.scraping_remaining === 0 ? 'Limit Reached' : 'Start Auto-Import'}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                            Enter your website URL and we'll automatically extract your services, staff, and business details.
+                            {scrapingLimits?.scraping_remaining === 0
+                                ? "You have reached your monthly limit for auto-imports. Please upgrade your plan to continue importing shops."
+                                : "Enter your website URL and we'll automatically extract your services, staff, and business details."
+                            }
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <div className="py-4">
-                        <label className="text-sm font-medium text-gray-700 mb-2 block">
-                            Website URL
-                        </label>
-                        <div className="relative">
-                            <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <input
-                                type="url"
-                                value={scrapeUrl}
-                                onChange={(e) => setScrapeUrl(e.target.value)}
-                                placeholder="https://yourbusiness.com"
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                            />
+
+                    {scrapingLimits?.scraping_remaining === 0 ? (
+                        <div className="py-4 flex flex-col items-center justify-center text-center space-y-3">
+                            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center">
+                                <Shield className="w-8 h-8 text-red-500" />
+                            </div>
+                            <p className="text-sm text-gray-600">
+                                You've used {scrapingLimits.scraping_count} of {scrapingLimits.scraping_limit} available imports.
+                            </p>
                         </div>
-                        <p className="text-xs text-gray-500 mt-2">
-                            Make sure the URL is publicly accessible
-                        </p>
-                    </div>
+                    ) : (
+                        <div className="py-4">
+                            <label className="text-sm font-medium text-gray-700 mb-2 block">
+                                Website URL
+                            </label>
+                            <div className="relative">
+                                <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                <input
+                                    type="url"
+                                    value={scrapeUrl}
+                                    onChange={(e) => setScrapeUrl(e.target.value)}
+                                    placeholder="https://yourbusiness.com"
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                />
+                            </div>
+                            <p className="text-xs text-gray-500 mt-2">
+                                Make sure the URL is publicly accessible
+                            </p>
+                        </div>
+                    )}
+
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => {
                             setScrapeUrl("")
                             setShowUrlModal(false)
                         }}>
-                            Cancel
+                            {scrapingLimits?.scraping_remaining === 0 ? 'Close' : 'Cancel'}
                         </AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={() => {
-                                setShowUrlModal(false)
-                                setIsCreateDialogOpen(true)
-                            }}
-                            disabled={!scrapeUrl || !scrapeUrl.startsWith('http')}
-                            className="bg-purple-600 hover:bg-purple-700"
-                        >
-                            <Wand2 className="w-4 h-4 mr-2" />
-                            Start Scraping
-                        </AlertDialogAction>
+                        {scrapingLimits?.scraping_remaining !== 0 && (
+                            <AlertDialogAction
+                                onClick={() => {
+                                    setShowUrlModal(false)
+                                    setIsCreateDialogOpen(true)
+                                }}
+                                disabled={!scrapeUrl || !scrapeUrl.startsWith('http')}
+                                className="bg-purple-600 hover:bg-purple-700"
+                            >
+                                <Wand2 className="w-4 h-4 mr-2" />
+                                Start Scraping
+                            </AlertDialogAction>
+                        )}
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

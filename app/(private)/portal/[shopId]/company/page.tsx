@@ -380,6 +380,11 @@ export default function CompanyProfilePage() {
             ) : (
                 <div className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
                     <div className="max-w-4xl mx-auto">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                            <Link href={`/portal/${shopId}`} className="hover:text-foreground transition-colors">Dashboard</Link>
+                            <span>/</span>
+                            <span className="text-foreground font-medium">Company Profile</span>
+                        </div>
                         <div className="flex items-center justify-between mb-8">
                             <div>
                                 <h1 className="text-2xl font-bold text-gray-900">Company Profile</h1>
@@ -392,30 +397,11 @@ export default function CompanyProfilePage() {
                                 <Link href={`/portal/${shopId}/services`} className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
                                     <Scissors className="w-4 h-4" /> Manage Services
                                 </Link>
-                                <Link href={`/portal/${shopId}`} className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
-                                    <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-                                </Link>
+
                             </div>
                         </div>
 
-                        <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-8 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                                    <Sparkles className="w-4 h-4 text-blue-600" />
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-gray-900">Let AI Fill This In</h3>
-                                    <p className="text-sm text-gray-600">Save time by having our AI scan your website and automatically fill in your business hours, services, and staff information.</p>
-                                </div>
-                            </div>
-                            <Button className="bg-teal-400 hover:bg-teal-500 text-black/50 hover:text-black border-0">
-                                <Sparkles className="w-4 h-4 " />
-                                Have AI Fill This In
-                                <span className=" bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-bold">Beta</span>
-                            </Button>
-                        </div>
 
-                        {/* Business Information Card */}
                         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
                             <div className="flex items-center gap-2 mb-6">
                                 <Building2 className="w-5 h-5 text-blue-600" />

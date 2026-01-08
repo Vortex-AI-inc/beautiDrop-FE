@@ -266,180 +266,187 @@ export default function WidgetPage() {
                 </div>
             </div>
 
-            <div className="max-w-[1600px] mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
-                {/* CONFIGURATION */}
-                <div className="lg:col-span-5 space-y-6">
-
-                    {/* Design & Layout */}
-                    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                        <h3 className="font-bold text-gray-900 mb-4">Design & Layout</h3>
-
-                        <div className="grid grid-cols-3 gap-4 mb-6">
-                            {LAYOUTS.map((l) => (
-                                <button
-                                    key={l.id}
-                                    onClick={() => setLayout(l.id)}
-                                    className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${layout === l.id
-                                        ? 'border-blue-600 bg-blue-50 text-blue-700'
-                                        : 'border-gray-100 hover:border-gray-200 text-gray-600'
-                                        }`}
-                                >
-                                    <l.icon className={`w-8 h-8 mb-3 ${layout === l.id ? 'text-blue-600' : 'text-gray-400'}`} />
-                                    <span className="text-sm font-medium">{l.name}</span>
-                                    {layout === l.id && <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-blue-600" />}
-                                </button>
-                            ))}
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-6 mb-6">
-                            <div className="space-y-2">
-                                <Label>Primary Color</Label>
-                                <div className="flex items-center gap-2 p-2 border rounded-lg">
-                                    <input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="w-8 h-8 rounded border-0 cursor-pointer p-0" />
-                                    <span className="text-sm font-mono text-gray-500 uppercase">{primaryColor}</span>
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Widget Width</Label>
-                                <div className="h-10 border rounded-lg flex items-center px-3 bg-gray-50">
-                                    <span className="text-sm text-gray-600">{widgetWidth}px</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div className="space-y-2">
-                                <div className="flex justify-between">
-                                    <Label>Width Slider</Label>
-                                </div>
-                                <Slider value={[widgetWidth]} min={280} max={800} step={10} onValueChange={(val) => setWidgetWidth(val[0])} />
-                            </div>
-
-                            <div className="space-y-2">
-                                <div className="flex justify-between">
-                                    <Label>Corner Radius</Label>
-                                    <span className="text-sm text-gray-500">{borderRadius}px</span>
-                                </div>
-                                <Slider value={[borderRadius]} min={0} max={32} step={4} onValueChange={(val) => setBorderRadius(val[0])} />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                        <h3 className="font-bold text-gray-900 mb-6">Content</h3>
-
-                        <div className="space-y-6">
-                            <div className="space-y-2">
-                                <Label>Image URL (Optional)</Label>
-                                <div className="flex gap-2">
-                                    <div className="relative flex-1">
-                                        <LinkIcon className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
-                                        <Input
-                                            value={bannerImage}
-                                            onChange={(e) => setBannerImage(e.target.value)}
-                                            placeholder="https://example.com/image.jpg"
-                                            className="pl-9"
-                                        />
-                                    </div>
-                                    <Button variant="outline" onClick={() => setBannerImage("")} disabled={!bannerImage}>Clear</Button>
-                                </div>
-                                <p className="text-xs text-gray-500">Paste a direct link to a JPG or PNG image.</p>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Title Text</Label>
-                                <Input value={customTitle} onChange={(e) => setCustomTitle(e.target.value)} />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Description</Label>
-                                <Textarea value={customDescription} onChange={(e) => setCustomDescription(e.target.value)} rows={3} placeholder="Describe your services..." />
-                                <p className="text-xs text-gray-400">New lines will be respected.</p>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Button Text</Label>
-                                <Input value={buttonText} onChange={(e) => setButtonText(e.target.value)} />
-                            </div>
-
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <Label>Logo URL (Optional)</Label>
-                                </div>
-                                <Input
-                                    value={logoUrl}
-                                    onChange={(e) => setLogoUrl(e.target.value)}
-                                    placeholder="https://example.com/logo.png"
-                                />
-                                <p className="text-xs text-gray-500">Leave empty to use shop initial.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Appearance */}
-                    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                        <h3 className="font-bold text-gray-900 mb-6">Appearance</h3>
-                        <div className="space-y-6">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <Switch checked={showLogo} onCheckedChange={setShowLogo} />
-                                    <Label>Display Company Logo</Label>
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Text Align</Label>
-                                <div className="grid grid-cols-3 gap-2">
-                                    {['left', 'center', 'right'].map((align) => (
-                                        <button
-                                            key={align}
-                                            onClick={() => setTextAlign(align)}
-                                            className={`flex items-center justify-center p-2 rounded-lg border ${textAlign === align ? 'bg-blue-50 border-blue-200 text-blue-600' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
-                                        >
-                                            <span className="capitalize text-sm">{align}</span>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Embed Code */}
-                    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-bold text-gray-900">Embed Code</h3>
-                            <Button variant="outline" size="sm" onClick={handleCopyCode} className="h-8 gap-2">
-                                {copied ? <Check className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3" />}
-                                {copied ? "Copied" : "Copy Code"}
-                            </Button>
-                        </div>
-                        <div className="bg-slate-900 rounded-lg p-4 relative">
-                            <code className="text-[10px] text-blue-300 font-mono block overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-40 overflow-y-auto">
-                                {embedCode}
-                            </code>
-                        </div>
-                    </div>
+            <div className="max-w-[1600px] mx-auto p-6 space-y-6">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Link href={`/portal/${shopId}`} className="hover:text-foreground transition-colors">Dashboard</Link>
+                    <span>/</span>
+                    <span className="text-foreground font-medium">Widget Branding</span>
                 </div>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    {/* CONFIGURATION */}
+                    <div className="lg:col-span-5 space-y-6">
 
-                {/* PREVIEW */}
-                <div className="lg:col-span-7">
-                    <div className="sticky top-24 bg-white rounded-2xl shadow-sm border border-gray-100 p-8 min-h-[600px] flex flex-col relative overflow-hidden">
-                        <div className="flex items-center gap-2 mb-8 border-b border-gray-100 pb-4">
-                            <div className="flex gap-1.5">
-                                <div className="w-3 h-3 rounded-full bg-red-400" />
-                                <div className="w-3 h-3 rounded-full bg-yellow-400" />
-                                <div className="w-3 h-3 rounded-full bg-green-400" />
+                        {/* Design & Layout */}
+                        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                            <h3 className="font-bold text-gray-900 mb-4">Design & Layout</h3>
+
+                            <div className="grid grid-cols-3 gap-4 mb-6">
+                                {LAYOUTS.map((l) => (
+                                    <button
+                                        key={l.id}
+                                        onClick={() => setLayout(l.id)}
+                                        className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${layout === l.id
+                                            ? 'border-blue-600 bg-blue-50 text-blue-700'
+                                            : 'border-gray-100 hover:border-gray-200 text-gray-600'
+                                            }`}
+                                    >
+                                        <l.icon className={`w-8 h-8 mb-3 ${layout === l.id ? 'text-blue-600' : 'text-gray-400'}`} />
+                                        <span className="text-sm font-medium">{l.name}</span>
+                                        {layout === l.id && <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-blue-600" />}
+                                    </button>
+                                ))}
                             </div>
-                            <div className="flex-1 bg-gray-50 rounded-md px-3 py-1.5 text-xs text-gray-400 text-center mx-4">your-salon-website.com</div>
-                        </div>
-                        <div className="absolute inset-0 top-24 -z-0 bg-[url('/grid-pattern.svg')] opacity-50" />
 
-                        <div className="relative flex-1 flex items-center justify-center p-4 lg:p-12 overflow-y-auto">
-                            {/* Render the Generated HTML string directly in the preview to ensure fidelity */}
-                            <div className="w-full flex justify-center" dangerouslySetInnerHTML={{ __html: embedCode }} />
+                            <div className="grid grid-cols-2 gap-6 mb-6">
+                                <div className="space-y-2">
+                                    <Label>Primary Color</Label>
+                                    <div className="flex items-center gap-2 p-2 border rounded-lg">
+                                        <input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="w-8 h-8 rounded border-0 cursor-pointer p-0" />
+                                        <span className="text-sm font-mono text-gray-500 uppercase">{primaryColor}</span>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Widget Width</Label>
+                                    <div className="h-10 border rounded-lg flex items-center px-3 bg-gray-50">
+                                        <span className="text-sm text-gray-600">{widgetWidth}px</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <div className="flex justify-between">
+                                        <Label>Width Slider</Label>
+                                    </div>
+                                    <Slider value={[widgetWidth]} min={280} max={800} step={10} onValueChange={(val) => setWidgetWidth(val[0])} />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex justify-between">
+                                        <Label>Corner Radius</Label>
+                                        <span className="text-sm text-gray-500">{borderRadius}px</span>
+                                    </div>
+                                    <Slider value={[borderRadius]} min={0} max={32} step={4} onValueChange={(val) => setBorderRadius(val[0])} />
+                                </div>
+                            </div>
                         </div>
-                        <div className="text-center mt-4 text-xs text-gray-400">
-                            * Preview shows exact embed code output
+
+                        {/* Content */}
+                        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                            <h3 className="font-bold text-gray-900 mb-6">Content</h3>
+
+                            <div className="space-y-6">
+                                <div className="space-y-2">
+                                    <Label>Image URL (Optional)</Label>
+                                    <div className="flex gap-2">
+                                        <div className="relative flex-1">
+                                            <LinkIcon className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+                                            <Input
+                                                value={bannerImage}
+                                                onChange={(e) => setBannerImage(e.target.value)}
+                                                placeholder="https://example.com/image.jpg"
+                                                className="pl-9"
+                                            />
+                                        </div>
+                                        <Button variant="outline" onClick={() => setBannerImage("")} disabled={!bannerImage}>Clear</Button>
+                                    </div>
+                                    <p className="text-xs text-gray-500">Paste a direct link to a JPG or PNG image.</p>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label>Title Text</Label>
+                                    <Input value={customTitle} onChange={(e) => setCustomTitle(e.target.value)} />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label>Description</Label>
+                                    <Textarea value={customDescription} onChange={(e) => setCustomDescription(e.target.value)} rows={3} placeholder="Describe your services..." />
+                                    <p className="text-xs text-gray-400">New lines will be respected.</p>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label>Button Text</Label>
+                                    <Input value={buttonText} onChange={(e) => setButtonText(e.target.value)} />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <Label>Logo URL (Optional)</Label>
+                                    </div>
+                                    <Input
+                                        value={logoUrl}
+                                        onChange={(e) => setLogoUrl(e.target.value)}
+                                        placeholder="https://example.com/logo.png"
+                                    />
+                                    <p className="text-xs text-gray-500">Leave empty to use shop initial.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Appearance */}
+                        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                            <h3 className="font-bold text-gray-900 mb-6">Appearance</h3>
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <Switch checked={showLogo} onCheckedChange={setShowLogo} />
+                                        <Label>Display Company Logo</Label>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Text Align</Label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {['left', 'center', 'right'].map((align) => (
+                                            <button
+                                                key={align}
+                                                onClick={() => setTextAlign(align)}
+                                                className={`flex items-center justify-center p-2 rounded-lg border ${textAlign === align ? 'bg-blue-50 border-blue-200 text-blue-600' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+                                            >
+                                                <span className="capitalize text-sm">{align}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Embed Code */}
+                        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="font-bold text-gray-900">Embed Code</h3>
+                                <Button variant="outline" size="sm" onClick={handleCopyCode} className="h-8 gap-2">
+                                    {copied ? <Check className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3" />}
+                                    {copied ? "Copied" : "Copy Code"}
+                                </Button>
+                            </div>
+                            <div className="bg-slate-900 rounded-lg p-4 relative">
+                                <code className="text-[10px] text-blue-300 font-mono block overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-40 overflow-y-auto">
+                                    {embedCode}
+                                </code>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* PREVIEW */}
+                    <div className="lg:col-span-7">
+                        <div className="sticky top-24 bg-white rounded-2xl shadow-sm border border-gray-100 p-8 min-h-[600px] flex flex-col relative overflow-hidden">
+                            <div className="flex items-center gap-2 mb-8 border-b border-gray-100 pb-4">
+                                <div className="flex gap-1.5">
+                                    <div className="w-3 h-3 rounded-full bg-red-400" />
+                                    <div className="w-3 h-3 rounded-full bg-yellow-400" />
+                                    <div className="w-3 h-3 rounded-full bg-green-400" />
+                                </div>
+                                <div className="flex-1 bg-gray-50 rounded-md px-3 py-1.5 text-xs text-gray-400 text-center mx-4">your-salon-website.com</div>
+                            </div>
+                            <div className="absolute inset-0 top-24 -z-0 bg-[url('/grid-pattern.svg')] opacity-50" />
+
+                            <div className="relative flex-1 flex items-center justify-center p-4 lg:p-12 overflow-y-auto">
+                                {/* Render the Generated HTML string directly in the preview to ensure fidelity */}
+                                <div className="w-full flex justify-center" dangerouslySetInnerHTML={{ __html: embedCode }} />
+                            </div>
+                            <div className="text-center mt-4 text-xs text-gray-400">
+                                * Preview shows exact embed code output
+                            </div>
                         </div>
                     </div>
                 </div>

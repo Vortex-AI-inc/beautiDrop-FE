@@ -484,9 +484,14 @@ export default function ServicesManagementPage() {
                                         <Input
                                             id="duration"
                                             type="number"
+                                            min="0"
                                             placeholder="60"
                                             value={formData.duration}
-                                            onChange={(e) => handleInputChange('duration', e.target.value)}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                if (parseFloat(val) < 0) return;
+                                                handleInputChange('duration', val);
+                                            }}
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -494,10 +499,15 @@ export default function ServicesManagementPage() {
                                         <Input
                                             id="price"
                                             type="number"
+                                            min="0"
                                             step="0.01"
                                             placeholder="50.00"
                                             value={formData.price}
-                                            onChange={(e) => handleInputChange('price', e.target.value)}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                if (parseFloat(val) < 0) return;
+                                                handleInputChange('price', val);
+                                            }}
                                         />
                                     </div>
                                 </div>
@@ -702,8 +712,13 @@ export default function ServicesManagementPage() {
                                 <Input
                                     id="edit-duration"
                                     type="number"
+                                    min="0"
                                     value={formData.duration}
-                                    onChange={(e) => handleInputChange('duration', e.target.value)}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (parseFloat(val) < 0) return;
+                                        handleInputChange('duration', val);
+                                    }}
                                 />
                             </div>
                         </div>
@@ -713,9 +728,14 @@ export default function ServicesManagementPage() {
                                 <Input
                                     id="edit-price"
                                     type="number"
+                                    min="0"
                                     step="0.01"
                                     value={formData.price}
-                                    onChange={(e) => handleInputChange('price', e.target.value)}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (parseFloat(val) < 0) return;
+                                        handleInputChange('price', val);
+                                    }}
                                 />
                             </div>
                             <div className="space-y-2">

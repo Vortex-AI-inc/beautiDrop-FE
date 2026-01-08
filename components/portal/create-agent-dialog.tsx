@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2, Globe, Wand2, Store, CheckCircle2, AlertCircle } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { createShop } from "@/lib/api/shop"
-import { submitScrapeJob, getScrapeJob, confirmScrapeJob, listScrapeJobs, type ScrapeJob } from "@/lib/api/scraper"
+import { submitScrapeJob, getScrapeJob, confirmScrapeJob, listScrapeJobs, getScrapingLimits, type ScrapeJob, type ScrapingLimits } from "@/lib/api/scraper"
 import type { ShopFormData, Shop } from "@/types/shop"
 import { useToast } from "@/hooks/use-toast"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -23,16 +23,10 @@ interface CreateAgentDialogProps {
     initialUrl?: string
 }
 
-const TIMEZONES = [
-    { value: "America/New_York", label: "Eastern Time - New York (ET)" },
-    { value: "America/Chicago", label: "Central Time - Chicago (CT)" },
-    { value: "America/Denver", label: "Mountain Time - Denver (MT)" },
-    { value: "America/Los_Angeles", label: "Pacific Time - Los Angeles (PT)" },
-    { value: "Europe/London", label: "London (GMT/BST)" },
-    { value: "Asia/Dubai", label: "Dubai (GST)" },
-    { value: "Asia/Singapore", label: "Singapore (SGT)" },
-    { value: "Australia/Sydney", label: "Sydney (AEDT)" },
-]
+const TIMEZONES = Intl.supportedValuesOf('timeZone').map(tz => ({
+    value: tz,
+    label: tz.replace(/_/g, ' ')
+}))
 
 export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }: CreateAgentDialogProps) {
     const { getToken } = useAuth()
@@ -64,13 +58,14 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
     const [isLoadingScrapes, setIsLoadingScrapes] = useState(false)
     const [showReviewModal, setShowReviewModal] = useState(false)
     const pollInterval = useRef<NodeJS.Timeout | null>(null)
+    const [scrapingLimits, setScrapingLimits] = useState<ScrapingLimits | null>(null)
 
     useEffect(() => {
         if (open) {
             const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
             setFormData(prev => ({
                 ...prev,
-                timezone: browserTimezone || "America/New_York"
+                timezone: browserTimezone
             }))
             setManualStep(1)
             setScrapeUrl(initialUrl || "")
@@ -90,8 +85,20 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
     useEffect(() => {
         if (open && activeTab === 'import') {
             fetchRecentScrapes()
+            fetchLimits()
         }
     }, [open, activeTab])
+
+    const fetchLimits = async () => {
+        try {
+            const token = await getToken()
+            if (!token) return
+            const limits = await getScrapingLimits(token)
+            setScrapingLimits(limits)
+        } catch (error) {
+            console.error(error)
+        }
+    }
 
     const fetchRecentScrapes = async () => {
         try {
@@ -273,6 +280,8 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
                                                 value={formData.name}
                                                 onChange={(e) => updateField("name", e.target.value)}
                                                 required
+                                                className="text-gray-900 placeholder:text-gray-400"
+
                                                 placeholder="e.g., Blush Beauty Salon"
                                             />
                                         </div>
@@ -459,29 +468,62 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
                             <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center mx-auto mb-4">
                                 <Wand2 className="w-6 h-6 text-purple-600" />
                             </div>
-                            <h3 className="text-lg font-bold text-gray-900 mb-2">Automated Setup</h3>
-                            <p className="text-sm text-gray-600 max-w-sm mx-auto mb-6">
-                                Enter your business website URL, and our AI will automatically extract your services, contact info, and business details.
-                            </p>
 
-                            <form onSubmit={handleScrapeSubmit} className="flex gap-2 max-w-md mx-auto">
-                                <Input
-                                    placeholder="https://your-salon-website.com"
-                                    value={scrapeUrl}
-                                    onChange={(e) => setScrapeUrl(e.target.value)}
-                                    disabled={isScraping || (scrapeJob?.status === 'completed')}
-                                    required
-                                    type="url"
-                                    className="bg-white"
-                                />
-                                <Button
-                                    type="submit"
-                                    disabled={!scrapeUrl || isScraping || (scrapeJob?.status === 'completed')}
-                                    className="bg-purple-600 hover:bg-purple-700 text-white whitespace-nowrap"
-                                >
-                                    {isScraping ? <Loader2 className="w-4 h-4 animate-spin" /> : "Scan Website"}
-                                </Button>
-                            </form>
+                            {scrapingLimits?.scraping_remaining === 0 ? (
+                                <>
+                                    <h3 className="text-lg font-bold text-red-600 mb-2">Limit Reached</h3>
+                                    <p className="text-sm text-gray-600 max-w-sm mx-auto mb-6">
+                                        You have reached your monthly limit of {scrapingLimits.scraping_limit} imports.
+                                        Please upgrade your plan to continue using the AI auto-import feature.
+                                    </p>
+                                    <div className="flex justify-center mb-2">
+                                        <div className="px-4 py-2 bg-red-100 rounded-lg text-red-700 font-medium text-sm">
+                                            Usage: {scrapingLimits.scraping_count} / {scrapingLimits.scraping_limit}
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <h3 className="text-lg font-bold text-gray-900 mb-2">Automated Setup</h3>
+                                    <p className="text-sm text-gray-600 max-w-sm mx-auto mb-6">
+                                        Enter your business website URL, and our AI will automatically extract your services, contact info, and business details.
+                                    </p>
+
+                                    {scrapingLimits && (
+                                        <div className="mb-4 max-w-xs mx-auto">
+                                            <div className="flex justify-between text-xs text-gray-500 mb-1">
+                                                <span>Imports Used</span>
+                                                <span>{scrapingLimits.scraping_count} / {scrapingLimits.scraping_limit}</span>
+                                            </div>
+                                            <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full bg-purple-600 rounded-full"
+                                                    style={{ width: `${(scrapingLimits.scraping_count / scrapingLimits.scraping_limit) * 100}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <form onSubmit={handleScrapeSubmit} className="flex gap-2 max-w-md mx-auto">
+                                        <Input
+                                            placeholder="https://your-salon-website.com"
+                                            value={scrapeUrl}
+                                            onChange={(e) => setScrapeUrl(e.target.value)}
+                                            disabled={isScraping || (scrapeJob?.status === 'completed')}
+                                            required
+                                            type="url"
+                                            className="bg-white"
+                                        />
+                                        <Button
+                                            type="submit"
+                                            disabled={!scrapeUrl || isScraping || (scrapeJob?.status === 'completed')}
+                                            className="bg-purple-600 hover:bg-purple-700 text-white whitespace-nowrap"
+                                        >
+                                            {isScraping ? <Loader2 className="w-4 h-4 animate-spin" /> : "Scan Website"}
+                                        </Button>
+                                    </form>
+                                </>
+                            )}
                         </div>
 
                         {scrapeJob && (

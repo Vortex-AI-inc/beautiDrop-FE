@@ -113,14 +113,17 @@ export default function DealsPage() {
 
             <div className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-6xl mx-auto">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                        <Link href={`/portal/${shopId}`} className="hover:text-foreground transition-colors">Dashboard</Link>
+                        <span>/</span>
+                        <span className="text-foreground font-medium">Deals & Offers</span>
+                    </div>
                     <div className="flex items-center justify-between mb-8">
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900">Deals & Offers</h1>
                             <p className="text-gray-600">Manage your packages and special offers</p>
                         </div>
-                        <Link href={`/portal/${shopId}`} className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
-                            <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-                        </Link>
+
                     </div>
 
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">

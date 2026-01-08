@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Switch } from "@/components/ui/switch"
-import { ArrowLeft, Users, Sparkles, UserPlus, Trash2, Loader2, Mail, Phone as PhoneIcon, Check, Settings2 } from "lucide-react"
+import { ArrowLeft, Users, Sparkles, UserPlus, Trash2, Loader2, Mail, Phone as PhoneIcon, Check, Settings2, ChevronDown } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
@@ -17,12 +17,11 @@ import { fetchServices } from "@/lib/api/services"
 import type { StaffMember } from "@/types/staff"
 import type { Service } from "@/types/service"
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
     Table,
     TableBody,
@@ -51,6 +50,7 @@ import {
 } from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export default function StaffManagementPage() {
     const params = useParams()
@@ -410,36 +410,29 @@ export default function StaffManagementPage() {
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Languages Spoken</Label>
-                                    <Select>
-                                        <SelectTrigger>
-                                            <SelectValue>
-                                                <span className="text-sm truncate">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="outline" className="w-full justify-between font-normal">
+                                                <span className="truncate">
                                                     {selectedLanguages.length === 0 ? "Select languages" :
                                                         selectedLanguages.length === 1 ? selectedLanguages[0] :
                                                             `${selectedLanguages.length} selected`}
                                                 </span>
-                                            </SelectValue>
-                                        </SelectTrigger>
-                                        <SelectContent>
+                                                <ChevronDown className="h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent className="w-56" align="start">
                                             {AVAILABLE_LANGUAGES.map((language) => (
-                                                <div
+                                                <DropdownMenuCheckboxItem
                                                     key={language}
-                                                    className="flex items-center gap-2 px-2 py-2 cursor-pointer hover:bg-gray-100 transition-colors"
-                                                    onClick={(e) => {
-                                                        e.preventDefault()
-                                                        toggleLanguage(language)
-                                                    }}
+                                                    checked={selectedLanguages.includes(language)}
+                                                    onCheckedChange={() => toggleLanguage(language)}
                                                 >
-                                                    <Checkbox
-                                                        checked={selectedLanguages.includes(language)}
-                                                        onCheckedChange={() => toggleLanguage(language)}
-                                                        className="pointer-events-none"
-                                                    />
-                                                    <span className="text-sm">{language}</span>
-                                                </div>
+                                                    {language}
+                                                </DropdownMenuCheckboxItem>
                                             ))}
-                                        </SelectContent>
-                                    </Select>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                     {selectedLanguages.length > 0 && (
                                         <div className="flex flex-wrap gap-1 mt-2">
                                             {selectedLanguages.map(lang => (
@@ -571,37 +564,51 @@ export default function StaffManagementPage() {
                                                                     />
                                                                 </div>
 
-                                                                {!member.invite_accepted_at && (
-                                                                    <Button
-                                                                        variant="ghost"
-                                                                        size="icon"
-                                                                        className="h-8 w-8 text-blue-600 hover:bg-blue-50"
-                                                                        onClick={() => handleResendInvite(member.id, member.name, member.email)}
-                                                                        title="Resend Invite"
-                                                                    >
-                                                                        <Mail className="w-4 h-4" />
-                                                                    </Button>
-                                                                )}
+                                                                <TooltipProvider>
+                                                                    {!member.invite_accepted_at && (
+                                                                        <Tooltip delayDuration={300}>
+                                                                            <TooltipTrigger asChild>
+                                                                                <Button
+                                                                                    variant="ghost"
+                                                                                    size="icon"
+                                                                                    className="h-8 w-8 text-blue-600 hover:bg-blue-50"
+                                                                                    onClick={() => handleResendInvite(member.id, member.name, member.email)}
+                                                                                >
+                                                                                    <Mail className="w-4 h-4" />
+                                                                                </Button>
+                                                                            </TooltipTrigger>
+                                                                            <TooltipContent>Recend Invite</TooltipContent>
+                                                                        </Tooltip>
+                                                                    )}
 
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    className="h-8 w-8 text-gray-400 hover:text-blue-600"
-                                                                    onClick={() => handleAssignServicesClick(member)}
-                                                                    title="Manage Services"
-                                                                >
-                                                                    <Settings2 className="w-4 h-4" />
-                                                                </Button>
+                                                                    <Tooltip delayDuration={300}>
+                                                                        <TooltipTrigger asChild>
+                                                                            <Button
+                                                                                variant="ghost"
+                                                                                size="icon"
+                                                                                className="h-8 w-8 text-gray-400 hover:text-blue-600"
+                                                                                onClick={() => handleAssignServicesClick(member)}
+                                                                            >
+                                                                                <Settings2 className="w-4 h-4" />
+                                                                            </Button>
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent>Manage Services</TooltipContent>
+                                                                    </Tooltip>
 
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50"
-                                                                    onClick={() => initiateDelete(member.id, member.name)}
-                                                                    title="Remove Staff"
-                                                                >
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </Button>
+                                                                    <Tooltip delayDuration={300}>
+                                                                        <TooltipTrigger asChild>
+                                                                            <Button
+                                                                                variant="ghost"
+                                                                                size="icon"
+                                                                                className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                                                                                onClick={() => initiateDelete(member.id, member.name)}
+                                                                            >
+                                                                                <Trash2 className="w-4 h-4" />
+                                                                            </Button>
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent>Remove Staff</TooltipContent>
+                                                                    </Tooltip>
+                                                                </TooltipProvider>
                                                             </div>
                                                         </TableCell>
                                                     </TableRow>

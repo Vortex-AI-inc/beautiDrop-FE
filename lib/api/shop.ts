@@ -163,8 +163,6 @@ export async function generateTimeSlots(
 export async function fetchPublicShops(): Promise<Shop[]> {
     try {
         const apiUrl = `${API_BASE_URL}/api/v1/shops/`
-        console.log('[fetchPublicShops] Fetching from:', apiUrl)
-
         const response = await fetch(apiUrl, {
             method: 'GET',
             headers: {
