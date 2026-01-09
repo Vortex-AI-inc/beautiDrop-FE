@@ -648,45 +648,18 @@ export default function CompanyProfilePage() {
                                     <div className="space-y-3">
                                         <div className="flex items-center gap-2 mb-2">
                                             <div className="w-1.5 h-6 bg-indigo-100 rounded-full" />
-                                            <Label className="text-xs font-black uppercase tracking-widest text-gray-400">Cover Image</Label>
+                                            <Label htmlFor="cover_image_url" className="text-xs font-black uppercase tracking-widest text-gray-400">Cover Image URL</Label>
                                         </div>
-                                        {coverImagePreview || selectedShop?.cover_image_url ? (
-                                            <div className="relative group">
-                                                <img
-                                                    src={coverImagePreview || getImagePath(selectedShop?.cover_image_url)}
-                                                    alt="Cover preview"
-                                                    className="w-full h-48 object-cover rounded-2xl border-2 border-slate-100 shadow-sm"
-                                                />
-                                                <Button
-                                                    type="button"
-                                                    variant="destructive"
-                                                    size="icon"
-                                                    className="absolute top-3 right-3 h-10 w-10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                                                    onClick={handleRemoveImage}
-                                                >
-                                                    <X className="h-5 w-5" />
-                                                </Button>
-                                            </div>
-                                        ) : (
-                                            <div
-                                                onClick={() => fileInputRef.current?.click()}
-                                                className="border-2 border-dashed border-slate-200 rounded-2xl p-12 text-center cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 transition-all group"
-                                            >
-                                                <ImageIcon className="w-16 h-16 mx-auto text-slate-300 mb-4 group-hover:text-indigo-400 transition-colors" />
-                                                <p className="text-sm font-bold text-slate-600 mb-1">
-                                                    Click to upload cover image
-                                                </p>
-                                                <p className="text-xs text-slate-400 font-medium">
-                                                    PNG, JPG up to 5MB
-                                                </p>
-                                            </div>
-                                        )}
-                                        <input
-                                            ref={fileInputRef}
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleImageUpload}
-                                            className="hidden"
+                                        <Input
+                                            id="cover_image_url"
+                                            value={selectedShop?.cover_image_url || ""}
+                                            onChange={(e) => {
+                                                if (selectedShop) {
+                                                    setSelectedShop({ ...selectedShop, cover_image_url: e.target.value })
+                                                }
+                                            }}
+                                            placeholder="https://..."
+                                            className="h-14 rounded-2xl border-gray-100 bg-slate-50/30 focus:bg-white focus:ring-blue-500 transition-all font-semibold"
                                         />
                                     </div>
 
