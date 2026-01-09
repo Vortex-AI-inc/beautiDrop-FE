@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Header } from "@/components/layout/header"
 import { Button } from "@/components/ui/button"
 import { Calendar, Loader2, Clock, TrendingUp, Users, CheckCircle, XCircle, AlertCircle, MoreVertical, Check, X, CalendarDays, List } from "lucide-react"
 import Link from "next/link"
@@ -220,22 +219,13 @@ export default function SchedulingPage() {
     }
 
     return (
-        <main className="min-h-screen bg-gray-50/50">
-            <Header />
-
-            <div className="pt-28 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
-                {/* Breadcrumb */}
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Link href={`/portal/${shopId}`} className="hover:text-foreground transition-colors">Dashboard</Link>
-                    <span>/</span>
-                    <span className="text-foreground font-medium">Schedule</span>
-                </div>
-
+        <>
+            <div className="space-y-8">
                 {/* Page Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Bookings</h1>
-                        <p className="text-muted-foreground mt-1">Manage appointments and track your schedule.</p>
+                    <div className="space-y-1">
+                        <h1 className="text-3xl font-bold tracking-tight text-gray-900 underline decoration-blue-500/30 underline-offset-8">Scheduling</h1>
+                        <p className="text-muted-foreground mt-4">Manage appointments and track your schedule.</p>
                     </div>
                     <div className="flex items-center gap-1 bg-white p-1 rounded-lg border shadow-sm self-start sm:self-auto">
                         <button
@@ -501,6 +491,6 @@ export default function SchedulingPage() {
                     isActioning={actioningBookingId === selectedBooking?.id}
                 />
             </div>
-        </main>
+        </>
     )
 }

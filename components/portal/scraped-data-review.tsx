@@ -135,48 +135,52 @@ export function ScrapedDataReview({ open, onOpenChange, data, onConfirm, isSubmi
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-7xl max-h-[95vh] flex flex-col p-0">
-                <DialogHeader className="px-6 py-4 border-b bg-gradient-to-r from-blue-50 to-purple-50">
-                    <DialogTitle className="text-2xl font-bold text-gray-900">Review & Edit Extracted Data</DialogTitle>
-                    <DialogDescription className="text-gray-600">
-                        Review the data we found from {editedData.shop?.name || "your website"}. Make any changes before creating your shop.
+                <DialogHeader className="px-8 py-6 border-b bg-white relative">
+                    <DialogTitle className="text-2xl font-black text-gray-900 tracking-tight">Review Extracted Data</DialogTitle>
+                    <DialogDescription className="text-gray-500 font-medium mt-1">
+                        We found this information from <span className="text-blue-600 font-bold">{editedData.shop?.name || "your website"}</span>.
                     </DialogDescription>
                 </DialogHeader>
 
                 {/* Stepper */}
-                <div className="px-6 py-3 border-b bg-white">
-                    <div className="flex items-center justify-between">
-                        {STEPS.map((step, index) => (
-                            <div key={step.id} className="flex items-center flex-1">
-                                <div className="flex flex-col items-center flex-1">
-                                    <div className={cn(
-                                        "w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all",
-                                        currentStep === step.id
-                                            ? "bg-blue-600 border-blue-600 text-white shadow-lg scale-110"
-                                            : currentStep > step.id
-                                                ? "bg-green-500 border-green-500 text-white"
-                                                : "bg-white border-gray-300 text-gray-400"
-                                    )}>
-                                        {currentStep > step.id ? (
-                                            <Check className="w-6 h-6" />
-                                        ) : (
-                                            <step.icon className="w-6 h-6" />
-                                        )}
+                <div className="px-8 py-4 border-b bg-gray-50/50">
+                    <div className="flex items-center justify-between max-w-2xl mx-auto">
+                        {STEPS.map((step, index) => {
+                            const Icon = step.icon
+                            const isActive = currentStep === step.id
+                            const isCompleted = currentStep > step.id
+
+                            return (
+                                <div key={step.id} className="flex items-center group">
+                                    <div className="flex flex-col items-center gap-2">
+                                        <div className={cn(
+                                            "w-10 h-10 rounded-xl flex items-center justify-center border transition-all duration-300",
+                                            isActive
+                                                ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-900/20 scale-105"
+                                                : isCompleted
+                                                    ? "bg-green-500 border-green-500 text-white"
+                                                    : "bg-white border-gray-200 text-gray-400"
+                                        )}>
+                                            {isCompleted ? <Check className="w-5 h-5 stroke-[3]" /> : <Icon className="w-5 h-5" />}
+                                        </div>
+                                        <span className={cn(
+                                            "text-[10px] font-black uppercase tracking-widest",
+                                            isActive ? "text-blue-600" : isCompleted ? "text-green-600" : "text-gray-400"
+                                        )}>
+                                            {step.name}
+                                        </span>
                                     </div>
-                                    <span className={cn(
-                                        "text-xs mt-2 font-medium text-center",
-                                        currentStep === step.id ? "text-blue-600" : "text-gray-500"
-                                    )}>
-                                        {step.name}
-                                    </span>
+                                    {index < STEPS.length - 1 && (
+                                        <div className="w-12 h-[2px] mx-4 mb-6 bg-gray-200 rounded-full overflow-hidden">
+                                            <div className={cn(
+                                                "h-full bg-blue-600 transition-all duration-500",
+                                                isCompleted ? "w-full" : "w-0"
+                                            )} />
+                                        </div>
+                                    )}
                                 </div>
-                                {index < STEPS.length - 1 && (
-                                    <div className={cn(
-                                        "h-0.5 flex-1 mx-2 transition-all",
-                                        currentStep > step.id ? "bg-green-500" : "bg-gray-200"
-                                    )} />
-                                )}
-                            </div>
-                        ))}
+                            )
+                        })}
                     </div>
                 </div>
 
@@ -184,80 +188,80 @@ export function ScrapedDataReview({ open, onOpenChange, data, onConfirm, isSubmi
                     <ScrollArea className="h-[60vh] px-6 py-4">
                         {/* Step 1: Shop Details */}
                         {currentStep === 1 && (
-                            <div className="space-y-4 animate-in fade-in slide-in-from-right-5 duration-300">
-                                <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-400">
+                                <div className="grid grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <Label className="text-sm font-semibold text-gray-700">Business Name *</Label>
+                                        <Label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Business Name *</Label>
                                         <Input
                                             value={editedData.shop?.name || ""}
                                             onChange={(e) => updateShopField("name", e.target.value)}
                                             placeholder="Enter business name"
-                                            className="h-11"
+                                            className="h-11 rounded-xl border-gray-200 focus:ring-blue-600 transition-all font-medium"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-sm font-semibold text-gray-700">Email *</Label>
+                                        <Label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Email *</Label>
                                         <Input
                                             type="email"
                                             value={editedData.shop?.email || ""}
                                             onChange={(e) => updateShopField("email", e.target.value)}
                                             placeholder="Email address"
-                                            className="h-11"
+                                            className="h-11 rounded-xl border-gray-200 focus:ring-blue-600 transition-all font-medium"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-sm font-semibold text-gray-700">Phone</Label>
+                                        <Label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Phone</Label>
                                         <Input
                                             value={editedData.shop?.phone || ""}
                                             onChange={(e) => updateShopField("phone", e.target.value)}
                                             placeholder="Phone number"
-                                            className="h-11"
+                                            className="h-11 rounded-xl border-gray-200 focus:ring-blue-600 transition-all font-medium"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-sm font-semibold text-gray-700">Website</Label>
+                                        <Label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Website</Label>
                                         <Input
                                             value={editedData.shop?.website || ""}
                                             onChange={(e) => updateShopField("website", e.target.value)}
                                             placeholder="Website URL"
-                                            className="h-11"
+                                            className="h-11 rounded-xl border-gray-200 focus:ring-blue-600 transition-all font-medium"
                                         />
                                     </div>
                                     <div className="col-span-2 space-y-2">
-                                        <Label className="text-sm font-semibold text-gray-700">Description</Label>
+                                        <Label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Description</Label>
                                         <Textarea
                                             value={editedData.shop?.description || ""}
                                             onChange={(e) => updateShopField("description", e.target.value)}
                                             placeholder="Describe your business..."
                                             rows={4}
-                                            className="resize-none"
+                                            className="rounded-xl border-gray-200 focus:ring-blue-600 transition-all font-medium resize-none leading-relaxed"
                                         />
                                     </div>
                                     <div className="col-span-2 space-y-2">
-                                        <Label className="text-sm font-semibold text-gray-700">Address</Label>
+                                        <Label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Address</Label>
                                         <Input
                                             value={typeof editedData.shop?.address === 'object' ? JSON.stringify(editedData.shop.address) : editedData.shop?.address || ""}
                                             onChange={(e) => updateShopField("address", e.target.value)}
                                             placeholder="Full address"
-                                            className="h-11"
+                                            className="h-11 rounded-xl border-gray-200 focus:ring-blue-600 transition-all font-medium"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-sm font-semibold text-gray-700">City</Label>
+                                        <Label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">City</Label>
                                         <Input
                                             value={editedData.shop?.city || ""}
                                             onChange={(e) => updateShopField("city", e.target.value)}
                                             placeholder="City"
-                                            className="h-11"
+                                            className="h-11 rounded-xl border-gray-200 focus:ring-blue-600 transition-all font-medium"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-sm font-semibold text-gray-700">Country</Label>
+                                        <Label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Country</Label>
                                         <Input
                                             value={editedData.shop?.country || ""}
                                             onChange={(e) => updateShopField("country", e.target.value)}
                                             placeholder="Country"
-                                            className="h-11"
+                                            className="h-11 rounded-xl border-gray-200 focus:ring-blue-600 transition-all font-medium"
                                         />
                                     </div>
                                 </div>
@@ -266,79 +270,94 @@ export function ScrapedDataReview({ open, onOpenChange, data, onConfirm, isSubmi
 
                         {/* Step 2: Services */}
                         {currentStep === 2 && (
-                            <div className="space-y-4 animate-in fade-in slide-in-from-right-5 duration-300">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-lg font-semibold text-gray-900">Services ({editedData.services?.length || 0})</h3>
-                                    <Button onClick={addService} size="sm" className="bg-blue-600 hover:bg-blue-700">
-                                        <Plus className="w-4 h-4 mr-2" /> Add Service
+                            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-400">
+                                <div className="flex items-center justify-between">
+                                    <div className="">
+                                        <h3 className="text-lg font-black text-gray-900">Services</h3>
+                                        <p className="text-sm text-gray-500 font-medium">Add or edit the services extracted from your site.</p>
+                                    </div>
+                                    <Button onClick={addService} size="sm" className="bg-blue-600 hover:bg-blue-700 rounded-xl px-4 font-bold shadow-sm mt-4">
+                                        <Plus className="w-4 h-4 " /> Add Service
                                     </Button>
                                 </div>
 
                                 {editedData.services?.length === 0 ? (
-                                    <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                                        <Package className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                                        <p className="text-gray-500 mb-4">No services found. Add your first service!</p>
-                                        <Button onClick={addService} variant="outline">
-                                            <Plus className="w-4 h-4 mr-2" /> Add Service
+                                    <div className="text-center py-20 bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-200">
+                                        <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-4">
+                                            <Package className="w-8 h-8 text-gray-300" />
+                                        </div>
+                                        <p className="text-gray-900 font-bold">No services found</p>
+                                        <p className="text-gray-500 text-sm mb-6">Manually add services to get started.</p>
+                                        <Button onClick={addService} variant="outline" className="rounded-xl font-bold">
+                                            <Plus className="w-4 h-4 mr-2" /> Add Your First Service
                                         </Button>
                                     </div>
                                 ) : (
-                                    <div className="space-y-3">
+                                    <div className="grid grid-cols-1 gap-4">
                                         {editedData.services?.map((service: any, index: number) => (
-                                            <div key={index} className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
-                                                <div className="space-y-3">
-                                                    <div className="flex items-start gap-3">
-                                                        <div className="flex-1 space-y-2">
-                                                            <Label className="text-xs text-gray-600">Service Name *</Label>
+                                            <div key={index} className="p-6 bg-white border border-gray-100 rounded-2xl hover:shadow-xl hover:shadow-gray-200/40 transition-all duration-300 group relative">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => removeService(index)}
+                                                    className="absolute top-4 right-4 h-8 w-8 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
+
+                                                <div className="space-y-4">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <div className="space-y-2">
+                                                            <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Service Name *</Label>
                                                             <Input
                                                                 value={service.name || ""}
                                                                 onChange={(e) => updateService(index, "name", e.target.value)}
-                                                                placeholder="Enter service name"
-                                                                className="h-9"
+                                                                placeholder="e.g. Haircut"
+                                                                className="h-10 rounded-xl border-gray-200 font-medium"
                                                             />
                                                         </div>
-                                                        <Button variant="ghost" size="icon" onClick={() => removeService(index)} className="h-9 w-9 text-red-500 hover:text-red-700 hover:bg-red-50 mt-6">
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </Button>
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <div className="space-y-2">
+                                                                <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Price ($)</Label>
+                                                                <Input
+                                                                    value={service.price || ""}
+                                                                    onChange={(e) => updateService(index, "price", e.target.value)}
+                                                                    placeholder="0.00"
+                                                                    className="h-10 rounded-xl border-gray-200 font-medium text-blue-600"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Dur. (min)</Label>
+                                                                <Input
+                                                                    type="number"
+                                                                    value={service.duration_minutes || ""}
+                                                                    onChange={(e) => updateService(index, "duration_minutes", parseInt(e.target.value) || 0)}
+                                                                    placeholder="30"
+                                                                    className="h-10 rounded-xl border-gray-200 font-medium"
+                                                                />
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <div className="grid grid-cols-3 gap-3">
+
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         <div className="space-y-2">
-                                                            <Label className="text-xs text-gray-600">Price ($)</Label>
-                                                            <Input
-                                                                value={service.price || ""}
-                                                                onChange={(e) => updateService(index, "price", e.target.value)}
-                                                                placeholder="Price"
-                                                                className="h-9"
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <Label className="text-xs text-gray-600">Duration (min)</Label>
-                                                            <Input
-                                                                type="number"
-                                                                value={service.duration_minutes || ""}
-                                                                onChange={(e) => updateService(index, "duration_minutes", parseInt(e.target.value) || 0)}
-                                                                placeholder="Minutes"
-                                                                className="h-9"
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <Label className="text-xs text-gray-600">Category</Label>
+                                                            <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Category</Label>
                                                             <Input
                                                                 value={service.category || ""}
                                                                 onChange={(e) => updateService(index, "category", e.target.value)}
-                                                                placeholder="Category"
-                                                                className="h-9"
+                                                                placeholder="e.g. Styling"
+                                                                className="h-10 rounded-xl border-gray-200 font-medium text-gray-500"
                                                             />
                                                         </div>
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label className="text-xs text-gray-600">Description (Optional)</Label>
-                                                        <Input
-                                                            value={service.description || ""}
-                                                            onChange={(e) => updateService(index, "description", e.target.value)}
-                                                            placeholder="Add description (optional)"
-                                                            className="h-9"
-                                                        />
+                                                        <div className="space-y-2">
+                                                            <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Description</Label>
+                                                            <Input
+                                                                value={service.description || ""}
+                                                                onChange={(e) => updateService(index, "description", e.target.value)}
+                                                                placeholder="Optional details..."
+                                                                className="h-10 rounded-xl border-gray-200 font-medium text-gray-500"
+                                                            />
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -350,71 +369,82 @@ export function ScrapedDataReview({ open, onOpenChange, data, onConfirm, isSubmi
 
                         {/* Step 3: Deals */}
                         {currentStep === 3 && (
-                            <div className="space-y-4 animate-in fade-in slide-in-from-right-5 duration-300">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-lg font-semibold text-gray-900">Deals & Packages ({editedData.deals?.length || 0})</h3>
-                                    <Button onClick={addDeal} size="sm" className="bg-purple-600 hover:bg-purple-700">
-                                        <Plus className="w-4 h-4 mr-2" /> Add Deal
+                            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-400">
+                                <div className="flex items-center justify-between">
+                                    <div className="space-y-1">
+                                        <h3 className="text-lg font-black text-gray-900">Deals & Packages</h3>
+                                        <p className="text-sm text-gray-500 font-medium">Bundle services to create special offers.</p>
+                                    </div>
+                                    <Button onClick={addDeal} size="sm" className="bg-purple-600 hover:bg-purple-700 rounded-xl px-4 font-bold shadow-sm">
+                                        <Plus className="w-4 h-4  " /> Add Deal
                                     </Button>
                                 </div>
 
                                 {editedData.deals?.length === 0 ? (
-                                    <div className="text-center py-12 bg-purple-50 rounded-lg border-2 border-dashed border-purple-300">
-                                        <Gift className="w-12 h-12 text-purple-400 mx-auto mb-3" />
-                                        <p className="text-gray-600 mb-2 font-medium">No deals found</p>
-                                        <p className="text-gray-500 text-sm mb-4">Create package deals to attract more customers!</p>
-                                        <Button onClick={addDeal} variant="outline" className="border-purple-300 text-purple-600 hover:bg-purple-50">
-                                            <Plus className="w-4 h-4 mr-2" /> Add Deal
+                                    <div className="text-center py-20 bg-purple-50/30 rounded-2xl border-2 border-dashed border-purple-100">
+                                        <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-4">
+                                            <Gift className="w-8 h-8 text-purple-200" />
+                                        </div>
+                                        <p className="text-gray-900 font-bold">No deals found</p>
+                                        <p className="text-gray-500 text-sm mb-6">Create promotional bundles for your clients.</p>
+                                        <Button onClick={addService} variant="outline" className="rounded-xl font-bold border-purple-100 text-purple-600 hover:bg-purple-50">
+                                            <Plus className="w-4 h-4 mr-2" /> Create First Deal
                                         </Button>
                                     </div>
                                 ) : (
-                                    <div className="space-y-3">
+                                    <div className="grid grid-cols-1 gap-4">
                                         {editedData.deals?.map((deal: any, index: number) => (
-                                            <div key={index} className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 rounded-lg hover:shadow-md transition-shadow">
-                                                <div className="space-y-3">
-                                                    <div className="flex items-start gap-3">
-                                                        <div className="flex-1 space-y-2">
-                                                            <Label className="text-xs text-gray-700 font-semibold">Deal Name *</Label>
+                                            <div key={index} className="p-6 bg-gradient-to-br from-white to-purple-50/30 border border-purple-100 rounded-2xl hover:shadow-xl hover:shadow-purple-200/20 transition-all duration-300 group relative">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => removeDeal(index)}
+                                                    className="absolute top-4 right-4 h-8 w-8 text-purple-200 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
+
+                                                <div className="space-y-4">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <div className="space-y-2">
+                                                            <Label className="text-[10px] font-black text-purple-400 uppercase tracking-widest ml-1">Deal Name *</Label>
                                                             <Input
                                                                 value={deal.name || ""}
                                                                 onChange={(e) => updateDeal(index, "name", e.target.value)}
-                                                                placeholder="Enter deal name"
-                                                                className="h-9 bg-white"
+                                                                placeholder="e.g. Summer Special"
+                                                                className="h-10 rounded-xl border-purple-100 bg-white font-medium"
                                                             />
                                                         </div>
-                                                        <Button variant="ghost" size="icon" onClick={() => removeDeal(index)} className="h-9 w-9 text-red-500 hover:text-red-700 hover:bg-red-50 mt-6">
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </Button>
-                                                    </div>
-                                                    <div className="grid grid-cols-2 gap-3">
-                                                        <div className="space-y-2">
-                                                            <Label className="text-xs text-gray-700 font-semibold">Price ($)</Label>
-                                                            <Input
-                                                                value={deal.price || ""}
-                                                                onChange={(e) => updateDeal(index, "price", e.target.value)}
-                                                                placeholder="Price"
-                                                                className="h-9 bg-white"
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <Label className="text-xs text-gray-700 font-semibold">Duration (min)</Label>
-                                                            <Input
-                                                                type="number"
-                                                                value={deal.duration_minutes || ""}
-                                                                onChange={(e) => updateDeal(index, "duration_minutes", parseInt(e.target.value) || 0)}
-                                                                placeholder="Minutes"
-                                                                className="h-9 bg-white"
-                                                            />
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <div className="space-y-2">
+                                                                <Label className="text-[10px] font-black text-purple-400 uppercase tracking-widest ml-1">Bundle Price ($)</Label>
+                                                                <Input
+                                                                    value={deal.price || ""}
+                                                                    onChange={(e) => updateDeal(index, "price", e.target.value)}
+                                                                    placeholder="0.00"
+                                                                    className="h-10 rounded-xl border-purple-100 bg-white font-black text-purple-600"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <Label className="text-[10px] font-black text-purple-400 uppercase tracking-widest ml-1">Dur. (min)</Label>
+                                                                <Input
+                                                                    type="number"
+                                                                    value={deal.duration_minutes || ""}
+                                                                    onChange={(e) => updateDeal(index, "duration_minutes", parseInt(e.target.value) || 0)}
+                                                                    placeholder="60"
+                                                                    className="h-10 rounded-xl border-purple-100 bg-white font-medium"
+                                                                />
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <Label className="text-xs text-gray-700 font-semibold">Description</Label>
+                                                        <Label className="text-[10px] font-black text-purple-400 uppercase tracking-widest ml-1">Description</Label>
                                                         <Textarea
                                                             value={deal.description || ""}
                                                             onChange={(e) => updateDeal(index, "description", e.target.value)}
-                                                            placeholder="Add description"
+                                                            placeholder="What's included in this package?"
                                                             rows={2}
-                                                            className="resize-none bg-white"
+                                                            className="rounded-xl border-purple-100 bg-white font-medium resize-none leading-relaxed"
                                                         />
                                                     </div>
                                                 </div>
@@ -427,42 +457,59 @@ export function ScrapedDataReview({ open, onOpenChange, data, onConfirm, isSubmi
 
                         {/* Step 4: Hours */}
                         {currentStep === 4 && (
-                            <div className="space-y-3 animate-in fade-in slide-in-from-right-5 duration-300">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Business Hours</h3>
-                                <div className="space-y-2">
+                            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-400">
+                                <div className="space-y-1">
+                                    <h3 className="text-lg font-black text-gray-900">Business Hours</h3>
+                                    <p className="text-sm text-gray-500 font-medium">Set when your salon is open for bookings.</p>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-2">
                                     {editedData.schedule?.map((day: any, index: number) => (
-                                        <div key={index} className="p-2 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow">
-                                            <div className="flex items-center ">
-                                                <div className="flex items-center gap-2 min-w-[180px]">
-                                                    <Switch
-                                                        id={`closed-${index}`}
-                                                        checked={!day.is_closed}
-                                                        onCheckedChange={(checked) => updateSchedule(index, "is_closed", !checked)}
-                                                    />
-                                                    <Label htmlFor={`closed-${index}`} className="font-semibold capitalize text-gray-900 cursor-pointer">
-                                                        {day.day_of_week}
-                                                    </Label>
-                                                </div>
-                                                {!day.is_closed ? (
-                                                    <div className="flex items-center gap-2 flex-1">
+                                        <div key={index} className={cn(
+                                            "p-4 rounded-2xl border transition-all duration-300 flex items-center justify-between",
+                                            !day.is_closed
+                                                ? "bg-white border-gray-100 shadow-sm"
+                                                : "bg-gray-50/50 border-transparent opacity-60"
+                                        )}>
+                                            <div className="flex items-center gap-4 min-w-[140px]">
+                                                <Switch
+                                                    id={`closed-${index}`}
+                                                    checked={!day.is_closed}
+                                                    onCheckedChange={(checked) => updateSchedule(index, "is_closed", !checked)}
+                                                    className="data-[state=checked]:bg-green-500"
+                                                />
+                                                <Label htmlFor={`closed-${index}`} className="font-black capitalize text-gray-900 cursor-pointer text-sm tracking-tight">
+                                                    {day.day_of_week}
+                                                </Label>
+                                            </div>
+
+                                            {!day.is_closed ? (
+                                                <div className="flex items-center gap-3">
+                                                    <div className="relative group">
+                                                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
                                                         <Input
                                                             type="time"
-                                                            className="h-9 w-28"
+                                                            className="h-10 w-32 pl-9 rounded-xl border-gray-100 bg-gray-50/50 font-bold text-sm focus:bg-white transition-all"
                                                             value={day.start_time || "09:00"}
                                                             onChange={(e) => updateSchedule(index, "start_time", e.target.value)}
                                                         />
-                                                        <span className="text-gray-400 text-sm">to</span>
+                                                    </div>
+                                                    <div className="h-[2px] w-3 bg-gray-200 rounded-full" />
+                                                    <div className="relative group">
+                                                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
                                                         <Input
                                                             type="time"
-                                                            className="h-9 w-28"
+                                                            className="h-10 w-32 pl-9 rounded-xl border-gray-100 bg-gray-50/50 font-bold text-sm focus:bg-white transition-all"
                                                             value={day.end_time || "17:00"}
                                                             onChange={(e) => updateSchedule(index, "end_time", e.target.value)}
                                                         />
                                                     </div>
-                                                ) : (
-                                                    <span className="text-gray-400 italic">Closed</span>
-                                                )}
-                                            </div>
+                                                </div>
+                                            ) : (
+                                                <div className="px-4 py-1.5 bg-gray-100 rounded-full">
+                                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Closed</span>
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -472,43 +519,51 @@ export function ScrapedDataReview({ open, onOpenChange, data, onConfirm, isSubmi
                 </div>
 
                 {/* Footer */}
-                <DialogFooter className="px-6 py-4 border-t bg-gray-50 flex justify-between items-center">
+                <DialogFooter className="px-6 py-4 border-t bg-gray-50 flex justify-between items-center h-20">
                     <div className="flex gap-2">
                         {currentStep > 1 && (
-                            <Button variant="outline" onClick={handlePrevious} className="gap-2">
+                            <Button
+                                variant="ghost"
+                                onClick={handlePrevious}
+                                className="gap-2 font-bold text-gray-500 hover:text-gray-700 hover:bg-gray-100/50 rounded-xl px-4"
+                            >
                                 <ChevronLeft className="w-4 h-4" />
                                 Previous
                             </Button>
                         )}
                     </div>
-                    <div className="flex gap-2">
-                        <Button variant="ghost" onClick={() => onOpenChange(false)}>
+                    <div className="flex gap-3">
+                        <Button
+                            variant="ghost"
+                            onClick={() => onOpenChange(false)}
+                            className="font-bold text-gray-400 hover:text-gray-600 rounded-xl px-4"
+                        >
                             Cancel
                         </Button>
                         {currentStep < STEPS.length ? (
                             <Button
                                 onClick={handleNext}
                                 disabled={!canProceed()}
-                                className="bg-blue-600 hover:bg-blue-700 gap-2"
+                                className="bg-blue-600 hover:bg-blue-700 text-white font-bold h-11 px-8 rounded-xl shadow-lg shadow-blue-900/20 group transition-all"
                             >
                                 Next
-                                <ChevronRight className="w-4 h-4" />
+                                <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                             </Button>
                         ) : (
                             <Button
                                 onClick={handleSubmit}
                                 disabled={isSubmitting || !canProceed()}
-                                className="bg-green-600 hover:bg-green-700 gap-2"
+                                className="bg-green-600 hover:bg-green-700 text-white font-bold h-11 px-8 rounded-xl shadow-lg shadow-green-900/20 transition-all"
                             >
                                 {isSubmitting ? (
                                     <>
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                        Creating Shop...
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        Creating...
                                     </>
                                 ) : (
                                     <>
-                                        <Check className="w-4 h-4" />
-                                        Confirm & Create Shop
+                                        <Check className="w-4 h-4 mr-2" />
+                                        Confirm & Create
                                     </>
                                 )}
                             </Button>

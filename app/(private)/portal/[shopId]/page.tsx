@@ -4,8 +4,6 @@ import { useEffect, useState } from "react"
 import { useAuth } from "@clerk/nextjs"
 import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
-import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
 import {
     Shield,
     Loader2,
@@ -71,21 +69,11 @@ export default function ShopDashboardPage() {
 
     if (isLoading) {
         return (
-            <main className="min-h-screen bg-slate-50">
-                <Header />
-                <div className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-                    <div className="max-w-5xl mx-auto">
-                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 mb-8">
-                            <div className="flex flex-col items-center justify-center">
-                                <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
-                                <h2 className="text-xl font-bold text-gray-900 mb-2">Loading Dashboard</h2>
-                                <p className="text-gray-600">Fetching your shop data...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <Footer />
-            </main>
+            <div className="flex flex-col items-center justify-center min-h-[400px]">
+                <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Loading Dashboard</h2>
+                <p className="text-gray-600 font-medium">Fetching your shop data...</p>
+            </div>
         )
     }
 
@@ -94,165 +82,160 @@ export default function ShopDashboardPage() {
     }
 
     return (
-        <main className="min-h-screen bg-slate-50">
-            <Header />
+        <>
+            <div className="space-y-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 underline decoration-blue-500/30 underline-offset-8">{selectedShop.name}</h1>
+                        <p className="text-muted-foreground mt-1">{selectedShop.description || "Overview of your shop's performance."}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <span className={`px-4 py-1.5 rounded-full text-sm font-semibold shadow-sm ${selectedShop.is_active ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-gray-100 text-gray-700 border border-gray-200'}`}>
+                            {selectedShop.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                    </div>
+                </div>
 
-            <div className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-5xl mx-auto">
-                    <Link
-                        href="/portal"
-                        className="mb-6 text-sm text-gray-500 hover:text-gray-900 flex items-center gap-1 inline-flex"
-                    >
-                        ← Back to all shops
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div className="p-6 bg-white rounded-2xl shadow-sm border border-gray-100 group hover:border-blue-200 transition-colors">
+                        <p className="text-sm font-medium text-gray-500 mb-2">Total Bookings</p>
+                        <p className="text-3xl font-bold text-gray-900">{dashboardData.total_bookings}</p>
+                        <p className="text-xs font-semibold text-green-600 mt-2 flex items-center gap-1">
+                            <span className="flex h-2 w-2 rounded-full bg-green-500"></span>
+                            +{dashboardData.bookings_today} today
+                        </p>
+                    </div>
+                    <div className="p-6 bg-white rounded-2xl shadow-sm border border-gray-100 group hover:border-blue-200 transition-colors">
+                        <p className="text-sm font-medium text-gray-500 mb-2">Revenue</p>
+                        <p className="text-3xl font-bold text-gray-900">${dashboardData.total_revenue}</p>
+                        <p className="text-xs font-semibold text-green-600 mt-2 flex items-center gap-1">
+                            <span className="flex h-2 w-2 rounded-full bg-green-500"></span>
+                            +${dashboardData.revenue_this_month} this month
+                        </p>
+                    </div>
+                    <div className="p-6 bg-white rounded-2xl shadow-sm border border-gray-100 group hover:border-blue-200 transition-colors">
+                        <p className="text-sm font-medium text-gray-500 mb-2">Pending Bookings</p>
+                        <p className="text-3xl font-bold text-gray-900">{dashboardData.pending_bookings}</p>
+                        <p className="text-xs font-medium text-gray-400 mt-2">Waiting for confirmation</p>
+                    </div>
+                    <div className="p-6 bg-white rounded-2xl shadow-sm border border-gray-100 group hover:border-blue-200 transition-colors">
+                        <p className="text-sm font-medium text-gray-500 mb-2">Total Services</p>
+                        <p className="text-3xl font-bold text-gray-900">{dashboardData.total_services}</p>
+                        <p className="text-xs font-medium text-gray-400 mt-2">Active in menu</p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <Link href={`/portal/${shopId}/company`} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
+                        <div className="relative z-10">
+                            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <Building2 className="w-6 h-6 text-blue-600" />
+                            </div>
+                            <h3 className="font-bold text-gray-900">Company</h3>
+                            <p className="text-sm text-gray-500 mt-1">Manage your business details & hours</p>
+                        </div>
                     </Link>
 
-                    <div className="space-y-6">
-                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-                            <div className="flex items-center justify-between mb-6">
-                                <div>
-                                    <h2 className="text-2xl font-bold text-gray-900">{selectedShop.name}</h2>
-                                    <p className="text-gray-600">{selectedShop.description}</p>
-                                </div>
-                                <span className={`px-3 py-1 rounded-full text-sm font-medium ${selectedShop.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
-                                    {selectedShop.is_active ? 'Active' : 'Inactive'}
-                                </span>
+                    <Link href={`/portal/${shopId}/staff`} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-orange-50 rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
+                        <div className="relative z-10">
+                            <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <Users className="w-6 h-6 text-orange-600" />
                             </div>
+                            <h3 className="font-bold text-gray-900">Staff</h3>
+                            <p className="text-sm text-gray-500 mt-1">Manage your team and assignments</p>
+                        </div>
+                    </Link>
 
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                <div className="p-4 bg-slate-50 rounded-xl">
-                                    <p className="text-sm text-gray-500 mb-1">Total Bookings</p>
-                                    <p className="text-2xl font-bold text-gray-900">{dashboardData.total_bookings}</p>
-                                    <p className="text-xs text-green-600 mt-1">+{dashboardData.bookings_today} today</p>
+                    <Link href={`/portal/${shopId}/services`} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-teal-50 rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
+                        <div className="relative z-10">
+                            <div className="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <Scissors className="w-6 h-6 text-teal-600" />
+                            </div>
+                            <h3 className="font-bold text-gray-900">Services</h3>
+                            <p className="text-sm text-gray-500 mt-1">Customize your service menu</p>
+                        </div>
+                    </Link>
+
+                    <Link href={`/portal/${shopId}/deals`} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-purple-50 rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
+                        <div className="relative z-10">
+                            <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <Sparkles className="w-6 h-6 text-purple-600" />
+                            </div>
+                            <h3 className="font-bold text-gray-900">Deals & Offers</h3>
+                            <p className="text-sm text-gray-500 mt-1">Create packages and promotions</p>
+                        </div>
+                    </Link>
+
+                    <Link href={`/portal/${shopId}/scheduling`} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-red-50 rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
+                        <div className="relative z-10">
+                            <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <Calendar className="w-6 h-6 text-red-600" />
+                            </div>
+                            <h3 className="font-bold text-gray-900">Scheduling</h3>
+                            <p className="text-sm text-gray-500 mt-1">Manage bookings and availability</p>
+                        </div>
+                    </Link>
+
+                    <div
+                        onClick={() => setShowPricingModal(true)}
+                        className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
+                    >
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-rose-50 rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
+                        <div className="relative z-10">
+                            <div className="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <CreditCard className="w-6 h-6 text-rose-600" />
+                            </div>
+                            <h3 className="font-bold text-gray-900">Billing</h3>
+                            <p className="text-sm text-gray-500 mt-1">Manage your subscription & invoices</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Additional Actions */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm transition-all opacity-70 group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-orange-50 rounded-bl-full -mr-4 -mt-4 opacity-50"></div>
+                        <div className="relative z-10 flex items-center gap-4">
+                            <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <Rocket className="w-6 h-6 text-orange-600" />
+                            </div>
+                            <div>
+                                <div className="flex items-center gap-2">
+                                    <h3 className="font-bold text-gray-900">Publish Agent</h3>
+                                    <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-[10px] font-bold rounded-lg uppercase">Coming Soon</span>
                                 </div>
-                                <div className="p-4 bg-slate-50 rounded-xl">
-                                    <p className="text-sm text-gray-500 mb-1">Revenue</p>
-                                    <p className="text-2xl font-bold text-gray-900">${dashboardData.total_revenue}</p>
-                                    <p className="text-xs text-green-600 mt-1">+${dashboardData.revenue_this_month} this month</p>
-                                </div>
-                                <div className="p-4 bg-slate-50 rounded-xl">
-                                    <p className="text-sm text-gray-500 mb-1">Pending Bookings</p>
-                                    <p className="text-2xl font-bold text-gray-900">{dashboardData.pending_bookings}</p>
-                                </div>
-                                <div className="p-4 bg-slate-50 rounded-xl">
-                                    <p className="text-sm text-gray-500 mb-1">Total Services</p>
-                                    <p className="text-2xl font-bold text-gray-900">{dashboardData.total_services}</p>
-                                </div>
+                                <p className="text-sm text-gray-500">Deploy your AI receptionist to handle calls</p>
                             </div>
                         </div>
+                    </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            <Link href={`/portal/${shopId}/company`} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-center group relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
-                                <div className="relative z-10">
-                                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                                        <Building2 className="w-5 h-5 text-blue-600" />
-                                    </div>
-                                    <h3 className="font-semibold text-gray-900 text-sm">Company</h3>
-                                    <p className="text-xs text-gray-500 mt-1">Business information</p>
-                                </div>
-                            </Link>
-                            <Link href={`/portal/${shopId}/staff`} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-center group relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-orange-50 rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
-                                <div className="relative z-10">
-                                    <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center mx-auto mb-3">
-                                        <Users className="w-5 h-5 text-orange-600" />
-                                    </div>
-                                    <h3 className="font-semibold text-gray-900 text-sm">Staff</h3>
-                                    <p className="text-xs text-gray-500 mt-1">Team management</p>
-                                </div>
-                            </Link>
-
-                            <Link href={`/portal/${shopId}/services`} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-center group relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-teal-50 rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
-                                <div className="relative z-10">
-                                    <div className="w-10 h-10 bg-teal-50 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                                        <Scissors className="w-5 h-5 text-teal-600" />
-                                    </div>
-                                    <h3 className="font-semibold text-gray-900 text-sm">Services</h3>
-                                    <p className="text-xs text-gray-500 mt-1">Service offerings</p>
-                                </div>
-                            </Link>
-
-                            <DealsCard shopId={shopId} />
-
-                            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm text-center opacity-50 pointer-events-none group relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-purple-50 rounded-bl-full -mr-4 -mt-4 opacity-50"></div>
-                                <div className="relative z-10">
-                                    <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center mx-auto mb-3">
-                                        <Phone className="w-5 h-5 text-purple-600" />
-                                    </div>
-                                    <h3 className="font-semibold text-gray-900 text-sm">Phone</h3>
-                                    <p className="text-xs text-gray-500 mt-1">Call routing</p>
-                                </div>
+                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm transition-all opacity-70 group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-full -mr-4 -mt-4 opacity-50"></div>
+                        <div className="relative z-10 flex items-center gap-4">
+                            <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <Phone className="w-6 h-6 text-indigo-600" />
                             </div>
-                            <Link href={`/portal/${shopId}/scheduling`} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-center group relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-red-50 rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
-                                <div className="relative z-10">
-                                    <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                                        <Calendar className="w-5 h-5 text-red-600" />
-                                    </div>
-                                    <h3 className="font-semibold text-gray-900 text-sm">Scheduling</h3>
-                                    <p className="text-xs text-gray-500 mt-1">Appointment management</p>
+                            <div>
+                                <div className="flex items-center gap-2">
+                                    <h3 className="font-bold text-gray-900">Phone Integration</h3>
+                                    <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded-lg uppercase">Coming Soon</span>
                                 </div>
-                            </Link>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div
-                                onClick={() => setShowPricingModal(true)}
-                                className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all cursor-pointer flex items-center gap-4 group relative overflow-hidden"
-                            >
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-red-50 rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
-                                <div className="relative z-10 flex items-center gap-4 w-full">
-                                    <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                                        <CreditCard className="w-5 h-5 text-red-600" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-semibold text-gray-900">Billing</h3>
-                                        <p className="text-sm text-gray-500">Manage subscription</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4 opacity-50 pointer-events-none group relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-orange-50 rounded-bl-full -mr-4 -mt-4 opacity-50"></div>
-                                <div className="relative z-10 flex items-center gap-4 w-full">
-                                    <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <Rocket className="w-5 h-5 text-orange-600" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-semibold text-gray-900">Publish Agent</h3>
-                                        <p className="text-sm text-gray-500">Deploy your AI receptionist</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 shadow-sm flex items-center gap-4 relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-blue-100 rounded-bl-full -mr-4 -mt-4 opacity-50"></div>
-                                <div className="relative z-10 flex items-center gap-4 w-full">
-                                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <Headphones className="w-5 h-5 text-blue-600" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-semibold text-gray-900">Need Help?</h3>
-                                        <p className="text-xs text-gray-600 mt-1 mb-2">Our support team is here to assist you</p>
-                                        <Link href="/contact" className="text-blue-600 text-sm font-semibold flex items-center hover:underline">
-                                            Contact Support <ExternalLink className="w-3 h-3 ml-1" />
-                                        </Link>
-                                    </div>
-                                </div>
+                                <p className="text-sm text-gray-500">Connect your business number</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <Footer />
-
             <PricingModal
                 isOpen={showPricingModal}
                 onClose={() => setShowPricingModal(false)}
             />
-        </main>
+        </>
     )
 }

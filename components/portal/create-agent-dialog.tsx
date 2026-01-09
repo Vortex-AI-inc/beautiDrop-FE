@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Loader2, Globe, Wand2, Store, CheckCircle2, AlertCircle } from "lucide-react"
+import { Loader2, Globe, Wand2, Store, CheckCircle2, AlertCircle, ChevronRight } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { createShop } from "@/lib/api/shop"
 import { submitScrapeJob, getScrapeJob, confirmScrapeJob, listScrapeJobs, getScrapingLimits, type ScrapeJob, type ScrapingLimits } from "@/lib/api/scraper"
@@ -243,14 +243,20 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
                     </DialogDescription>
                 </DialogHeader>
 
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-4">
-                    <TabsList className="grid w-full grid-cols-2 mb-6">
-                        <TabsTrigger value="manual" className="flex items-center justify-center gap-2">
-                            <Store className="w-4 h-4" />
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-6">
+                    <TabsList className="grid w-full grid-cols-2 p-1 bg-gray-100/50 rounded-xl h-11 mb-6">
+                        <TabsTrigger
+                            value="manual"
+                            className="flex items-center justify-center gap-2 rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm font-bold text-gray-500 h-full text-xs"
+                        >
+                            <Store className="w-3.5 h-3.5" />
                             Manual Setup
                         </TabsTrigger>
-                        <TabsTrigger value="import" className="flex items-center justify-center gap-2">
-                            <Wand2 className="w-4 h-4" />
+                        <TabsTrigger
+                            value="import"
+                            className="flex items-center justify-center gap-2 rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-purple-600 data-[state=active]:shadow-sm font-bold text-gray-500 h-full text-xs"
+                        >
+                            <Wand2 className="w-3.5 h-3.5" />
                             Import from Web
                         </TabsTrigger>
                     </TabsList>
@@ -280,7 +286,7 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
                                                 value={formData.name}
                                                 onChange={(e) => updateField("name", e.target.value)}
                                                 required
-                                                className="text-gray-900 placeholder:text-gray-400"
+                                                className="text-gray-900 placeholder:text-gray-400 h-12 rounded-xl border-gray-200"
 
                                                 placeholder="e.g., Blush Beauty Salon"
                                             />
@@ -294,6 +300,7 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
                                                 onChange={(e) => updateField("email", e.target.value)}
                                                 required
                                                 placeholder="contact@example.com"
+                                                className="h-11 rounded-lg border-gray-200"
                                             />
                                         </div>
                                     </div>
@@ -307,6 +314,7 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
                                             required
                                             placeholder="Describe your business..."
                                             rows={3}
+                                            className="rounded-xl border-gray-200"
                                         />
                                     </div>
 
@@ -320,6 +328,7 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
                                                 onChange={(e) => updateField("phone", e.target.value)}
                                                 required
                                                 placeholder="(555) 123-4567"
+                                                className="h-11 rounded-lg border-gray-200"
                                             />
                                         </div>
                                         <div className="space-y-2">
@@ -330,12 +339,20 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
                                                 value={formData.website}
                                                 onChange={(e) => updateField("website", e.target.value)}
                                                 placeholder="https://example.com"
+                                                className="h-11 rounded-lg border-gray-200"
                                             />
                                         </div>
                                     </div>
 
-                                    <div className="flex gap-3 justify-end pt-4 border-t">
-                                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+                                    <div className="flex gap-4 justify-end pt-6 border-t border-gray-100">
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            onClick={() => onOpenChange(false)}
+                                            className="font-bold text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl px-6"
+                                        >
+                                            Cancel
+                                        </Button>
                                         <Button
                                             type="button"
                                             onClick={(e) => {
@@ -346,9 +363,10 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
                                                     form?.reportValidity()
                                                 }
                                             }}
-                                            className="bg-purple-600 hover:bg-purple-700 text-white"
+                                            className="bg-purple-600 hover:bg-purple-700 text-white font-bold h-11 px-6 rounded-lg shadow-sm group transition-all"
                                         >
                                             Next Step
+                                            <ChevronRight className="w-4 h-4 ml-1.5 group-hover:translate-x-1 transition-transform" />
                                         </Button>
                                     </div>
                                 </div>
@@ -366,6 +384,7 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
                                                 onChange={(e) => updateField("address", e.target.value)}
                                                 required
                                                 placeholder="123 Main Street"
+                                                className="h-11 rounded-lg border-gray-200"
                                             />
                                         </div>
                                         <div className="grid grid-cols-3 gap-3">
@@ -376,6 +395,7 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
                                                     value={formData.city}
                                                     onChange={(e) => updateField("city", e.target.value)}
                                                     required
+                                                    className="h-11 rounded-lg border-gray-200"
                                                 />
                                             </div>
                                             <div>
@@ -385,6 +405,7 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
                                                     value={formData.state}
                                                     onChange={(e) => updateField("state", e.target.value)}
                                                     required
+                                                    className="h-11 rounded-lg border-gray-200"
                                                 />
                                             </div>
                                             <div>
@@ -394,6 +415,7 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
                                                     value={formData.postal_code}
                                                     onChange={(e) => updateField("postal_code", e.target.value)}
                                                     required
+                                                    className="h-11 rounded-lg border-gray-200"
                                                 />
                                             </div>
                                         </div>
@@ -405,6 +427,7 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
                                                 onChange={(e) => updateField("country", e.target.value)}
                                                 required
                                                 defaultValue="United States"
+                                                className="h-11 rounded-lg border-gray-200"
                                             />
                                         </div>
                                     </div>
@@ -417,7 +440,7 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
                                                 onValueChange={(value) => updateField("timezone", value)}
                                                 required
                                             >
-                                                <SelectTrigger id="timezone">
+                                                <SelectTrigger id="timezone" className="h-11 rounded-lg border-gray-200">
                                                     <SelectValue placeholder="Select timezone" />
                                                 </SelectTrigger>
                                                 <SelectContent className="max-h-[300px]">
@@ -436,6 +459,7 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
                                                 value={formData.cover_image_url}
                                                 onChange={(e) => updateField("cover_image_url", e.target.value)}
                                                 placeholder="https://..."
+                                                className="h-11 rounded-lg border-gray-200"
                                             />
                                         </div>
                                     </div>
@@ -452,10 +476,28 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
                                         </div>
                                     </div>
 
-                                    <div className="flex gap-3 justify-end pt-4 border-t">
-                                        <Button type="button" variant="outline" onClick={() => setManualStep(1)}>Back</Button>
-                                        <Button type="submit" disabled={isSubmitting} className="bg-purple-600 hover:bg-purple-700 text-white">
-                                            {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating...</> : "Create Shop"}
+                                    <div className="flex gap-4 justify-end pt-6 border-t border-gray-100">
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            onClick={() => setManualStep(1)}
+                                            className="font-bold text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl px-6"
+                                        >
+                                            Back
+                                        </Button>
+                                        <Button
+                                            type="submit"
+                                            disabled={isSubmitting}
+                                            className="bg-purple-600 hover:bg-purple-700 text-white font-bold h-11 px-8 rounded-lg shadow-sm transition-all"
+                                        >
+                                            {isSubmitting ? (
+                                                <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating...</>
+                                            ) : (
+                                                <>
+                                                    <Store className="w-4 h-4 mr-2" />
+                                                    Create Shop
+                                                </>
+                                            )}
                                         </Button>
                                     </div>
                                 </div>
@@ -505,21 +547,31 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
                                     )}
 
                                     <form onSubmit={handleScrapeSubmit} className="flex gap-2 max-w-md mx-auto">
-                                        <Input
-                                            placeholder="https://your-salon-website.com"
-                                            value={scrapeUrl}
-                                            onChange={(e) => setScrapeUrl(e.target.value)}
-                                            disabled={isScraping || (scrapeJob?.status === 'completed')}
-                                            required
-                                            type="url"
-                                            className="bg-white"
-                                        />
+                                        <div className="relative flex-1 group">
+                                            <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-purple-600 transition-colors" />
+                                            <Input
+                                                placeholder="https://your-salon-website.com"
+                                                value={scrapeUrl}
+                                                onChange={(e) => setScrapeUrl(e.target.value)}
+                                                disabled={isScraping || (scrapeJob?.status === 'completed')}
+                                                required
+                                                type="url"
+                                                className="pl-10 bg-white h-11 rounded-lg border-gray-200 focus:ring-purple-600 focus:border-purple-600 transition-all"
+                                            />
+                                        </div>
                                         <Button
                                             type="submit"
                                             disabled={!scrapeUrl || isScraping || (scrapeJob?.status === 'completed')}
-                                            className="bg-purple-600 hover:bg-purple-700 text-white whitespace-nowrap"
+                                            className="bg-purple-600 hover:bg-purple-700 text-white font-bold h-11 px-6 rounded-lg shadow-sm whitespace-nowrap group transition-all"
                                         >
-                                            {isScraping ? <Loader2 className="w-4 h-4 animate-spin" /> : "Scan Website"}
+                                            {isScraping ? (
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                            ) : (
+                                                <>
+                                                    <Wand2 className="w-4 h-4 mr-2 group-hover:animate-bounce" />
+                                                    Scan
+                                                </>
+                                            )}
                                         </Button>
                                     </form>
                                 </>
@@ -548,7 +600,7 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
                                                     We successfully extracted data from your website. You can now create your shop with this data.
                                                 </p>
                                                 <div className="flex justify-end gap-3 flex-wrap">
-                                                    <Button variant="outline" onClick={() => setShowReviewModal(true)} className="bg-white hover:bg-green-50 text-green-700 border-green-200">
+                                                    <Button variant="outline" onClick={() => setShowReviewModal(true)} className="bg-green-600 hover:bg-green-700 text-white cursor-pointer">
                                                         Review & Edit Data
                                                     </Button>
                                                     <Button variant="outline" onClick={() => {
@@ -556,13 +608,10 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
                                                         setIsScraping(false)
                                                         setScrapeUrl("")
                                                         setShowReviewModal(false)
-                                                    }} className="bg-white hover:bg-green-50 text-green-700 border-green-200">
+                                                    }} className="bg-white hover:bg-green-50 text-green-700 border-green-200 cursor-pointer">
                                                         Start Over
                                                     </Button>
-                                                    <Button onClick={() => handleConfirmImport()} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 text-white">
-                                                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Store className="w-4 h-4 mr-2" />}
-                                                        Create Shop Now
-                                                    </Button>
+
                                                 </div>
 
                                             </div>

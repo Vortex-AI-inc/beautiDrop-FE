@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useAuth } from "@clerk/nextjs"
-import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -246,32 +244,21 @@ export default function WidgetPage() {
     if (!shop) return null
 
     return (
-        <main className="min-h-screen bg-slate-50">
-            {/* Top Bar */}
-            <div className="bg-white border-b border-gray-200 sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Link href={`/portal/${shopId}`} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                            <ArrowLeft className="w-5 h-5 text-gray-600" />
-                        </Link>
-                        <h1 className="text-xl font-bold text-gray-900">Widget Branding</h1>
+        <>
+            <div className="space-y-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                        <h1 className="text-3xl font-bold tracking-tight text-gray-900 underline decoration-blue-500/30 underline-offset-8">Widget Branding</h1>
+                        <p className="text-muted-foreground mt-4">Customize how your booking widget looks on your website.</p>
                     </div>
                     <div className="flex items-center gap-3">
-
                         <Button onClick={handleSave} disabled={isSaving} className="gap-2 bg-blue-600 text-white hover:bg-blue-700">
                             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                             Save
                         </Button>
                     </div>
                 </div>
-            </div>
 
-            <div className="max-w-[1600px] mx-auto p-6 space-y-6">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Link href={`/portal/${shopId}`} className="hover:text-foreground transition-colors">Dashboard</Link>
-                    <span>/</span>
-                    <span className="text-foreground font-medium">Widget Branding</span>
-                </div>
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     {/* CONFIGURATION */}
                     <div className="lg:col-span-5 space-y-6">
@@ -285,7 +272,7 @@ export default function WidgetPage() {
                                     <button
                                         key={l.id}
                                         onClick={() => setLayout(l.id)}
-                                        className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${layout === l.id
+                                        className={`relative flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${layout === l.id
                                             ? 'border-blue-600 bg-blue-50 text-blue-700'
                                             : 'border-gray-100 hover:border-gray-200 text-gray-600'
                                             }`}
@@ -451,6 +438,6 @@ export default function WidgetPage() {
                     </div>
                 </div>
             </div>
-        </main>
+        </>
     )
 }

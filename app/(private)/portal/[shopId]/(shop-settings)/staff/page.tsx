@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Header } from "@/components/layout/header"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -350,27 +349,20 @@ export default function StaffManagementPage() {
     }
 
     return (
-        <main className="min-h-screen bg-gray-50/50">
-            <Header />
-
-            <div className="pt-28 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
+        <>
+            <div className="space-y-8">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                            <Link href={`/portal/${shopId}`} className="hover:text-foreground transition-colors">Dashboard</Link>
-                            <span>/</span>
-                            <span className="text-foreground font-medium">Staff</span>
-                        </div>
-                        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Staff Management</h1>
-                        <p className="text-muted-foreground">Manage your team members and permissions.</p>
+                        <h1 className="text-3xl font-bold tracking-tight text-gray-900 underline decoration-blue-500/30 underline-offset-8">Staff Management</h1>
+                        <p className="text-muted-foreground mt-4">Manage your team members and permissions.</p>
                     </div>
                 </div>
 
                 <div className="grid lg:grid-cols-3 gap-8">
                     {/* Add Staff Form (Left Column) */}
                     <div className="lg:col-span-1">
-                        <Card className="sticky top-32">
+                        <Card className="sticky top-24">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <UserPlus className="w-5 h-5 text-primary" />
@@ -694,7 +686,6 @@ export default function StaffManagementPage() {
                 </DialogContent>
             </Dialog>
 
-            {/* Delete Confirmation */}
             <AlertDialog open={!!staffToDelete} onOpenChange={() => setStaffToDelete(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -711,6 +702,6 @@ export default function StaffManagementPage() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </main>
+        </>
     )
 }

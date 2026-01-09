@@ -1,0 +1,715 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
+import { ArrowLeft, Building2, Clock, Sparkles, Save, Users, Scissors, Loader2, Check } from "lucide-react"
+import Link from "next/link"
+import { useParams } from "next/navigation"
+import { useToast } from "@/hooks/use-toast"
+import { useShopStore } from "@/lib/store/shop-store"
+import { updateShop, fetchShop } from "@/lib/api/shop"
+import { fetchShopSchedules, bulkCreateSchedules, fetchHolidays, bulkCreateHolidays, bulkDeleteHolidays } from "@/lib/api/schedules"
+import type { Schedule, Holiday } from "@/types/schedule"
+import { Calendar } from "@/components/ui/calendar"
+import { format } from "date-fns"
+import { useAuth } from "@clerk/nextjs"
+
+
+export default function CompanyProfilePage() {
+    const params = useParams()
+    const shopId = params.shopId as string
+    const router = useRouter()
+    const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    const { selectedShop, setSelectedShop } = useShopStore()
+    const { toast } = useToast()
+    const { getToken } = useAuth()
+    const [isSaving, setIsSaving] = useState(false)
+    const [isLoading, setIsLoading] = useState(true)
+    const [schedules, setSchedules] = useState<Schedule[]>([])
+    const [isLoadingSchedules, setIsLoadingSchedules] = useState(false)
+    const [isSavingSchedules, setIsSavingSchedules] = useState(false)
+
+    const [selectedDays, setSelectedDays] = useState<string[]>([])
+    const [businessHours, setBusinessHours] = useState({ start_time: "09:00", end_time: "17:00" })
+
+    const [holidays, setHolidays] = useState<Holiday[]>([])
+    const [isLoadingHolidays, setIsLoadingHolidays] = useState(false)
+    const [selectedHolidayDates, setSelectedHolidayDates] = useState<Date[] | undefined>([])
+    const [isSavingHolidays, setIsSavingHolidays] = useState(false)
+
+    const [formData, setFormData] = useState({
+        name: '',
+        website: '',
+        address: '',
+        suite: '',
+        city: '',
+        state: '',
+        postal_code: '',
+        timezone: 'asia-karachi'
+    })
+
+    useEffect(() => {
+        const loadShopData = async () => {
+            if (selectedShop && selectedShop.id === shopId) {
+                setIsLoading(false)
+                return
+            }
+
+            try {
+                setIsLoading(true)
+                const token = await getToken()
+                if (!token) {
+                    router.push('/login')
+                    return
+                }
+
+                const shop = await fetchShop(shopId, token)
+                if (!shop) {
+                    router.push('/portal')
+                    return
+                }
+
+                setSelectedShop(shop)
+            } catch (error) {
+                router.push('/portal')
+            } finally {
+                setIsLoading(false)
+            }
+        }
+
+        loadShopData()
+    }, [shopId, selectedShop, getToken, router, setSelectedShop])
+
+    useEffect(() => {
+        if (selectedShop) {
+            setFormData({
+                name: selectedShop.name || '',
+                website: selectedShop.website || '',
+                address: selectedShop.address || '',
+                suite: '',
+                city: selectedShop.city || '',
+                state: selectedShop.state || '',
+                postal_code: selectedShop.postal_code || '',
+                timezone: 'asia-karachi'
+            })
+        }
+    }, [selectedShop])
+
+    useEffect(() => {
+        if (selectedShop) {
+            loadSchedules()
+            loadHolidays()
+        }
+    }, [selectedShop])
+
+    const loadSchedules = async () => {
+        try {
+            setIsLoadingSchedules(true)
+            const token = await getToken()
+            if (!token) return
+
+            const data = await fetchShopSchedules(shopId, token)
+            setSchedules(data)
+
+            const daysWithSchedules = data
+                .filter(s => s.is_active)
+                .map(s => s.day_of_week.charAt(0).toUpperCase() + s.day_of_week.slice(1).toLowerCase())
+
+            setSelectedDays(daysWithSchedules)
+
+            if (data.length > 0) {
+                const firstSchedule = data[0]
+                setBusinessHours({
+                    start_time: firstSchedule.start_time.substring(0, 5),
+                    end_time: firstSchedule.end_time.substring(0, 5)
+                })
+            }
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to load schedules. Please try again.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsLoadingSchedules(false)
+        }
+    }
+
+    const handleInputChange = (field: string, value: string) => {
+        setFormData(prev => ({ ...prev, [field]: value }))
+    }
+
+    const handleDayToggle = (day: string) => {
+        setSelectedDays(prev => {
+            if (prev.includes(day)) {
+                return prev.filter(d => d !== day)
+            } else {
+                return [...prev, day]
+            }
+        })
+    }
+
+    const handleSelectAllDays = () => {
+        if (selectedDays.length === DAYS.length) {
+            setSelectedDays([])
+        } else {
+            setSelectedDays([...DAYS])
+        }
+    }
+
+    const handleSaveBusinessHours = async () => {
+        if (selectedDays.length === 0) {
+            toast({
+                title: "Error",
+                description: "Please select at least one day.",
+                variant: "destructive"
+            })
+            return
+        }
+
+        if (!businessHours.start_time || !businessHours.end_time) {
+            toast({
+                title: "Error",
+                description: "Please set start and end times.",
+                variant: "destructive"
+            })
+            return
+        }
+
+        try {
+            setIsSavingSchedules(true)
+            const token = await getToken()
+            if (!token) return
+
+            const payload = {
+                shop_id: shopId,
+                days: selectedDays.map(day => day.toLowerCase()),
+                start_time: businessHours.start_time,
+                end_time: businessHours.end_time
+            }
+
+            await bulkCreateSchedules(payload, token)
+
+            toast({
+                title: "Success",
+                description: "Business hours saved successfully.",
+            })
+
+            await loadSchedules()
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.message || "Failed to save business hours. Please try again.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsSavingSchedules(false)
+        }
+    }
+
+    const handleSave = async () => {
+        if (!selectedShop) return
+
+        try {
+            setIsSaving(true)
+            const token = await getToken()
+            if (!token) {
+                toast({
+                    title: "Authentication Error",
+                    description: "Please sign in to save changes.",
+                    variant: "destructive"
+                })
+                return
+            }
+
+            const updateData = {
+                name: formData.name,
+                website: formData.website,
+                address: formData.address,
+                city: formData.city,
+                state: formData.state,
+                postal_code: formData.postal_code,
+            }
+
+            const updatedShop = await updateShop(selectedShop.id, updateData, token)
+
+            setSelectedShop(updatedShop)
+
+            toast({
+                title: "Changes saved",
+                description: "Your business information has been updated successfully.",
+            })
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to save changes. Please try again.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsSaving(false)
+        }
+    }
+
+    const formatTimeTo12Hour = (time24: string): string => {
+        const [hours, minutes] = time24.substring(0, 5).split(':')
+        const hour = parseInt(hours, 10)
+        const period = hour >= 12 ? 'PM' : 'AM'
+        const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
+        return `${hour12}:${minutes} ${period}`
+    }
+
+    const getDaySchedules = (day: string) => {
+        return schedules.filter(s => s.day_of_week === day.toLowerCase())
+    }
+
+    const loadHolidays = async () => {
+        try {
+            setIsLoadingHolidays(true)
+            const token = await getToken()
+            if (!token) return
+
+            const data = await fetchHolidays(shopId, token)
+            setHolidays(data)
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to load holidays.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsLoadingHolidays(false)
+        }
+    }
+
+    const handleCreateHolidays = async () => {
+        if (!selectedHolidayDates || selectedHolidayDates.length === 0) return
+
+        try {
+            setIsSavingHolidays(true)
+            const token = await getToken()
+            if (!token) return
+
+            const dates = selectedHolidayDates.map(date => format(date, 'yyyy-MM-dd'))
+
+            await bulkCreateHolidays({
+                shop_id: shopId,
+                dates: dates,
+                name: 'Holiday'
+            }, token)
+
+            toast({
+                title: "Success",
+                description: "Holidays added successfully.",
+            })
+
+            await loadHolidays()
+            setSelectedHolidayDates([])
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.message || "Failed to add holidays.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsSavingHolidays(false)
+        }
+    }
+
+    const handleDeleteHolidays = async () => {
+        if (!selectedHolidayDates || selectedHolidayDates.length === 0) return
+
+        try {
+            setIsSavingHolidays(true)
+            const token = await getToken()
+            if (!token) return
+
+            const dates = selectedHolidayDates.map(date => format(date, 'yyyy-MM-dd'))
+
+            await bulkDeleteHolidays({
+                shop_id: shopId,
+                dates: dates
+            }, token)
+
+            toast({
+                title: "Success",
+                description: "Holidays removed successfully.",
+            })
+
+            await loadHolidays()
+            setSelectedHolidayDates([])
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.message || "Failed to remove holidays.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsSavingHolidays(false)
+        }
+    }
+
+    const areAllSelectedHolidays = () => {
+        if (!selectedHolidayDates || selectedHolidayDates.length === 0) return false
+
+        const holidayDatesSet = new Set(holidays.map(h => h.date))
+        return selectedHolidayDates.every(date => holidayDatesSet.has(format(date, 'yyyy-MM-dd')))
+    }
+
+    return (
+        <div className="space-y-6">
+            {isLoading ? (
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12">
+                    <div className="flex flex-col items-center justify-center">
+                        <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
+                        <h2 className="text-xl font-bold text-gray-900 mb-2">Loading Company Profile</h2>
+                        <p className="text-gray-600">Fetching your shop data...</p>
+                    </div>
+                </div>
+            ) : (
+                <>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h1 className="text-2xl font-bold text-gray-900 underline decoration-blue-500/30 underline-offset-8">Company Profile</h1>
+                            <p className="text-gray-600 mt-2">Manage your business information and operating hours</p>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <div className="flex items-center gap-2 mb-6">
+                            <Building2 className="w-5 h-5 text-blue-600" />
+                            <h2 className="text-lg font-bold text-gray-900">Business Information</h2>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="companyName">Company Name <span className="text-red-500">*</span></Label>
+                                <Input
+                                    id="companyName"
+                                    placeholder="LHS"
+                                    className="placeholder:text-gray-400"
+                                    value={formData.name}
+                                    onChange={(e) => handleInputChange('name', e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="website">Website</Label>
+                                <Input
+                                    id="website"
+                                    placeholder="https://yourwebsite.com"
+                                    className="placeholder:text-gray-400"
+                                    value={formData.website}
+                                    onChange={(e) => handleInputChange('website', e.target.value)}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-4 mb-6">
+                            <Label>Business Address</Label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <Input
+                                    placeholder="123 Main Street"
+                                    className="placeholder:text-gray-400"
+                                    value={formData.address}
+                                    onChange={(e) => handleInputChange('address', e.target.value)}
+                                />
+                                <Input
+                                    placeholder="City"
+                                    className="placeholder:text-gray-400"
+                                    value={formData.city}
+                                    onChange={(e) => handleInputChange('city', e.target.value)}
+                                />
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <Input
+                                    placeholder="State"
+                                    className="placeholder:text-gray-400"
+                                    value={formData.state}
+                                    onChange={(e) => handleInputChange('state', e.target.value)}
+                                />
+                                <Input
+                                    placeholder="Postal Code"
+                                    className="placeholder:text-gray-400"
+                                    value={formData.postal_code}
+                                    onChange={(e) => handleInputChange('postal_code', e.target.value)}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end pt-4 border-t border-gray-100 mt-6">
+                            <Button
+                                className="bg-teal-400 hover:bg-teal-500 text-white"
+                                onClick={handleSave}
+                                disabled={isSaving}
+                            >
+                                {isSaving ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        Saving...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="w-4 h-4 mr-2" />
+                                        Save Changes
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+
+                    {/* Business Hours Card */}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <div className="flex items-center gap-2 mb-6">
+                            <Clock className="w-5 h-5 text-blue-600" />
+                            <h2 className="text-lg font-bold text-gray-900">Business Hours</h2>
+                        </div>
+
+                        {isLoadingSchedules ? (
+                            <div className="p-12 flex flex-col items-center justify-center">
+                                <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-4" />
+                                <p className="text-gray-600">Loading schedules...</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                {/* Current Schedule Display */}
+                                {schedules.length > 0 && (
+                                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-6">
+                                        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                            <Clock className="w-5 h-5 text-blue-600" />
+                                            Current Business Hours
+                                        </h3>
+                                        <div className="space-y-3">
+                                            {DAYS.map((day) => {
+                                                const daySchedules = getDaySchedules(day)
+                                                const schedule = daySchedules[0]
+
+                                                return (
+                                                    <div
+                                                        key={day}
+                                                        className={`flex items-center justify-between p-3 rounded-lg transition-all ${schedule
+                                                            ? 'bg-white border border-blue-100'
+                                                            : 'bg-gray-50 border border-gray-200 opacity-60'
+                                                            }`}
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-2 h-2 rounded-full ${schedule ? 'bg-green-500' : 'bg-gray-300'}`} />
+                                                            <span className="font-semibold text-gray-900 min-w-[100px]">
+                                                                {day}
+                                                            </span>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            {schedule ? (
+                                                                <span className="text-sm font-medium text-gray-700">
+                                                                    {formatTimeTo12Hour(schedule.start_time)} - {formatTimeTo12Hour(schedule.end_time)}
+                                                                </span>
+                                                            ) : (
+                                                                <span className="text-sm text-gray-400 italic">Closed</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Edit Section */}
+                                <div className="bg-white border border-gray-200 rounded-xl p-6">
+                                    <h3 className="text-lg font-bold text-gray-900 mb-4">Update Business Hours</h3>
+
+                                    {/* Select All Days */}
+                                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-4">
+                                        <div className="flex items-center gap-3">
+                                            <Checkbox
+                                                id="select-all"
+                                                checked={selectedDays.length === DAYS.length}
+                                                onCheckedChange={handleSelectAllDays}
+                                                className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                                            />
+                                            <Label htmlFor="select-all" className="font-semibold text-gray-900 cursor-pointer">
+                                                Select All Days
+                                            </Label>
+                                        </div>
+                                    </div>
+
+                                    {/* Days Selection */}
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                                        {DAYS.map((day) => {
+                                            const daySchedules = getDaySchedules(day)
+                                            const hasSchedule = daySchedules.length > 0
+                                            const isSelected = selectedDays.includes(day)
+
+                                            return (
+                                                <div
+                                                    key={day}
+                                                    onClick={() => handleDayToggle(day)}
+                                                    className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all ${isSelected
+                                                        ? 'border-blue-600 bg-blue-50'
+                                                        : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                                                        }`}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <Checkbox
+                                                            checked={isSelected}
+                                                            onCheckedChange={() => handleDayToggle(day)}
+                                                            className="pointer-events-none data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                                                        />
+                                                        <div className="flex-1">
+                                                            <Label className="font-semibold text-gray-900 cursor-pointer">
+                                                                {day}
+                                                            </Label>
+                                                            {hasSchedule && (
+                                                                <div className="flex items-center gap-1 mt-1">
+                                                                    <Check className="w-3 h-3 text-green-600" />
+                                                                    <span className="text-xs text-green-600 font-medium">Set</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+
+                                    {/* Time Selection */}
+                                    <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                                        <Label className="text-base font-semibold text-gray-900 mb-4 block">
+                                            Set Business Hours
+                                        </Label>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="start-time">Start Time</Label>
+                                                <Input
+                                                    id="start-time"
+                                                    type="time"
+                                                    value={businessHours.start_time}
+                                                    onChange={(e) => setBusinessHours(prev => ({ ...prev, start_time: e.target.value }))}
+                                                    className="text-lg font-medium"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="end-time">End Time</Label>
+                                                <Input
+                                                    id="end-time"
+                                                    type="time"
+                                                    value={businessHours.end_time}
+                                                    onChange={(e) => setBusinessHours(prev => ({ ...prev, end_time: e.target.value }))}
+                                                    className="text-lg font-medium"
+                                                />
+                                            </div>
+                                        </div>
+
+
+                                    </div>
+
+                                    {/* Save Button */}
+                                    <div className="flex justify-end pt-4 border-t border-gray-100 mt-6">
+                                        <Button
+                                            onClick={handleSaveBusinessHours}
+                                            disabled={isSavingSchedules || selectedDays.length === 0}
+                                            className="bg-blue-600 hover:bg-blue-700 text-white px-8"
+                                        >
+                                            {isSavingSchedules ? (
+                                                <>
+                                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                    Saving...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Save className="w-4 h-4 mr-2" />
+                                                    Save Business Hours
+                                                </>
+                                            )}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Holiday Management Card */}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-12">
+                        <div className="flex items-center gap-2 mb-6">
+                            <Clock className="w-5 h-5 text-blue-600" />
+                            <h2 className="text-lg font-bold text-gray-900">Holiday Management</h2>
+                        </div>
+
+                        <div className="flex flex-col lg:flex-row gap-8">
+                            <div className="p-4 border border-gray-100 rounded-xl bg-gray-50/50">
+                                <Calendar
+                                    mode="multiple"
+                                    selected={selectedHolidayDates}
+                                    onSelect={setSelectedHolidayDates}
+                                    className="rounded-md border bg-white"
+                                    modifiers={{
+                                        holiday: holidays.map(h => new Date(h.date))
+                                    }}
+                                    modifiersStyles={{
+                                        holiday: {
+                                            color: 'red',
+                                            fontWeight: 'bold',
+                                            textDecoration: 'underline'
+                                        }
+                                    }}
+                                />
+                            </div>
+
+                            <div className="flex-1 space-y-6">
+                                <div>
+                                    <h3 className="text-base font-semibold text-gray-900 mb-2">Manage Holidays</h3>
+                                    <p className="text-sm text-gray-600 mb-4">
+                                        Select dates on the calendar to mark them as holidays (shop closed) or remove existing holidays.
+                                    </p>
+
+                                    <div className="flex flex-wrap gap-2 mb-4">
+                                        {holidays.filter(h => new Date(h.date) >= new Date()).slice(0, 5).map(h => (
+                                            <div key={h.date} className="text-xs bg-red-50 text-red-700 px-2.5 py-1 rounded-full border border-red-100 flex items-center gap-1">
+                                                <span>{h.date}</span>
+                                            </div>
+                                        ))}
+                                        {holidays.length > 5 && (
+                                            <span className="text-xs text-gray-500 py-1">+{holidays.length - 5} more</span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="pt-4 border-t border-gray-100">
+                                    <div className="flex gap-3">
+                                        {areAllSelectedHolidays() ? (
+                                            <Button
+                                                onClick={handleDeleteHolidays}
+                                                disabled={isSavingHolidays || !selectedHolidayDates?.length}
+                                                variant="destructive"
+                                                className="w-full sm:w-auto"
+                                            >
+                                                {isSavingHolidays ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                                                Remove Holidays
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                onClick={handleCreateHolidays}
+                                                disabled={isSavingHolidays || !selectedHolidayDates?.length}
+                                                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white"
+                                            >
+                                                {isSavingHolidays ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                                                Mark as Holiday
+                                            </Button>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-2">
+                                        {areAllSelectedHolidays()
+                                            ? "Selected dates are currently holidays. Click to remove them."
+                                            : "Select dates to set as holidays. Existing holidays will be skipped."}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
+        </div>
+    )
+}

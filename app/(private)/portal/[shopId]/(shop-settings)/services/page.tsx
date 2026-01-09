@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Header } from "@/components/layout/header"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -429,20 +428,13 @@ export default function ServicesManagementPage() {
     }
 
     return (
-        <main className="min-h-screen bg-gray-50/50">
-            <Header />
-
-            <div className="pt-28 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
+        <>
+            <div className="space-y-8">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                            <Link href={`/portal/${shopId}`} className="hover:text-foreground transition-colors">Dashboard</Link>
-                            <span>/</span>
-                            <span className="text-foreground font-medium">Services</span>
-                        </div>
-                        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Services</h1>
-                        <p className="text-muted-foreground">Manage your service menu and assign staff.</p>
+                        <h1 className="text-3xl font-bold tracking-tight text-gray-900 underline decoration-blue-500/30 underline-offset-8">Services</h1>
+                        <p className="text-muted-foreground mt-4">Manage your service menu and assign staff.</p>
                     </div>
                 </div>
 
@@ -456,11 +448,10 @@ export default function ServicesManagementPage() {
                         </div>
                     </div>
                 )}
-
                 <div className="grid lg:grid-cols-3 gap-8">
                     {/* Add Service Card (Left Column) */}
                     <div className="lg:col-span-1">
-                        <Card className="sticky top-32">
+                        <Card className="sticky top-24">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <Plus className="w-5 h-5 text-primary" />
@@ -686,7 +677,7 @@ export default function ServicesManagementPage() {
                         </Card>
                     </div>
                 </div>
-            </div>
+            </div >
 
             {/* Edit Modal */}
             <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
@@ -770,7 +761,7 @@ export default function ServicesManagementPage() {
                         </Button>
                     </DialogFooter>
                 </DialogContent>
-            </Dialog>
+            </Dialog >
 
             {/* Staff Assignment Modal */}
             <Dialog open={isStaffModalOpen} onOpenChange={setIsStaffModalOpen}>
@@ -851,7 +842,7 @@ export default function ServicesManagementPage() {
                         </Button>
                     </DialogFooter>
                 </DialogContent>
-            </Dialog>
+            </Dialog >
 
             {/* Alert Dialog */}
             <AlertDialog open={!!staffRemovalData} onOpenChange={() => setStaffRemovalData(null)}>
@@ -869,7 +860,7 @@ export default function ServicesManagementPage() {
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
-            </AlertDialog>
-        </main >
+            </AlertDialog >
+        </>
     )
 }
