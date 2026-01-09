@@ -188,7 +188,7 @@ export function ScrapedDataReview({ open, onOpenChange, data, onConfirm, isSubmi
                     <ScrollArea className="h-[60vh] px-6 py-4">
                         {/* Step 1: Shop Details */}
                         {currentStep === 1 && (
-                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-400">
+                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-400 pb-20">
                                 <div className="grid grid-cols-2 gap-6">
                                     <div className="space-y-2">
                                         <Label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Business Name *</Label>
@@ -270,7 +270,7 @@ export function ScrapedDataReview({ open, onOpenChange, data, onConfirm, isSubmi
 
                         {/* Step 2: Services */}
                         {currentStep === 2 && (
-                            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-400">
+                            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-400 pb-20">
                                 <div className="flex items-center justify-between">
                                     <div className="">
                                         <h3 className="text-lg font-black text-gray-900">Services</h3>
@@ -369,7 +369,7 @@ export function ScrapedDataReview({ open, onOpenChange, data, onConfirm, isSubmi
 
                         {/* Step 3: Deals */}
                         {currentStep === 3 && (
-                            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-400">
+                            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-400 pb-20">
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-1">
                                         <h3 className="text-lg font-black text-gray-900">Deals & Packages</h3>
@@ -457,7 +457,7 @@ export function ScrapedDataReview({ open, onOpenChange, data, onConfirm, isSubmi
 
                         {/* Step 4: Hours */}
                         {currentStep === 4 && (
-                            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-400">
+                            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-400 pb-20">
                                 <div className="space-y-1">
                                     <h3 className="text-lg font-black text-gray-900">Business Hours</h3>
                                     <p className="text-sm text-gray-500 font-medium">Set when your salon is open for bookings.</p>

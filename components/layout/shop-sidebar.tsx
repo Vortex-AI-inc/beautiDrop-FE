@@ -50,17 +50,18 @@ export function ShopSidebar({ shopId, isMobile }: ShopSidebarProps) {
             description: "Service menu & pricing"
         },
         {
-            label: "Scheduling",
-            href: `/portal/${shopId}/scheduling`,
-            icon: Calendar,
-            description: "Calendar & availability"
-        },
-        {
             label: "Deals & Offers",
             href: `/portal/${shopId}/deals`,
             icon: Sparkles,
             description: "Promotions & discounts"
         },
+        {
+            label: "Scheduling",
+            href: `/portal/${shopId}/scheduling`,
+            icon: Calendar,
+            description: "Calendar & availability"
+        },
+
         {
             label: "Booking Widget",
             href: `/portal/${shopId}/widget`,
