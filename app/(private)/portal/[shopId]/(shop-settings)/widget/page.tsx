@@ -257,14 +257,14 @@ export default function WidgetPage() {
                         </div>
                         <p className="text-slate-500 font-medium">Customize the appearance and behavior of your booking widget.</p>
                     </div>
-                    <Button
+                    {/* <Button
                         onClick={handleSave}
                         disabled={isSaving}
                         className="bg-indigo-600 hover:bg-indigo-700 text-white h-12 rounded-2xl px-6 font-black uppercase tracking-widest text-[10px] shadow-xl shadow-indigo-100 transition-all active:scale-95"
                     >
                         {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
                         Save Changes
-                    </Button>
+                    </Button> */}
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

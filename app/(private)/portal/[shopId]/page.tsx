@@ -197,7 +197,7 @@ export default function ShopDashboardPage() {
                 </div>
 
                 {/* Additional Actions */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm transition-all opacity-70 group relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-orange-50 rounded-bl-full -mr-4 -mt-4 opacity-50"></div>
                         <div className="relative z-10 flex items-center gap-4">
@@ -226,6 +226,22 @@ export default function ShopDashboardPage() {
                                     <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded-lg uppercase">Coming Soon</span>
                                 </div>
                                 <p className="text-sm text-gray-500">Connect your business number</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm transition-all opacity-70 group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-purple-50 rounded-bl-full -mr-4 -mt-4 opacity-50"></div>
+                        <div className="relative z-10 flex items-center gap-4">
+                            <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <CreditCard className="w-6 h-6 text-purple-600" />
+                            </div>
+                            <div>
+                                <div className="flex items-center gap-2">
+                                    <h3 className="font-bold text-gray-900">Stripe Connect</h3>
+                                    <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-[10px] font-bold rounded-lg uppercase">Coming Soon</span>
+                                </div>
+                                <p className="text-sm text-gray-500">Accept payments directly</p>
                             </div>
                         </div>
                     </div>
