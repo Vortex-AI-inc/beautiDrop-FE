@@ -387,7 +387,7 @@ export function ScrapedDataReview({ open, onOpenChange, data, onConfirm, isSubmi
                                         </div>
                                         <p className="text-gray-900 font-bold">No deals found</p>
                                         <p className="text-gray-500 text-sm mb-6">Create promotional bundles for your clients.</p>
-                                        <Button onClick={addService} variant="outline" className="rounded-xl font-bold border-purple-100 text-purple-600 hover:bg-purple-50">
+                                        <Button onClick={addDeal} variant="outline" className="rounded-xl font-bold border-purple-100 text-purple-600 hover:bg-purple-50">
                                             <Plus className="w-4 h-4 mr-2" /> Create First Deal
                                         </Button>
                                     </div>
