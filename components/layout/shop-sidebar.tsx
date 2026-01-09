@@ -95,8 +95,8 @@ export function ShopSidebar({ shopId, isMobile }: ShopSidebarProps) {
     }
 
     return (
-        <div className="flex flex-col h-[calc(100vh-5rem)]">
-            <div className="p-4 border-b border-gray-100">
+        <div className="flex flex-col h-full">
+            <div className="pb-4">
                 <Link
                     href="/portal"
                     className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors text-sm font-medium group"
@@ -108,7 +108,7 @@ export function ShopSidebar({ shopId, isMobile }: ShopSidebarProps) {
                 </Link>
             </div>
 
-            <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+            <nav className="flex-1 space-y-2 overflow-y-auto">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href
                     return (
@@ -145,18 +145,7 @@ export function ShopSidebar({ shopId, isMobile }: ShopSidebarProps) {
                 })}
             </nav>
 
-            <div className="p-4 bg-gray-50/50 border-t border-gray-100">
-                <div className="p-4 bg-white rounded-xl border border-gray-100 shadow-sm">
-                    <p className="text-xs font-semibold text-gray-900 mb-1">Need help?</p>
-                    <p className="text-[10px] text-gray-500 mb-3">Check our documentation or contact support.</p>
-                    <Link
-                        href=""
-                        className="text-[10px] font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1"
-                    >
-                        Go to Support <ChevronRight className="w-3 h-3" />
-                    </Link>
-                </div>
-            </div>
+
         </div>
     )
 }

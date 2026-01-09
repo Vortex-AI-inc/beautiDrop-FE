@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Loader2, Globe, Wand2, Store, CheckCircle2, AlertCircle, ChevronRight } from "lucide-react"
+import { Loader2, Globe, Wand2, Store, CheckCircle2, AlertCircle, ChevronRight, Upload, X, Image as ImageIcon } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { createShop } from "@/lib/api/shop"
 import { submitScrapeJob, getScrapeJob, confirmScrapeJob, listScrapeJobs, getScrapingLimits, type ScrapeJob, type ScrapingLimits } from "@/lib/api/scraper"
@@ -59,6 +59,10 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
     const [showReviewModal, setShowReviewModal] = useState(false)
     const pollInterval = useRef<NodeJS.Timeout | null>(null)
     const [scrapingLimits, setScrapingLimits] = useState<ScrapingLimits | null>(null)
+    const [coverImageFile, setCoverImageFile] = useState<File | null>(null)
+    const [coverImagePreview, setCoverImagePreview] = useState<string>("")
+    const [isUploadingImage, setIsUploadingImage] = useState(false)
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
     useEffect(() => {
         if (open) {
@@ -185,6 +189,86 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
         }
     }
 
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        if (!file.type.startsWith('image/')) {
+            toast({
+                title: "Invalid file",
+                description: "Please select an image file",
+                variant: "destructive"
+            })
+            return
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            toast({
+                title: "File too large",
+                description: "Image must be less than 5MB",
+                variant: "destructive"
+            })
+            return
+        }
+
+        setCoverImageFile(file)
+        const reader = new FileReader()
+        reader.onloadend = () => {
+            setCoverImagePreview(reader.result as string)
+        }
+        reader.readAsDataURL(file)
+    }
+
+    const handleRemoveImage = () => {
+        setCoverImageFile(null)
+        setCoverImagePreview("")
+        if (fileInputRef.current) {
+            fileInputRef.current.value = ""
+        }
+    }
+
+    const uploadCoverImage = async (file: File): Promise<string> => {
+        const timestamp = Date.now()
+        const fileName = `${timestamp}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+        const relativePath = `/images/shops-cover-images/${fileName}`
+
+        try {
+            const reader = new FileReader()
+            return new Promise((resolve, reject) => {
+                reader.onload = async (e) => {
+                    try {
+                        const base64Data = e.target?.result as string
+
+                        const response = await fetch('/api/save-image', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                imageData: base64Data,
+                                fileName: fileName,
+                                directory: 'shops-cover-images'
+                            }),
+                        })
+
+                        if (!response.ok) {
+                            throw new Error('Failed to save image')
+                        }
+
+                        const fullUrl = `${window.location.origin}${relativePath}`
+                        resolve(fullUrl)
+                    } catch (error) {
+                        reject(error)
+                    }
+                }
+                reader.onerror = () => reject(new Error('Failed to read file'))
+                reader.readAsDataURL(file)
+            })
+        } catch (error) {
+            throw new Error('Failed to upload image')
+        }
+    }
+
     const handleManualSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsSubmitting(true)
@@ -193,7 +277,29 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
             const token = await getToken()
             if (!token) throw new Error("Not authenticated")
 
-            const newShop = await createShop(formData, token)
+            let coverImageUrl = formData.cover_image_url
+
+            if (coverImageFile) {
+                setIsUploadingImage(true)
+                try {
+                    coverImageUrl = await uploadCoverImage(coverImageFile)
+                } catch (error) {
+                    toast({
+                        title: "Image upload failed",
+                        description: "Failed to upload cover image. Creating shop without image.",
+                        variant: "destructive"
+                    })
+                } finally {
+                    setIsUploadingImage(false)
+                }
+            }
+
+            const shopData = {
+                ...formData,
+                cover_image_url: coverImageUrl
+            }
+
+            const newShop = await createShop(shopData, token)
 
             toast({
                 title: "Success!",
@@ -218,6 +324,8 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
                 is_active: true,
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "America/New_York",
             })
+            setCoverImageFile(null)
+            setCoverImagePreview("")
         } catch (error) {
             toast({
                 title: "Error",
@@ -453,14 +561,48 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
                                             </Select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="cover_image_url">Cover Image URL</Label>
-                                            <Input
-                                                id="cover_image_url"
-                                                value={formData.cover_image_url}
-                                                onChange={(e) => updateField("cover_image_url", e.target.value)}
-                                                placeholder="https://..."
-                                                className="h-11 rounded-lg border-gray-200"
-                                            />
+                                            <Label htmlFor="cover_image">Cover Image</Label>
+                                            <div className="space-y-3">
+                                                {coverImagePreview ? (
+                                                    <div className="relative group">
+                                                        <img
+                                                            src={coverImagePreview}
+                                                            alt="Cover preview"
+                                                            className="w-full h-40 object-cover rounded-lg border-2 border-gray-200"
+                                                        />
+                                                        <Button
+                                                            type="button"
+                                                            variant="destructive"
+                                                            size="icon"
+                                                            className="absolute top-2 right-2 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                            onClick={handleRemoveImage}
+                                                        >
+                                                            <X className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                ) : (
+                                                    <div
+                                                        onClick={() => fileInputRef.current?.click()}
+                                                        className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50/50 transition-all"
+                                                    >
+                                                        <ImageIcon className="w-12 h-12 mx-auto text-gray-400 mb-3" />
+                                                        <p className="text-sm font-medium text-gray-600 mb-1">
+                                                            Click to upload cover image
+                                                        </p>
+                                                        <p className="text-xs text-gray-400">
+                                                            PNG, JPG up to 5MB
+                                                        </p>
+                                                    </div>
+                                                )}
+                                                <input
+                                                    ref={fileInputRef}
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={handleImageUpload}
+                                                    className="hidden"
+                                                    id="cover_image"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
 
@@ -487,10 +629,12 @@ export function CreateAgentDialog({ open, onOpenChange, onSuccess, initialUrl }:
                                         </Button>
                                         <Button
                                             type="submit"
-                                            disabled={isSubmitting}
+                                            disabled={isSubmitting || isUploadingImage}
                                             className="bg-purple-600 hover:bg-purple-700 text-white font-bold h-11 px-8 rounded-lg shadow-sm transition-all"
                                         >
-                                            {isSubmitting ? (
+                                            {isUploadingImage ? (
+                                                <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Uploading Image...</>
+                                            ) : isSubmitting ? (
                                                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating...</>
                                             ) : (
                                                 <>

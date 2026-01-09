@@ -13,32 +13,33 @@ export default function ShopSettingsLayout({
     const shopId = params.shopId as string
 
     return (
-        <div className="flex flex-col min-h-screen bg-slate-50">
+        <div className="flex flex-col min-h-screen bg-[#F8FAFC]">
             <Header />
-            <div className="flex flex-1 pt-20">
-                {/* Sidebar for Desktop */}
-                <aside className="hidden md:block w-72 border-r border-gray-100 bg-white fixed left-0 top-20 bottom-0 pointer-events-auto overflow-y-auto">
-                    <ShopSidebar shopId={shopId} />
-                </aside>
+            <div className="flex-1 pt-20">
+                <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12">
+                    <div className="flex flex-col md:flex-row gap-8">
+                        {/* Sidebar for Desktop */}
+                        <aside className="hidden md:block w-72 flex-shrink-0 sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto py-8">
+                            <ShopSidebar shopId={shopId} />
+                        </aside>
 
-                {/* Main Content Area */}
-                <main className="flex-1 md:ml-72 flex flex-col min-h-[calc(100vh-5rem)]">
-                    {/* Mobile Navigation */}
-                    <div className="md:hidden sticky top-20 z-30 px-4 py-2 bg-white/80 backdrop-blur-md border-b border-gray-100">
-                        <ShopSidebar shopId={shopId} isMobile />
+                        {/* Main Content Area */}
+                        <main className="flex-1 min-w-0 pt-0 pb-8 md:py-8 flex flex-col min-h-[calc(100vh-5rem)]">
+                            {/* Mobile Navigation */}
+                            <div className="md:hidden sticky top-20 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-white/80 backdrop-blur-md border-b border-gray-100 mb-2">
+                                <ShopSidebar shopId={shopId} isMobile />
+                            </div>
+
+                            <div className="flex-1">
+                                {children}
+                            </div>
+
+                            <footer className="mt-12 py-8 border-t border-gray-100 text-center text-xs text-gray-400">
+                                &copy; {new Date().getFullYear()} Beauty Drop AI. All rights reserved.
+                            </footer>
+                        </main>
                     </div>
-
-                    <div className="flex-1 p-4 sm:p-6 lg:p-8">
-                        <div className="max-w-6xl mx-auto">
-                            {children}
-                        </div>
-                    </div>
-
-                    {/* Minimal interior footer or extra space */}
-                    <footer className="p-8 text-center text-xs text-gray-400">
-                        &copy; {new Date().getFullYear()} Beauty Drop AI. All rights reserved.
-                    </footer>
-                </main>
+                </div>
             </div>
         </div>
     )

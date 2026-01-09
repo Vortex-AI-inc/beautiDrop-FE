@@ -32,6 +32,8 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
 
 const FONTS = [
     { name: "Montserrat", value: "font-sans" },
@@ -246,17 +248,23 @@ export default function WidgetPage() {
     return (
         <>
             <div className="space-y-8">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-gray-100/80">
                     <div className="space-y-1">
-                        <h1 className="text-3xl font-bold tracking-tight text-gray-900 underline decoration-blue-500/30 underline-offset-8">Widget Branding</h1>
-                        <p className="text-muted-foreground mt-4">Customize how your booking widget looks on your website.</p>
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">
+                                Widget Branding
+                            </h1>
+                        </div>
+                        <p className="text-slate-500 font-medium">Customize the appearance and behavior of your booking widget.</p>
                     </div>
-                    <div className="flex items-center gap-3">
-                        <Button onClick={handleSave} disabled={isSaving} className="gap-2 bg-blue-600 text-white hover:bg-blue-700">
-                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                            Save
-                        </Button>
-                    </div>
+                    <Button
+                        onClick={handleSave}
+                        disabled={isSaving}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white h-12 rounded-2xl px-6 font-black uppercase tracking-widest text-[10px] shadow-xl shadow-indigo-100 transition-all active:scale-95"
+                    >
+                        {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                        Save Changes
+                    </Button>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -264,177 +272,220 @@ export default function WidgetPage() {
                     <div className="lg:col-span-5 space-y-6">
 
                         {/* Design & Layout */}
-                        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                            <h3 className="font-bold text-gray-900 mb-4">Design & Layout</h3>
+                        <Card className="shadow-xl shadow-slate-200/40 border-none rounded-[2rem] overflow-hidden">
+                            <CardHeader className="bg-slate-50/50 px-8 py-6">
+                                <CardTitle className="text-lg font-bold">Design & Layout</CardTitle>
+                                <CardDescription className="font-medium text-slate-500">Choose your widget style</CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-8 space-y-6">
 
-                            <div className="grid grid-cols-3 gap-4 mb-6">
-                                {LAYOUTS.map((l) => (
-                                    <button
-                                        key={l.id}
-                                        onClick={() => setLayout(l.id)}
-                                        className={`relative flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${layout === l.id
-                                            ? 'border-blue-600 bg-blue-50 text-blue-700'
-                                            : 'border-gray-100 hover:border-gray-200 text-gray-600'
-                                            }`}
-                                    >
-                                        <l.icon className={`w-8 h-8 mb-3 ${layout === l.id ? 'text-blue-600' : 'text-gray-400'}`} />
-                                        <span className="text-sm font-medium">{l.name}</span>
-                                        {layout === l.id && <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-blue-600" />}
-                                    </button>
-                                ))}
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-6 mb-6">
-                                <div className="space-y-2">
-                                    <Label>Primary Color</Label>
-                                    <div className="flex items-center gap-2 p-2 border rounded-lg">
-                                        <input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="w-8 h-8 rounded border-0 cursor-pointer p-0" />
-                                        <span className="text-sm font-mono text-gray-500 uppercase">{primaryColor}</span>
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Widget Width</Label>
-                                    <div className="h-10 border rounded-lg flex items-center px-3 bg-gray-50">
-                                        <span className="text-sm text-gray-600">{widgetWidth}px</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <div className="flex justify-between">
-                                        <Label>Width Slider</Label>
-                                    </div>
-                                    <Slider value={[widgetWidth]} min={280} max={800} step={10} onValueChange={(val) => setWidgetWidth(val[0])} />
+                                <div className="grid grid-cols-3 gap-3">
+                                    {LAYOUTS.map((l) => (
+                                        <button
+                                            key={l.id}
+                                            onClick={() => setLayout(l.id)}
+                                            className={cn(
+                                                "relative flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all",
+                                                layout === l.id
+                                                    ? 'border-indigo-600 bg-indigo-50 shadow-lg shadow-indigo-100'
+                                                    : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'
+                                            )}
+                                        >
+                                            <l.icon className={cn(
+                                                "w-7 h-7 mb-2",
+                                                layout === l.id ? 'text-indigo-600' : 'text-slate-400'
+                                            )} />
+                                            <span className={cn(
+                                                "text-[10px] font-black uppercase tracking-widest",
+                                                layout === l.id ? 'text-indigo-600' : 'text-slate-500'
+                                            )}>{l.name}</span>
+                                            {layout === l.id && <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-indigo-600" />}
+                                        </button>
+                                    ))}
                                 </div>
 
-                                <div className="space-y-2">
-                                    <div className="flex justify-between">
-                                        <Label>Corner Radius</Label>
-                                        <span className="text-sm text-gray-500">{borderRadius}px</span>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Primary Color</Label>
+                                        <div className="flex items-center gap-3 p-3 border border-slate-100 rounded-2xl bg-white shadow-sm">
+                                            <input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="w-10 h-10 rounded-xl border-2 border-slate-100 cursor-pointer" />
+                                            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">{primaryColor}</span>
+                                        </div>
                                     </div>
-                                    <Slider value={[borderRadius]} min={0} max={32} step={4} onValueChange={(val) => setBorderRadius(val[0])} />
+                                    <div className="space-y-2">
+                                        <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Widget Width</Label>
+                                        <div className="h-[52px] border border-slate-100 rounded-2xl flex items-center px-4 bg-slate-50 shadow-sm">
+                                            <span className="text-sm font-black text-slate-900">{widgetWidth}px</span>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
+
+                                <div className="space-y-3">
+                                    <div className="flex justify-between items-center">
+                                        <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Width Slider</Label>
+                                    </div>
+                                    <Slider value={[widgetWidth]} min={280} max={800} step={10} onValueChange={(val) => setWidgetWidth(val[0])} className="py-2" />
+                                </div>
+
+                                <div className="space-y-3">
+                                    <div className="flex justify-between items-center">
+                                        <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Corner Radius</Label>
+                                        <span className="text-xs font-bold text-slate-600">{borderRadius}px</span>
+                                    </div>
+                                    <Slider value={[borderRadius]} min={0} max={32} step={4} onValueChange={(val) => setBorderRadius(val[0])} className="py-2" />
+                                </div>
+                            </CardContent>
+                        </Card>
 
                         {/* Content */}
-                        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                            <h3 className="font-bold text-gray-900 mb-6">Content</h3>
-
-                            <div className="space-y-6">
+                        <Card className="shadow-xl shadow-slate-200/40 border-none rounded-[2rem] overflow-hidden">
+                            <CardHeader className="bg-slate-50/50 px-8 py-6">
+                                <CardTitle className="text-lg font-bold">Content</CardTitle>
+                                <CardDescription className="font-medium text-slate-500">Customize widget text and images</CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-8 space-y-6">
                                 <div className="space-y-2">
-                                    <Label>Image URL (Optional)</Label>
+                                    <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Banner Image URL</Label>
                                     <div className="flex gap-2">
                                         <div className="relative flex-1">
-                                            <LinkIcon className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+                                            <LinkIcon className="absolute left-4 top-4 w-4 h-4 text-slate-400" />
                                             <Input
                                                 value={bannerImage}
                                                 onChange={(e) => setBannerImage(e.target.value)}
                                                 placeholder="https://example.com/image.jpg"
-                                                className="pl-9"
+                                                className="pl-11 h-12 rounded-2xl border-slate-100 bg-white shadow-sm"
                                             />
                                         </div>
-                                        <Button variant="outline" onClick={() => setBannerImage("")} disabled={!bannerImage}>Clear</Button>
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => setBannerImage("")}
+                                            disabled={!bannerImage}
+                                            className="h-12 rounded-2xl border-slate-100 hover:bg-slate-50"
+                                        >
+                                            Clear
+                                        </Button>
                                     </div>
-                                    <p className="text-xs text-gray-500">Paste a direct link to a JPG or PNG image.</p>
+                                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Paste a direct link to a JPG or PNG image.</p>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label>Title Text</Label>
-                                    <Input value={customTitle} onChange={(e) => setCustomTitle(e.target.value)} />
+                                    <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Title Text</Label>
+                                    <Input value={customTitle} onChange={(e) => setCustomTitle(e.target.value)} className="h-12 rounded-2xl border-slate-100 bg-white shadow-sm" />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label>Description</Label>
-                                    <Textarea value={customDescription} onChange={(e) => setCustomDescription(e.target.value)} rows={3} placeholder="Describe your services..." />
-                                    <p className="text-xs text-gray-400">New lines will be respected.</p>
+                                    <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Description</Label>
+                                    <Textarea value={customDescription} onChange={(e) => setCustomDescription(e.target.value)} rows={3} placeholder="Describe your services..." className="rounded-2xl border-slate-100 bg-white shadow-sm resize-none" />
+                                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">New lines will be respected.</p>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label>Button Text</Label>
-                                    <Input value={buttonText} onChange={(e) => setButtonText(e.target.value)} />
+                                    <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Button Text</Label>
+                                    <Input value={buttonText} onChange={(e) => setButtonText(e.target.value)} className="h-12 rounded-2xl border-slate-100 bg-white shadow-sm" />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <Label>Logo URL (Optional)</Label>
-                                    </div>
+                                    <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Logo URL (Optional)</Label>
                                     <Input
                                         value={logoUrl}
                                         onChange={(e) => setLogoUrl(e.target.value)}
                                         placeholder="https://example.com/logo.png"
+                                        className="h-12 rounded-2xl border-slate-100 bg-white shadow-sm"
                                     />
-                                    <p className="text-xs text-gray-500">Leave empty to use shop initial.</p>
+                                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Leave empty to use shop initial.</p>
                                 </div>
-                            </div>
-                        </div>
+                            </CardContent>
+                        </Card>
 
                         {/* Appearance */}
-                        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                            <h3 className="font-bold text-gray-900 mb-6">Appearance</h3>
-                            <div className="space-y-6">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <Switch checked={showLogo} onCheckedChange={setShowLogo} />
-                                        <Label>Display Company Logo</Label>
-                                    </div>
+                        <Card className="shadow-xl shadow-slate-200/40 border-none rounded-[2rem] overflow-hidden">
+                            <CardHeader className="bg-slate-50/50 px-8 py-6">
+                                <CardTitle className="text-lg font-bold">Appearance</CardTitle>
+                                <CardDescription className="font-medium text-slate-500">Fine-tune visual settings</CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-8 space-y-6">
+                                <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50">
+                                    <Label className="text-xs font-black uppercase tracking-widest text-slate-600">Display Company Logo</Label>
+                                    <Switch checked={showLogo} onCheckedChange={setShowLogo} className="data-[state=checked]:bg-indigo-600" />
                                 </div>
-                                <div className="space-y-2">
-                                    <Label>Text Align</Label>
+                                <div className="space-y-3">
+                                    <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Text Alignment</Label>
                                     <div className="grid grid-cols-3 gap-2">
                                         {['left', 'center', 'right'].map((align) => (
                                             <button
                                                 key={align}
                                                 onClick={() => setTextAlign(align)}
-                                                className={`flex items-center justify-center p-2 rounded-lg border ${textAlign === align ? 'bg-blue-50 border-blue-200 text-blue-600' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+                                                className={cn(
+                                                    "flex items-center justify-center p-3 rounded-2xl border-2 transition-all",
+                                                    textAlign === align
+                                                        ? 'bg-indigo-50 border-indigo-600 shadow-lg shadow-indigo-100'
+                                                        : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'
+                                                )}
                                             >
-                                                <span className="capitalize text-sm">{align}</span>
+                                                <span className={cn(
+                                                    "capitalize text-[10px] font-black uppercase tracking-widest",
+                                                    textAlign === align ? 'text-indigo-600' : 'text-slate-400'
+                                                )}>{align}</span>
                                             </button>
                                         ))}
                                     </div>
                                 </div>
-                            </div>
-                        </div>
+                            </CardContent>
+                        </Card>
 
                         {/* Embed Code */}
-                        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-bold text-gray-900">Embed Code</h3>
-                                <Button variant="outline" size="sm" onClick={handleCopyCode} className="h-8 gap-2">
-                                    {copied ? <Check className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3" />}
-                                    {copied ? "Copied" : "Copy Code"}
-                                </Button>
-                            </div>
-                            <div className="bg-slate-900 rounded-lg p-4 relative">
-                                <code className="text-[10px] text-blue-300 font-mono block overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-40 overflow-y-auto">
-                                    {embedCode}
-                                </code>
-                            </div>
-                        </div>
+                        <Card className="shadow-xl shadow-slate-200/40 border-none rounded-[2rem] overflow-hidden">
+                            <CardHeader className="bg-slate-50/50 px-8 py-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <CardTitle className="text-lg font-bold">Embed Code</CardTitle>
+                                        <CardDescription className="font-medium text-slate-500">Copy and paste into your website</CardDescription>
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleCopyCode}
+                                        className="h-10 gap-2 rounded-xl border-slate-200 hover:bg-white"
+                                    >
+                                        {copied ? <Check className="w-4 h-4 text-teal-600" /> : <Copy className="w-4 h-4" />}
+                                        <span className="text-[10px] font-black uppercase tracking-widest">{copied ? "Copied" : "Copy Code"}</span>
+                                    </Button>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="p-8">
+                                <div className="bg-slate-900 rounded-2xl p-6 relative shadow-inner">
+                                    <code className="text-[10px] text-blue-300 font-mono block overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-40 overflow-y-auto">
+                                        {embedCode}
+                                    </code>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
 
                     {/* PREVIEW */}
                     <div className="lg:col-span-7">
-                        <div className="sticky top-24 bg-white rounded-2xl shadow-sm border border-gray-100 p-8 min-h-[600px] flex flex-col relative overflow-hidden">
-                            <div className="flex items-center gap-2 mb-8 border-b border-gray-100 pb-4">
-                                <div className="flex gap-1.5">
-                                    <div className="w-3 h-3 rounded-full bg-red-400" />
-                                    <div className="w-3 h-3 rounded-full bg-yellow-400" />
-                                    <div className="w-3 h-3 rounded-full bg-green-400" />
+                        <Card className="sticky top-24 shadow-xl shadow-slate-200/40 border-none rounded-[2rem] overflow-hidden min-h-[600px] flex flex-col">
+                            <CardHeader className="bg-slate-50/50 px-8 py-6 border-b border-slate-100">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex gap-1.5">
+                                        <div className="w-3 h-3 rounded-full bg-rose-400 shadow-sm" />
+                                        <div className="w-3 h-3 rounded-full bg-amber-400 shadow-sm" />
+                                        <div className="w-3 h-3 rounded-full bg-teal-400 shadow-sm" />
+                                    </div>
+                                    <div className="flex-1 bg-white rounded-xl px-4 py-2 text-[10px] font-bold text-slate-400 text-center mx-4 shadow-sm uppercase tracking-wider">your-salon-website.com</div>
+                                    <Monitor className="w-5 h-5 text-slate-300" />
                                 </div>
-                                <div className="flex-1 bg-gray-50 rounded-md px-3 py-1.5 text-xs text-gray-400 text-center mx-4">your-salon-website.com</div>
-                            </div>
-                            <div className="absolute inset-0 top-24 -z-0 bg-[url('/grid-pattern.svg')] opacity-50" />
-
-                            <div className="relative flex-1 flex items-center justify-center p-4 lg:p-12 overflow-y-auto">
-                                {/* Render the Generated HTML string directly in the preview to ensure fidelity */}
-                                <div className="w-full flex justify-center" dangerouslySetInnerHTML={{ __html: embedCode }} />
-                            </div>
-                            <div className="text-center mt-4 text-xs text-gray-400">
-                                * Preview shows exact embed code output
-                            </div>
-                        </div>
+                            </CardHeader>
+                            <CardContent className="relative flex-1 p-8 lg:p-12 overflow-y-auto">
+                                <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-white" />
+                                <div className="relative flex items-center justify-center min-h-full">
+                                    <div className="w-full flex justify-center" dangerouslySetInnerHTML={{ __html: embedCode }} />
+                                </div>
+                                <div className="absolute bottom-4 left-0 right-0 text-center">
+                                    <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Live Preview</p>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
             </div>

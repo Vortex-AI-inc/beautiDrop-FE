@@ -134,7 +134,7 @@ export function ScrapedDataReview({ open, onOpenChange, data, onConfirm, isSubmi
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-7xl max-h-[95vh] flex flex-col p-0">
+            <DialogContent className="lg:max-w-6xl max-w-4xl md:max-w-5xl sm:max-w-4xl max-h-[90dvh] flex flex-col p-0 ">
                 <DialogHeader className="px-8 py-6 border-b bg-white relative">
                     <DialogTitle className="text-2xl font-black text-gray-900 tracking-tight">Review Extracted Data</DialogTitle>
                     <DialogDescription className="text-gray-500 font-medium mt-1">
