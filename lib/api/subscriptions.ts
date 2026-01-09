@@ -36,7 +36,7 @@ export async function createCheckoutSession(
             throw new Error('Authentication required')
         }
 
-        const response = await fetch(`${API_BASE_URL}/api/v1/subscriptions/subscriptions/checkout/`, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/subscriptions/checkout/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

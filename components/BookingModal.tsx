@@ -9,11 +9,14 @@ import { fetchAvailableStaffForService } from "@/lib/api/staff"
 import { createDynamicBooking } from "@/lib/api/bookings"
 import type { Service } from "@/types/service"
 import type { StaffMember } from "@/types/staff"
-import { Clock, Loader2, X, Calendar as CalendarIcon, Users, DollarSign, XCircle } from "lucide-react"
+import type { Deal } from "@/types/deal"
+import { getDealAvailableSlots, bookDeal } from "@/lib/api/deals"
+import { Clock, Loader2, X, Calendar as CalendarIcon, Users, DollarSign, XCircle, Check } from "lucide-react"
 import { format } from "date-fns"
 import { useAuth, useUser, SignIn } from "@clerk/nextjs"
 import { useToast } from "@/hooks/use-toast"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Badge } from "@/components/ui/badge"
 import {
     Select,
     SelectContent,
@@ -26,6 +29,7 @@ interface BookingModalProps {
     isOpen: boolean
     onClose: () => void
     service: Service | null
+    deal?: Deal | null
     shopId: string
 }
 
@@ -33,7 +37,7 @@ interface SlotWithStaff extends AvailableSlot {
     id: string
 }
 
-export default function BookingModal({ isOpen, onClose, service, shopId }: BookingModalProps) {
+export default function BookingModal({ isOpen, onClose, service, deal, shopId }: BookingModalProps) {
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
     const [availabilityData, setAvailabilityData] = useState<DynamicAvailabilityResponse | null>(null)
     const [selectedSlot, setSelectedSlot] = useState<SlotWithStaff | null>(null)
@@ -47,14 +51,21 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
     const [showSignInModal, setShowSignInModal] = useState(false)
 
     useEffect(() => {
-        if (isOpen && service) {
+        if (isOpen && (service || deal)) {
             const today = new Date()
             today.setHours(0, 0, 0, 0)
             setSelectedDate(today)
             handleDateSelect(today)
-            loadAvailableStaff()
         }
-    }, [isOpen, service])
+    }, [isOpen, service, deal])
+
+    useEffect(() => {
+        if (service) {
+            loadAvailableStaff()
+        } else {
+            setAvailableStaff([])
+        }
+    }, [service, shopId])
 
     const loadAvailableStaff = async () => {
         if (!service) return
@@ -96,7 +107,7 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
     }, [isSignedIn, user])
 
     const handleDateSelect = async (date: Date | undefined) => {
-        if (!date || !service) return
+        if (!date || (!service && !deal)) return
 
         setSelectedDate(date)
         setSelectedSlot(null)
@@ -106,12 +117,62 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
 
         try {
             const formattedDate = format(date, 'yyyy-MM-dd')
-            const data = await getDynamicAvailability({
-                service_id: service.id.toString(),
-                date: formattedDate,
-                buffer_minutes_override: 0
-            })
-            setAvailabilityData(data)
+
+            if (deal) {
+                const token = await getToken()
+
+                const validToken = token || ""
+                const data = await getDealAvailableSlots(deal.id, formattedDate, validToken)
+
+                if (data.slots && Array.isArray(data.slots)) {
+                    setAvailabilityData({
+                        shop_id: shopId,
+                        shop_name: deal.shop_name || "",
+                        service_id: deal.id,
+                        service_name: deal.name,
+                        service_duration_minutes: data.deal_duration_minutes || 60,
+                        date: formattedDate,
+                        is_shop_open: true,
+                        shop_hours: {
+                            start_time: data.shop_open || "09:00",
+                            end_time: data.shop_close || "21:00",
+                            slot_duration_minutes: 60,
+                            day_of_week: ""
+                        },
+                        available_slots: data.slots.map((s: any) => ({
+                            start_time: s.start_time,
+                            end_time: s.end_time,
+                            available_staff: [],
+                            available_staff_count: s.slots_left
+                        })),
+                        total_available_slots: data.slots.length,
+                        eligible_staff_count: 0
+                    })
+                } else if (Array.isArray(data)) {
+                    setAvailabilityData({
+                        shop_id: shopId,
+                        shop_name: deal.shop_name || "",
+                        service_id: deal.id,
+                        service_name: deal.name,
+                        service_duration_minutes: 60,
+                        date: formattedDate,
+                        is_shop_open: true,
+                        shop_hours: { start_time: "09:00", end_time: "17:00", slot_duration_minutes: 60, day_of_week: "" },
+                        available_slots: data,
+                        total_available_slots: data.length,
+                        eligible_staff_count: 0
+                    })
+                } else {
+                    setAvailabilityData(data)
+                }
+            } else if (service) {
+                const data = await getDynamicAvailability({
+                    service_id: service.id.toString(),
+                    date: formattedDate,
+                    buffer_minutes_override: 0
+                })
+                setAvailabilityData(data)
+            }
         } catch (error) {
             toast({
                 title: "Error",
@@ -151,17 +212,24 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
     }
 
     const handleBooking = async () => {
-        if (!selectedSlot || !selectedDate || !service || !selectedStaffId) return
+        if (!selectedSlot || !selectedDate || (!service && !deal)) return
+
+        // If staff is available and required, check it
+        const staffOptions = selectedSlot ? getStaffForSlot(selectedSlot) : [];
+        if (!deal && staffOptions.length > 0 && !selectedStaffId) return;
+
+        if (!deal && availableStaff.length > 0 && !selectedStaffId) return;
 
         if (!isSignedIn) {
             const bookingData = {
-                serviceId: service.id.toString(),
-                serviceName: service.name,
+                serviceId: service?.id.toString() || deal?.id || "",
+                serviceName: service?.name || deal?.name || "",
                 date: format(selectedDate, 'yyyy-MM-dd'),
                 time: selectedSlot.start_time,
                 staffMemberId: selectedStaffId,
                 shopId: shopId,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                isDeal: !!deal
             }
 
             localStorage.setItem('pendingBooking', JSON.stringify(bookingData))
@@ -182,13 +250,23 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
             const token = await getToken()
             if (!token) throw new Error("No authentication token found")
 
-            await createDynamicBooking({
-                service_id: bookingData.serviceId,
-                date: bookingData.date,
-                start_time: bookingData.time,
-                staff_member_id: bookingData.staffMemberId,
-                notes: ""
-            }, token)
+            if (bookingData.isDeal) {
+                await bookDeal({
+                    deal_id: bookingData.serviceId,
+                    date: bookingData.date,
+                    start_time: bookingData.time,
+                    staff_member_id: bookingData.staffMemberId || undefined,
+                    notes: ""
+                }, token)
+            } else {
+                await createDynamicBooking({
+                    service_id: bookingData.serviceId,
+                    date: bookingData.date,
+                    start_time: bookingData.time,
+                    staff_member_id: bookingData.staffMemberId || undefined,
+                    notes: ""
+                }, token)
+            }
 
             toast({
                 title: "Booking Confirmed!",
@@ -208,7 +286,8 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
     }
 
     const processBooking = async () => {
-        if (!selectedSlot || !selectedDate || !service || !selectedStaffId) return
+        if (!selectedSlot || !selectedDate || (!service && !deal)) return
+        if (!deal && !selectedStaffId) return
 
         setIsSubmitting(true)
 
@@ -221,17 +300,27 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
             const timeMatch = selectedSlot.start_time.match(/T(\d{2}:\d{2}:\d{2})/)
             const timeOnly = timeMatch ? timeMatch[1] : selectedSlot.start_time
 
-            await createDynamicBooking({
-                service_id: service.id.toString(),
-                date: formattedDate,
-                start_time: timeOnly,
-                staff_member_id: selectedStaffId,
-                notes: ""
-            }, token)
+            if (deal) {
+                await bookDeal({
+                    deal_id: deal.id,
+                    date: formattedDate,
+                    start_time: timeOnly,
+                    staff_member_id: selectedStaffId || undefined,
+                    notes: ""
+                }, token)
+            } else if (service) {
+                await createDynamicBooking({
+                    service_id: service.id.toString(),
+                    date: formattedDate,
+                    start_time: timeOnly,
+                    staff_member_id: selectedStaffId,
+                    notes: ""
+                }, token)
+            }
 
             toast({
                 title: "Booking Confirmed!",
-                description: `Your appointment for ${service.name} has been scheduled for ${format(selectedDate, 'MMM d, yyyy')} at ${formatTime(selectedSlot.start_time)}.`,
+                description: `Your appointment for ${service?.name || deal?.name} has been scheduled for ${format(selectedDate, 'MMM d, yyyy')} at ${formatTime(selectedSlot.start_time)}.`,
             })
 
             setTimeout(() => {
@@ -268,84 +357,85 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
         return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`
     }
 
-    if (!service) return null
+    if (!service && !deal) return null
+
+    const itemName = service?.name || deal?.name
+    const itemPrice = service?.price || deal?.price || "0"
+    const itemDuration = service?.duration_minutes || deal?.duration_minutes || 60
 
     return (
         <>
             <BookingDialog open={isOpen} onOpenChange={handleClose}>
-                <BookingDialogContent className="max-w-5xl w-[95vw] max-h-[90vh] bg-white border-0 p-0 gap-0 overflow-y-auto shadow-2xl rounded-3xl">
-                    {/* Header */}
-                    <div className="px-8 py-6 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-                        <div className="relative flex justify-between items-start">
+                <BookingDialogContent className="max-w-3xl w-[90vw] max-h-[85vh] bg-white border-0 p-0 gap-0 overflow-y-auto shadow-2xl rounded-2xl">
+                    {/* Header - Cleaned Up */}
+                    <div className="px-6 py-5 border-b border-gray-100 bg-white sticky top-0 z-10">
+                        <div className="flex justify-between items-start">
                             <div>
-                                <BookingDialogTitle className="text-3xl font-bold text-white mb-2">
+                                <BookingDialogTitle className="text-xl font-bold text-gray-900 mb-1">
                                     Book Appointment
                                 </BookingDialogTitle>
-                                <p className="text-white/90 text-lg font-medium">
-                                    {service.name}
+                                <p className="text-gray-500 text-sm font-medium">
+                                    {itemName}
                                 </p>
                             </div>
-                            <button
+                            <Button
+                                variant="ghost"
+                                size="icon"
                                 onClick={handleClose}
-                                className="rounded-full p-2 hover:bg-white/20 transition-colors focus:outline-none"
+                                className="rounded-full hover:bg-gray-100 -mr-2 text-gray-400 hover:text-gray-600"
                             >
-                                <X className="h-6 w-6 text-white" />
-                            </button>
+                                <X className="h-5 w-5" />
+                            </Button>
                         </div>
 
-                        <div className="flex items-center gap-6 mt-6 relative">
-                            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
-
-                                <span className="text-2xl font-bold text-white">
-                                    ${parseFloat(service.price).toFixed(0)}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
-                                <Clock className="w-5 h-5 text-white" />
-                                <span className="font-semibold text-white">{service.duration_minutes} mins</span>
-                            </div>
-                            {availabilityData && (
-                                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
-                                    <Users className="w-5 h-5 text-white" />
-                                    <span className="font-semibold text-white">{availabilityData.eligible_staff_count} Staff Available</span>
-                                </div>
+                        <div className="flex items-center gap-3 mt-4">
+                            <Badge variant="secondary" className="px-3 py-1 flex items-center gap-1.5 bg-gray-100 text-gray-700 font-medium">
+                                <DollarSign className="w-3.5 h-3.5 text-gray-500" />
+                                {parseFloat(itemPrice).toFixed(0)}
+                            </Badge>
+                            <Badge variant="secondary" className="px-3 py-1 flex items-center gap-1.5 bg-gray-100 text-gray-700 font-medium">
+                                <Clock className="w-3.5 h-3.5 text-gray-500" />
+                                {itemDuration} min
+                            </Badge>
+                            {availabilityData && availabilityData.eligible_staff_count > 0 && (
+                                <Badge variant="secondary" className="px-3 py-1 flex items-center gap-1.5 bg-blue-50 text-blue-700 font-medium">
+                                    <Users className="w-3.5 h-3.5 text-blue-500" />
+                                    {availabilityData.eligible_staff_count} Staff
+                                </Badge>
                             )}
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 h-[550px]">
                         {/* Date Selection */}
-                        <div className="p-8 border-b lg:border-b-0 lg:border-r border-gray-200 bg-gray-50">
-                            <div className="flex items-center gap-2 mb-6">
-                                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                                    <CalendarIcon className="w-5 h-5 text-blue-600" />
-                                </div>
-                                <h3 className="text-xl font-bold text-gray-900">Select Date</h3>
+                        <div className="p-6 border-b lg:border-b-0 lg:border-r border-gray-100 bg-gray-50/50 flex flex-col">
+                            <div className="flex items-center gap-2 mb-4 shrink-0">
+                                <CalendarIcon className="w-4 h-4 text-gray-500" />
+                                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Select Date</h3>
                             </div>
 
-                            <div className="flex justify-center">
+                            <div className="flex justify-center bg-white rounded-xl border border-gray-100 p-4 shadow-sm flex-1 items-center">
                                 <Calendar
                                     mode="single"
                                     selected={selectedDate}
                                     onSelect={handleDateSelect}
                                     disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                                    className="rounded-2xl border-2 border-gray-200 bg-white p-4 shadow-sm"
+                                    className="p-0"
                                     classNames={{
                                         months: "flex flex-col space-y-4",
                                         month: "space-y-4 w-full",
-                                        caption: "flex justify-center pt-1 relative items-center mb-4",
-                                        caption_label: "text-lg font-bold text-gray-900",
+                                        caption: "flex justify-center pt-1 relative items-center mb-2",
+                                        caption_label: "text-sm font-bold text-gray-900",
                                         nav: "space-x-1 flex items-center",
-                                        button_previous: "h-10 w-10 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all",
-                                        button_next: "h-10 w-10 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all",
+                                        button_previous: "h-7 w-7 bg-transparent hover:bg-gray-100 text-gray-500 hover:text-gray-900 rounded-md transition-colors",
+                                        button_next: "h-7 w-7 bg-transparent hover:bg-gray-100 text-gray-500 hover:text-gray-900 rounded-md transition-colors",
                                         weekdays: "flex w-full mb-2",
-                                        weekday: "text-gray-600 rounded-md w-full font-semibold text-sm flex-1 text-center uppercase tracking-wide",
+                                        weekday: "text-gray-400 rounded-md w-full font-medium text-[0.7rem] flex-1 text-center uppercase tracking-wider",
                                         week: "flex w-full mt-1",
-                                        day: "relative p-0.5 text-center flex-1",
-                                        day_button: "h-12 w-12 mx-auto p-0 font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all inline-flex items-center justify-center text-base",
-                                        selected: "bg-gradient-to-br from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 font-bold shadow-lg",
-                                        today: "bg-blue-50 text-blue-600 font-semibold ring-2 ring-blue-200",
+                                        day: "relative p-0 text-center flex-1",
+                                        day_button: "h-8 w-8 mx-auto p-0 font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-all inline-flex items-center justify-center text-sm",
+                                        selected: "bg-blue-600 text-white hover:bg-blue-700 font-bold shadow-md hover:text-white",
+                                        today: "text-blue-600 font-bold bg-blue-50",
                                         outside: "text-gray-300 opacity-50 hover:bg-transparent hover:text-gray-300",
                                         disabled: "text-gray-200 cursor-not-allowed hover:bg-transparent hover:text-gray-200",
                                         hidden: "invisible",
@@ -355,150 +445,141 @@ export default function BookingModal({ isOpen, onClose, service, shopId }: Booki
                         </div>
 
                         {/* Time & Staff Selection */}
-                        <div className="p-8 bg-white">
-                            <div className="flex items-center gap-2 mb-6">
-                                <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-                                    <Clock className="w-5 h-5 text-purple-600" />
-                                </div>
-                                <h3 className="text-xl font-bold text-gray-900">Select Time & Staff</h3>
+                        <div className="p-6 bg-white flex flex-col h-full overflow-hidden">
+                            <div className="flex items-center gap-2 mb-4 shrink-0">
+                                <Clock className="w-4 h-4 text-gray-500" />
+                                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">{deal ? "Select Time" : "Select Time & Staff"}</h3>
                             </div>
 
-                            {!selectedDate ? (
-                                <div className="flex flex-col items-center justify-center h-[400px] text-gray-400 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50">
-                                    <CalendarIcon className="w-16 h-16 mb-4 opacity-40" />
-                                    <p className="text-base font-semibold">Select a date to view available slots</p>
-                                </div>
-                            ) : isLoadingSlots ? (
-                                <div className="flex items-center justify-center h-[400px] border-2 border-gray-200 rounded-2xl bg-gray-50">
-                                    <div className="text-center">
-                                        <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-3" />
-                                        <p className="text-gray-600 font-medium">Loading available slots...</p>
+                            <div className="flex-1 overflow-hidden flex flex-col">
+                                {!selectedDate ? (
+                                    <div className="flex flex-col items-center justify-center h-full text-gray-400 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                                        <CalendarIcon className="w-10 h-10 mb-3 opacity-20" />
+                                        <p className="text-sm font-medium text-gray-500">Select a date first</p>
                                     </div>
-                                </div>
-                            ) : !availabilityData || !availabilityData.is_shop_open ? (
-                                <div className="flex flex-col items-center justify-center h-[400px] text-gray-400 border-2 border-gray-200 rounded-2xl bg-gray-50">
-                                    <XCircle className="w-16 h-16 mb-4 text-red-400" />
-                                    <p className="text-base font-semibold text-gray-600">Shop is closed on this date</p>
-                                </div>
-                            ) : availabilityData.available_slots.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-[400px] text-gray-400 border-2 border-gray-200 rounded-2xl bg-gray-50">
-                                    <Clock className="w-16 h-16 mb-4 opacity-40" />
-                                    <p className="text-base font-semibold text-gray-600">No slots available for this date</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-5 h-full flex flex-col">
-                                    <div className={`grid grid-cols-2 gap-3 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent ${selectedSlot ? 'max-h-[280px]' : 'max-h-[480px]'}`}>
-                                        {availabilityData.available_slots
-                                            .filter(slot => {
-                                                if (!selectedDate) return true
+                                ) : isLoadingSlots ? (
+                                    <div className="flex flex-col items-center justify-center h-full">
+                                        <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-3" />
+                                        <p className="text-sm text-gray-500">Checking availability...</p>
+                                    </div>
+                                ) : !availabilityData || !availabilityData.is_shop_open ? (
+                                    <div className="flex flex-col items-center justify-center h-full text-gray-400 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                                        <XCircle className="w-10 h-10 mb-3 text-gray-300" />
+                                        <p className="text-sm font-medium text-gray-500">Shop is closed on this date</p>
+                                    </div>
+                                ) : availabilityData.available_slots.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center h-full text-gray-400 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                                        <Clock className="w-10 h-10 mb-3 opacity-20" />
+                                        <p className="text-sm font-medium text-gray-500">No fully open slots</p>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col h-full gap-4">
+                                        <div className={`grid grid-cols-2 sm:grid-cols-3 gap-2 overflow-y-auto pr-1 flex-1 content-start`}>
+                                            {availabilityData.available_slots
+                                                .filter(slot => {
+                                                    if (!selectedDate) return true
+                                                    const today = new Date()
+                                                    const slotDate = new Date(selectedDate)
+                                                    const isToday = slotDate.getDate() === today.getDate() &&
+                                                        slotDate.getMonth() === today.getMonth() &&
+                                                        slotDate.getFullYear() === today.getFullYear()
+                                                    if (!isToday) return true
+                                                    const slotTime = new Date(slot.start_time)
+                                                    return slotTime > today
+                                                })
+                                                .map((slot, index) => {
+                                                    const isSelected = selectedSlot?.id === `slot-${index}`
+                                                    const startTime = formatTime(slot.start_time)
 
-                                                const today = new Date()
-                                                const slotDate = new Date(selectedDate)
-
-                                                const isToday = slotDate.getDate() === today.getDate() &&
-                                                    slotDate.getMonth() === today.getMonth() &&
-                                                    slotDate.getFullYear() === today.getFullYear()
-
-                                                if (!isToday) return true
-
-                                                const slotTime = new Date(slot.start_time)
-                                                return slotTime > today
-                                            })
-                                            .map((slot, index) => {
-                                                const isSelected = selectedSlot?.id === `slot-${index}`
-                                                const startTime = formatTime(slot.start_time)
-
-                                                return (
-                                                    <button
-                                                        key={index}
-                                                        onClick={() => handleSlotSelect(slot, index)}
-                                                        className={`
-                                                        px-4 py-4 rounded-xl text-sm font-semibold transition-all duration-200 flex flex-col items-start gap-2 w-full border-2
+                                                    return (
+                                                        <button
+                                                            key={index}
+                                                            onClick={() => handleSlotSelect(slot, index)}
+                                                            className={`
+                                                        px-2 py-2.5 rounded-lg text-xs font-medium transition-all duration-200 flex flex-col items-center gap-1 w-full border relative
                                                         ${isSelected
-                                                                ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white border-transparent shadow-lg'
-                                                                : 'bg-white text-gray-700 hover:bg-blue-50 hover:border-blue-300 border-gray-200 hover:shadow-md'
-                                                            }
+                                                                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-100 ring-offset-1'
+                                                                    : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-200 hover:border-gray-300'
+                                                                }
                                                     `}
-                                                    >
-                                                        <span className="text-lg font-bold">{startTime}</span>
-                                                        <div className={`flex items-center gap-1.5 text-xs ${isSelected ? 'text-white/90' : 'text-purple-600'}`}>
-                                                            <Users className="w-3.5 h-3.5" />
-                                                            <span className="font-semibold">{slot.available_staff_count} available</span>
-                                                        </div>
-                                                    </button>
-                                                )
-                                            })}
-                                    </div>
-
-                                    {/* Staff Selection */}
-                                    {selectedSlot && (
-                                        <div className="space-y-3 pt-4 border-t-2 border-gray-200">
-                                            <label className="block text-sm font-bold text-gray-900">
-                                                Select Staff Member <span className="text-red-500">*</span>
-                                            </label>
-                                            <Select value={selectedStaffId} onValueChange={setSelectedStaffId}>
-                                                <SelectTrigger className="w-full h-12 bg-gray-50 border-2 border-gray-200 text-gray-900 hover:border-blue-300 rounded-xl font-medium">
-                                                    <SelectValue placeholder="Choose a staff member" />
-                                                </SelectTrigger>
-                                                <SelectContent className="bg-white border-2 border-gray-200 rounded-xl">
-                                                    {getStaffForSlot(selectedSlot).map((staff) => (
-                                                        <SelectItem
-                                                            key={staff.id}
-                                                            value={staff.id}
-                                                            className="text-gray-900 hover:bg-blue-50 focus:bg-blue-50 font-medium py-3"
                                                         >
-                                                            <div className="flex items-center gap-2">
-                                                                <Users className="w-4 h-4 text-purple-600" />
-                                                                {staff.name}
-                                                            </div>
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                                            <span className="text-sm font-bold">{startTime}</span>
+                                                            <span className={`text-[10px] ${isSelected ? 'text-blue-100' : 'text-gray-400'}`}>
+                                                                {slot.available_staff_count} spots
+                                                            </span>
+                                                        </button>
+                                                    )
+                                                })}
                                         </div>
-                                    )}
-                                </div>
-                            )}
+
+                                        {/* Staff Selection in Right Panel */}
+                                        {selectedSlot && getStaffForSlot(selectedSlot).length > 0 && (
+                                            <div className="space-y-2 pt-2 border-t border-gray-100 shrink-0">
+                                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                                    Professional
+                                                </label>
+                                                <Select value={selectedStaffId} onValueChange={setSelectedStaffId}>
+                                                    <SelectTrigger className="w-full h-10 bg-white border border-gray-200 text-gray-900 rounded-lg">
+                                                        <SelectValue placeholder="Anyone available" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {getStaffForSlot(selectedSlot).map((staff) => (
+                                                            <SelectItem key={staff.id} value={staff.id}>
+                                                                <div className="flex items-center gap-2">
+                                                                    {staff.name}
+                                                                </div>
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
 
-                    <div className="flex justify-between items-center px-8 py-6 bg-gray-50 border-t-2 border-gray-200">
-                        <div className="text-sm text-gray-600">
-                            {selectedDate && selectedSlot && selectedStaffId ? (
-                                <span className="font-medium">
-                                    <span className="text-gray-500">Selected:</span>{" "}
-                                    <span className="text-gray-900 font-bold">{format(selectedDate, 'MMM d, yyyy')}</span>{" "}
-                                    <span className="text-gray-500">at</span>{" "}
-                                    <span className="text-gray-900 font-bold">{formatTime(selectedSlot.start_time)}</span>
+                    {/* Footer */}
+                    <div className="flex flex-col sm:flex-row justify-between items-center px-6 py-4 bg-gray-50 border-t border-gray-200 gap-4">
+                        <div className="text-sm text-gray-600 w-full sm:w-auto text-center sm:text-left">
+                            {selectedDate && selectedSlot && (selectedStaffId || !deal) ? (
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                                    <span className="font-semibold text-gray-900 border-b border-gray-300 pb-0.5 inline-block">{format(selectedDate, 'MMM d, yyyy')}</span>
+                                    <span className="hidden sm:inline text-gray-300">•</span>
+                                    <span className="font-semibold text-gray-900">{formatTime(selectedSlot.start_time)}</span>
                                     {selectedStaffId && (
                                         <>
-                                            <span className="text-gray-500"> with </span>
-                                            <span className="text-gray-900 font-bold">{availableStaff.find(s => s.id === selectedStaffId)?.name}</span>
+                                            <span className="hidden sm:inline text-gray-300">•</span>
+                                            <span className="text-gray-600">
+                                                with <span className="font-medium text-gray-900">{availableStaff.find(s => s.id === selectedStaffId)?.name ||
+                                                    selectedSlot.available_staff.find(s => s.id === selectedStaffId)?.name}</span>
+                                            </span>
                                         </>
                                     )}
-                                </span>
+                                </div>
                             ) : (
-                                <span>Select a date, time, and staff member to continue</span>
+                                <span className="text-gray-400 italic">Select date & time to continue</span>
                             )}
                         </div>
-                        <div className="flex gap-3">
+                        <div className="flex gap-2 w-full sm:w-auto">
                             <Button
                                 onClick={handleClose}
                                 variant="outline"
-                                className="px-6 h-12 border-2 border-gray-300 hover:bg-gray-100 text-gray-700 font-semibold rounded-xl"
+                                className="px-4 h-10 border-gray-300 text-gray-700 hover:bg-gray-100 rounded-lg flex-1 sm:flex-none"
                                 disabled={isSubmitting}
                             >
                                 Cancel
                             </Button>
                             <Button
                                 onClick={handleBooking}
-                                disabled={!selectedSlot || !selectedDate || !selectedStaffId || isSubmitting}
-                                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 h-12 shadow-lg rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all font-bold text-base"
+                                disabled={!selectedSlot || !selectedDate || (!deal && !selectedStaffId) || isSubmitting}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-6 h-10 rounded-lg shadow-sm flex-1 sm:flex-none disabled:opacity-50"
                             >
                                 {isSubmitting ? (
                                     <>
-                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                        Booking...
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Processing...
                                     </>
                                 ) : (
                                     "Confirm Booking"

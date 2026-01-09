@@ -104,6 +104,35 @@ export async function fetchShopBookings(
     }
 }
 
+export interface CustomerBookingStats {
+    upcoming: number
+    past_due: number
+    completed: number
+    cancelled: number
+    total: number
+}
+
+export async function fetchCustomerStats(token: string): Promise<CustomerBookingStats> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/bookings/my_stats/`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        })
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch customer stats: ${response.statusText}`)
+        }
+
+        const data = await response.json()
+        return data
+    } catch (error) {
+        throw error
+    }
+}
+
 export async function createBooking(
     data: CreateBookingData,
     token: string

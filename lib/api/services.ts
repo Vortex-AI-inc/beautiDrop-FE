@@ -1,4 +1,4 @@
-import type { Service, CreateServiceData } from '@/types/service'
+import type { Service, CreateServiceData, PaginatedResponse } from '@/types/service'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || ''
 
@@ -30,8 +30,9 @@ export async function createService(
 
 export async function fetchServices(
     shopId: string,
-    token: string
-): Promise<Service[]> {
+    token: string,
+    page: number = 1
+): Promise<PaginatedResponse<Service>> {
     try {
         const headers: HeadersInit = {
             'Content-Type': 'application/json',
@@ -41,7 +42,7 @@ export async function fetchServices(
             headers['Authorization'] = `Bearer ${token}`
         }
 
-        const response = await fetch(`${API_BASE_URL}/api/v1/services/?shop_id=${shopId}`, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/services/?shop_id=${shopId}&page=${page}`, {
             method: 'GET',
             headers,
         })
@@ -53,18 +54,33 @@ export async function fetchServices(
         const data = await response.json()
 
         if (Array.isArray(data)) {
-            return data
+            return {
+                count: data.length,
+                next: null,
+                previous: null,
+                results: data
+            }
         }
 
         if (data.data && Array.isArray(data.data)) {
-            return data.data
+            return {
+                count: data.data.length,
+                next: null,
+                previous: null,
+                results: data.data
+            }
         }
 
         if (data.results && Array.isArray(data.results)) {
-            return data.results
+            return data as PaginatedResponse<Service>
         }
 
-        return []
+        return {
+            count: 0,
+            next: null,
+            previous: null,
+            results: []
+        }
     } catch (error) {
         throw error
     }
@@ -146,9 +162,11 @@ export async function deleteService(
     }
 }
 
-export async function fetchPublicServices(shopId: string): Promise<Service[]> {
+
+
+export async function fetchPublicServices(shopId: string, page: number = 1): Promise<PaginatedResponse<Service>> {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/v1/services/?shop_id=${shopId}`, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/services/?shop_id=${shopId}&page=${page}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -162,18 +180,33 @@ export async function fetchPublicServices(shopId: string): Promise<Service[]> {
         const data = await response.json()
 
         if (Array.isArray(data)) {
-            return data
+            return {
+                count: data.length,
+                next: null,
+                previous: null,
+                results: data
+            }
         }
 
         if (data.data && Array.isArray(data.data)) {
-            return data.data
+            return {
+                count: data.data.length,
+                next: null,
+                previous: null,
+                results: data.data
+            }
         }
 
         if (data.results && Array.isArray(data.results)) {
-            return data.results
+            return data as PaginatedResponse<Service>
         }
 
-        return []
+        return {
+            count: 0,
+            next: null,
+            previous: null,
+            results: []
+        }
     } catch (error) {
         throw error
     }

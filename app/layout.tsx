@@ -4,8 +4,9 @@ import { ClerkProvider } from '@clerk/nextjs'
 import RoleSync from '@/components/RoleSync'
 import FCMHandler from '@/components/FCMHandler'
 import Chatbot from '@/components/Chatbot'
+import { GlobalVoiceAgent } from '@/components/GlobalVoiceAgent'
 import { Toaster } from '@/components/ui/toaster'
-
+import { ContactFab } from "@/components/ui/contact-fab"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 
@@ -31,7 +32,7 @@ export const metadata: Metadata = {
   title: "BeautyDrop AI - AI for Beauty Salons",
   description: "Transform your salon with AI-powered voice agents, appointment booking, and customer engagement.",
   generator: "v0.app",
-  metadataBase: new URL("https://beautydrop-ai.com"),
+  metadataBase: new URL("https://beautydrop.ai/"),
   icons: {
     icon: "/icon.svg",
     apple: "/apple-icon.png",
@@ -48,6 +49,7 @@ export const metadata: Metadata = {
   },
 }
 
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -60,7 +62,9 @@ export default function RootLayout({
           <RoleSync />
           <FCMHandler />
           {children}
+          <ContactFab />
           <Chatbot />
+          <GlobalVoiceAgent />
           <Toaster />
           <Analytics />
         </body>

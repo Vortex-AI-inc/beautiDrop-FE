@@ -1,7 +1,9 @@
 import { useCallback, useRef, useState } from "react";
 
 interface VoiceAgentOptions {
+    shopId?: string;
     wsUrl?: string;
+    token?: string;
     onTranscript?: (role: "user" | "assistant", text: string) => void;
     onStatusChange?: (status: string) => void;
     onError?: (error: string) => void;
@@ -13,7 +15,16 @@ export function useVoiceAgent(options: VoiceAgentOptions = {}) {
         const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
         const wsProtocol = baseUrl.startsWith('https') ? 'wss' : 'ws';
         const cleanBaseUrl = baseUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
-        return `${wsProtocol}://${cleanBaseUrl}/ws/voice/`;
+
+        let url = options.shopId
+            ? `${wsProtocol}://${cleanBaseUrl}/ws/voice/shop/${options.shopId}/`
+            : `${wsProtocol}://${cleanBaseUrl}/ws/voice/`;
+
+        if (options.token) {
+            url += `?token=${options.token}`;
+        }
+
+        return url;
     };
 
     const {
@@ -82,24 +93,20 @@ export function useVoiceAgent(options: VoiceAgentOptions = {}) {
     const connect = useCallback(() => {
         if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
-        console.log('[VoiceAgent] Connecting to:', wsUrl);
         onStatusChange?.("connecting");
         const ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
-            console.log('[VoiceAgent] Connected successfully');
             setIsConnected(true);
             onStatusChange?.("connected");
         };
 
         ws.onclose = (event) => {
-            console.log('[VoiceAgent] Disconnected. Code:', event.code, 'Reason:', event.reason);
             setIsConnected(false);
             onStatusChange?.("disconnected");
         };
 
         ws.onerror = (error) => {
-            console.error('[VoiceAgent] WebSocket error:', error);
             onError?.("Connection failed");
         };
 

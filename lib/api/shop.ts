@@ -64,7 +64,7 @@ export async function fetchShop(
 export async function createShop(
     formData: ShopFormData,
     token: string
-): Promise<ShopDashboardData> {
+): Promise<Shop> {
     try {
         const response = await fetch(`${API_BASE_URL}/api/v1/shops/`, {
             method: 'POST',
@@ -80,7 +80,7 @@ export async function createShop(
             throw new Error(errorData.error || `Failed to create shop: ${response.statusText}`)
         }
 
-        const data: ApiResponse<ShopDashboardData> = await response.json()
+        const data: ApiResponse<Shop> = await response.json()
         return data.data
     } catch (error) {
         throw error
@@ -97,6 +97,7 @@ export async function updateShop(shopId: string, data: Partial<Shop>, token: str
             },
             body: JSON.stringify(data),
         })
+
 
         if (!response.ok) {
             throw new Error(`Failed to update shop: ${response.statusText}`)
@@ -161,18 +162,29 @@ export async function generateTimeSlots(
 }
 export async function fetchPublicShops(): Promise<Shop[]> {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/v1/shops/`, {
+        const apiUrl = `${API_BASE_URL}/api/v1/shops/`
+        const response = await fetch(apiUrl, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
             },
         })
 
+        console.log('[fetchPublicShops] Response status:', response.status)
+
         if (!response.ok) {
+            const errorText = await response.text()
+            console.error('[fetchPublicShops] Error response:', errorText)
             throw new Error(`Failed to fetch shops: ${response.statusText}`)
         }
 
         const data = await response.json()
+        console.log('[fetchPublicShops] Data received:', {
+            isArray: Array.isArray(data),
+            hasResults: !!data.results,
+            hasData: !!data.data,
+            count: data.count || data.length
+        })
 
         if (Array.isArray(data)) {
             return data
@@ -182,8 +194,10 @@ export async function fetchPublicShops(): Promise<Shop[]> {
             return data.data
         }
 
+        console.warn('[fetchPublicShops] Unexpected data format:', data)
         return []
     } catch (error) {
+        console.error('[fetchPublicShops] Exception:', error)
         throw error
     }
 }
@@ -232,5 +246,18 @@ export async function toggleShopActive(
         return data
     } catch (error) {
         throw error
+    }
+}
+
+export async function deleteShop(shopId: string, token: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/api/v1/shops/${shopId}/`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+        },
+    })
+
+    if (!response.ok) {
+        throw new Error('Failed to delete shop')
     }
 }

@@ -53,7 +53,7 @@ export default function ForSalonOwnersPage() {
         if (billingPeriod === 'yearly') {
             return getPlanByName(`${baseName} Yearly`) || getPlanByName(baseName)
         }
-        return getPlanByName(baseName)
+        return getPlanByName(`${baseName} Monthly`) || getPlanByName(baseName)
     }
 
     const starterPlan = getActivePlan('Starter')
@@ -61,7 +61,7 @@ export default function ForSalonOwnersPage() {
     const enterprisePlan = getActivePlan('Enterprise')
 
     const getMonthlyPlan = (baseName: string) => {
-        return getPlanByName(baseName)
+        return getPlanByName(`${baseName} Monthly`) || getPlanByName(baseName)
     }
 
     const getDisplayPrice = (plan: any) => {

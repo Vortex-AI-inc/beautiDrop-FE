@@ -6,7 +6,7 @@ export interface Message {
     role: 'user' | 'assistant'
     content: string
     timestamp: string
-    actions?: any[] // Support for structured data like services/shops
+    actions?: any[]
 }
 
 interface ChatState {

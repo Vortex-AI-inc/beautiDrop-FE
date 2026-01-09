@@ -37,7 +37,6 @@ export function GoogleCalendarConnect() {
             const data = await fetchCalendarStatus(token)
             setStatus(data)
         } catch (error) {
-            console.error(error)
         } finally {
             setIsLoading(false)
         }

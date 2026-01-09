@@ -1,8 +1,7 @@
 "use client"
 
-import { X, Calendar, Clock, Users, DollarSign, Mail } from "lucide-react"
+import { X, Calendar, Clock, Users, DollarSign, Mail, ChevronRight } from "lucide-react"
 import type { CustomerBooking } from "@/types/booking"
-import { Button } from "./button"
 
 interface DayBookingsModalProps {
     date: Date | null
@@ -62,115 +61,83 @@ export function DayBookingsModal({
     })
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-opacity animate-in fade-in-0">
+            <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[85vh] overflow-hidden border border-gray-200 animate-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-5 relative">
-                    <button
-                        onClick={onClose}
-                        className="absolute top-5 right-6 w-9 h-9 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                            <Calendar className="w-6 h-6 text-white" />
+                        <div className="p-2 bg-blue-50 rounded-lg">
+                            <Calendar className="w-5 h-5 text-blue-600" />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bold text-white">{formatDate(date)}</h2>
-                            <p className="text-white/90 mt-1">
+                            <h2 className="text-lg font-semibold text-gray-900">{formatDate(date)}</h2>
+                            <p className="text-sm text-gray-500">
                                 {bookings.length} {bookings.length === 1 ? 'booking' : 'bookings'}
                             </p>
                         </div>
                     </div>
+                    <button
+                        onClick={onClose}
+                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
                 </div>
 
                 {/* Content */}
-                <div className="p-6 overflow-y-auto max-h-[calc(85vh-120px)]">
+                <div className="p-4 overflow-y-auto max-h-[calc(85vh-90px)]">
                     {sortedBookings.length === 0 ? (
                         <div className="text-center py-12">
-                            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Calendar className="w-10 h-10 text-gray-400" />
+                            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <Calendar className="w-8 h-8 text-gray-300" />
                             </div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">No Bookings</h3>
-                            <p className="text-gray-600">There are no bookings scheduled for this day.</p>
+                            <h3 className="text-sm font-semibold text-gray-900 mb-1">No Bookings</h3>
+                            <p className="text-sm text-gray-500">There are no bookings scheduled for this day.</p>
                         </div>
                     ) : (
-                        <div className="space-y-3">
+                        <div className="space-y-2">
                             {sortedBookings.map((booking) => (
                                 <button
                                     key={booking.id}
-                                    onClick={() => {
-                                        onBookingClick(booking)
-                                    }}
-                                    className="w-full text-left bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-blue-400 hover:shadow-md transition-all group"
+                                    onClick={() => onBookingClick(booking)}
+                                    className="w-full text-left bg-white border border-gray-200 rounded-lg p-3 hover:border-blue-300 hover:shadow-sm hover:bg-blue-50/30 transition-all group flex items-start gap-4"
                                 >
-                                    <div className="flex items-start gap-4">
-                                        {/* Time */}
-                                        <div className="flex-shrink-0">
-                                            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex flex-col items-center justify-center text-white shadow-md">
-                                                <Clock className="w-5 h-5 mb-1" />
-                                                <span className="text-xs font-bold">{formatTime(booking.booking_datetime)}</span>
-                                            </div>
+                                    {/* Time Column */}
+                                    <div className="flex flex-col items-center justify-center w-16 pt-1">
+                                        <span className="text-sm font-bold text-gray-900">{formatTime(booking.booking_datetime).split(' ')[0]}</span>
+                                        <span className="text-xs text-gray-500 uppercase">{formatTime(booking.booking_datetime).split(' ')[1]}</span>
+                                    </div>
+
+                                    {/* Info Column */}
+                                    <div className="flex-1 min-w-0 border-l border-gray-100 pl-4">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <h3 className="font-semibold text-gray-900 truncate pr-2 group-hover:text-blue-700 transition-colors">
+                                                {booking.customer_name}
+                                            </h3>
+                                            <span className={`flex-shrink-0 px-2 py-0.5 rounded text-[10px] uppercase font-bold border ${getStatusColor(booking.status)}`}>
+                                                {booking.status.replace('_', ' ')}
+                                            </span>
                                         </div>
 
-                                        {/* Booking Details */}
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-start justify-between gap-3 mb-2">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-400 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
-                                                        {booking.customer_name.charAt(0).toUpperCase()}
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="font-bold text-gray-900 text-lg group-hover:text-blue-600 transition-colors">
-                                                            {booking.customer_name}
-                                                        </h3>
-                                                        {booking.customer_email && (
-                                                            <p className="text-xs text-gray-500 flex items-center gap-1">
-                                                                <Mail className="w-3 h-3" />
-                                                                {booking.customer_email}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <span className={`px-3 py-1 rounded-lg text-xs font-bold border-2 whitespace-nowrap ${getStatusColor(booking.status)}`}>
-                                                    {booking.status.charAt(0).toUpperCase() + booking.status.slice(1).replace('_', ' ')}
-                                                </span>
-                                            </div>
+                                        <div className="text-sm text-gray-600 mb-1 truncate">
+                                            {booking.item_name || booking.service_name || booking.deal_name}
+                                        </div>
 
-                                            <div className="grid grid-cols-2 gap-3 mt-3">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                                                        <Users className="w-4 h-4 text-purple-600" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-xs text-gray-500">Service</p>
-                                                        <p className="text-sm font-semibold text-gray-900">{booking.service_name}</p>
-                                                    </div>
-                                                </div>
-                                                {booking.staff_member_name && (
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
-                                                            <Users className="w-4 h-4 text-indigo-600" />
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-xs text-gray-500">Staff</p>
-                                                            <p className="text-sm font-semibold text-gray-900">{booking.staff_member_name}</p>
-                                                        </div>
-                                                    </div>
-                                                )}
+                                        <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                                            <div className="flex items-center gap-1">
+                                                <Users className="w-3 h-3" />
+                                                {booking.staff_member_name || 'Unassigned'}
                                             </div>
-
-                                            <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-                                                <div className="flex items-center gap-2">
-                                                    <DollarSign className="w-4 h-4 text-green-600" />
-                                                    <span className="text-lg font-bold text-green-600">${booking.total_price}</span>
-                                                </div>
-                                                <span className="text-xs text-blue-600 font-medium group-hover:underline">
-                                                    Click for details →
-                                                </span>
+                                            <div className="flex items-center gap-1 font-medium text-green-700">
+                                                <DollarSign className="w-3 h-3" />
+                                                {booking.total_price}
                                             </div>
                                         </div>
+                                    </div>
+
+                                    {/* Arrow */}
+                                    <div className="flex items-center justify-center self-center text-gray-300 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all">
+                                        <ChevronRight className="w-5 h-5" />
                                     </div>
                                 </button>
                             ))}

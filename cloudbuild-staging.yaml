@@ -1,0 +1,111 @@
+# cloudbuild-staging.yaml - Configuration for Staging Deployment
+steps:
+  # Build the Docker image with secrets from Secret Manager (Staging versions)
+  - name: "gcr.io/cloud-builders/docker"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        CLEAN_BACKEND_URL="$${NEXT_PUBLIC_BACKEND_URL%/}"
+        CLEAN_AUTH_DOMAIN="$${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN%/}"
+        docker build \
+          --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="$$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" \
+          --build-arg CLERK_SECRET_KEY="$$CLERK_SECRET_KEY" \
+          --build-arg NEXT_PUBLIC_BACKEND_URL="$$CLEAN_BACKEND_URL" \
+          --build-arg NEXT_PUBLIC_FIREBASE_API_KEY="$$NEXT_PUBLIC_FIREBASE_API_KEY" \
+          --build-arg NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="$$CLEAN_AUTH_DOMAIN" \
+          --build-arg NEXT_PUBLIC_FIREBASE_PROJECT_ID="$$NEXT_PUBLIC_FIREBASE_PROJECT_ID" \
+          --build-arg NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="$$NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET" \
+          --build-arg NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="$$NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID" \
+          --build-arg NEXT_PUBLIC_FIREBASE_APP_ID="$$NEXT_PUBLIC_FIREBASE_APP_ID" \
+          --build-arg NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="$$NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID" \
+          -t us-east1-docker.pkg.dev/beautydrop-dev/beautydrop-frontend/app:staging-$COMMIT_SHA \
+          -t us-east1-docker.pkg.dev/beautydrop-dev/beautydrop-frontend/app:staging-latest \
+          .
+    secretEnv:
+      - "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"
+      - "CLERK_SECRET_KEY"
+      - "NEXT_PUBLIC_BACKEND_URL"
+      - "NEXT_PUBLIC_FIREBASE_API_KEY"
+      - "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN"
+      - "NEXT_PUBLIC_FIREBASE_PROJECT_ID"
+      - "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET"
+      - "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID"
+      - "NEXT_PUBLIC_FIREBASE_APP_ID"
+      - "NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID"
+
+  # Push the Docker image
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "push",
+        "--all-tags",
+        "us-east1-docker.pkg.dev/beautydrop-dev/beautydrop-frontend/app",
+      ]
+
+  # Deploy to Cloud Run (Staging Service)
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        CLEAN_BACKEND_URL="$${NEXT_PUBLIC_BACKEND_URL%/}"
+        CLEAN_AUTH_DOMAIN="$${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN%/}"
+        gcloud run deploy beautydrop-frontend-staging \
+          --image=us-east1-docker.pkg.dev/beautydrop-dev/beautydrop-frontend/app:staging-$COMMIT_SHA \
+          --region=us-east1 \
+          --platform=managed \
+          --allow-unauthenticated \
+          --memory=256Mi \
+          --cpu=0.5 \
+          --min-instances=0 \
+          --max-instances=5 \
+          --port=3000 \
+          --set-env-vars="NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" \
+          --set-env-vars="CLERK_SECRET_KEY=$$CLERK_SECRET_KEY" \
+          --set-env-vars="NEXT_PUBLIC_BACKEND_URL=$$CLEAN_BACKEND_URL" \
+          --set-env-vars="NEXT_PUBLIC_FIREBASE_API_KEY=$$NEXT_PUBLIC_FIREBASE_API_KEY" \
+          --set-env-vars="NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=$$CLEAN_AUTH_DOMAIN" \
+          --set-env-vars="NEXT_PUBLIC_FIREBASE_PROJECT_ID=$$NEXT_PUBLIC_FIREBASE_PROJECT_ID" \
+          --set-env-vars="NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=$$NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET" \
+          --set-env-vars="NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=$$NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID" \
+          --set-env-vars="NEXT_PUBLIC_FIREBASE_APP_ID=$$NEXT_PUBLIC_FIREBASE_APP_ID" \
+          --set-env-vars="NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=$$NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID"
+    secretEnv:
+      - "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"
+      - "CLERK_SECRET_KEY"
+      - "NEXT_PUBLIC_BACKEND_URL"
+      - "NEXT_PUBLIC_FIREBASE_API_KEY"
+      - "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN"
+      - "NEXT_PUBLIC_FIREBASE_PROJECT_ID"
+      - "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET"
+      - "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID"
+      - "NEXT_PUBLIC_FIREBASE_APP_ID"
+      - "NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID"
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+# Secrets from GCP Secret Manager (using -staging suffix)
+availableSecrets:
+  secretManager:
+    - versionName: projects/beautydrop-dev/secrets/NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY-staging/versions/latest
+      env: "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"
+    - versionName: projects/beautydrop-dev/secrets/CLERK_SECRET_KEY-staging/versions/latest
+      env: "CLERK_SECRET_KEY"
+    - versionName: projects/beautydrop-dev/secrets/NEXT_PUBLIC_BACKEND_URL-staging/versions/latest
+      env: "NEXT_PUBLIC_BACKEND_URL"
+    - versionName: projects/beautydrop-dev/secrets/NEXT_PUBLIC_FIREBASE_API_KEY-staging/versions/latest
+      env: "NEXT_PUBLIC_FIREBASE_API_KEY"
+    - versionName: projects/beautydrop-dev/secrets/NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN-staging/versions/latest
+      env: "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN"
+    - versionName: projects/beautydrop-dev/secrets/NEXT_PUBLIC_FIREBASE_PROJECT_ID-staging/versions/latest
+      env: "NEXT_PUBLIC_FIREBASE_PROJECT_ID"
+    - versionName: projects/beautydrop-dev/secrets/NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET-staging/versions/latest
+      env: "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET"
+    - versionName: projects/beautydrop-dev/secrets/NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID-staging/versions/latest
+      env: "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID"
+    - versionName: projects/beautydrop-dev/secrets/NEXT_PUBLIC_FIREBASE_APP_ID-staging/versions/latest
+      env: "NEXT_PUBLIC_FIREBASE_APP_ID"
+    - versionName: projects/beautydrop-dev/secrets/NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID-staging/versions/latest
+      env: "NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID"

@@ -35,7 +35,6 @@ interface ChatbotProps {
 export default function Chatbot({ shopName = "Salon", phone, services = [], schedules = [], address, email }: ChatbotProps) {
     const { selectedShop, services: storeServices, schedules: storeSchedules } = useShopStore()
 
-    // Use props if provided, otherwise fallback to store
     const effectiveShopName = shopName !== "Salon" ? shopName : (selectedShop?.name || "Salon")
     const effectivePhone = phone || selectedShop?.phone
     const effectiveServices = services.length > 0 ? services : storeServices
@@ -53,7 +52,6 @@ export default function Chatbot({ shopName = "Salon", phone, services = [], sche
     const { toast } = useToast()
     const router = useRouter()
 
-    // Sync store messages to local state with Date conversion and check expiry
     useEffect(() => {
         checkExpiry()
     }, [])
@@ -93,7 +91,6 @@ export default function Chatbot({ shopName = "Salon", phone, services = [], sche
                 await endChatSession(sessionId)
             }
         } catch (error) {
-            // Silently fail or log if needed, but still clear local session
         } finally {
             clearSession()
             toast({
@@ -246,10 +243,10 @@ export default function Chatbot({ shopName = "Salon", phone, services = [], sche
         )
     }
 
-    // Helper to clean markdown from text when cards are already rendered
-    // If the text contains structured data patterns, we might want to hide them if cards are present
     const cleanContent = (content: string, actions?: any[]) => {
-        if (!actions || actions.length === 0) return content
+        if (!actions || actions.length === 0) {
+            return stripMarkdown(content)
+        }
 
         const hasServices = actions.some(a => a.action_type === 'get_services')
         const hasHours = actions.some(a => a.action_type === 'get_business_hours')
@@ -263,11 +260,22 @@ export default function Chatbot({ shopName = "Salon", phone, services = [], sche
             cleaned = cleaned.split(/### Business Hours|Business Hours:|# Business Hours|### Hours/i)[0]
         }
         if (hasShops) {
-            // Split at the first double asterisk (often used for shop names) or common shop headers
             cleaned = cleaned.split(/\*\*|### Found Salons|Found Salons:|I found a salon/i)[0]
         }
 
-        return cleaned.trim()
+        return stripMarkdown(cleaned.trim())
+    }
+
+    const stripMarkdown = (text: string) => {
+        return text
+            .replace(/\*\*(.+?)\*\*/g, '$1')
+            .replace(/\*(.+?)\*/g, '$1')
+            .replace(/\_\_(.+?)\_\_/g, '$1')
+            .replace(/\_(.+?)\_/g, '$1')
+            .replace(/\~\~(.+?)\~\~/g, '$1')
+            .replace(/\`(.+?)\`/g, '$1')
+            .replace(/^#+\s+/gm, '')
+            .replace(/\[(.+?)\]\(.+?\)/g, '$1')
     }
 
     const quickActions = [
@@ -278,22 +286,7 @@ export default function Chatbot({ shopName = "Salon", phone, services = [], sche
 
     return (
         <>
-            <div className="fixed bottom-6 right-6 z-50 group">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75 animate-ping group-hover:hidden"></span>
-                <Button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className={`relative h-16 w-16 rounded-full shadow-2xl transition-all duration-500 hover:scale-110 hover:shadow-blue-500/50 ${isOpen
-                        ? 'bg-red-500 hover:bg-red-600 rotate-90'
-                        : 'bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600'
-                        }`}
-                >
-                    {isOpen ? (
-                        <X className="h-8 w-8 text-white transition-transform duration-300" />
-                    ) : (
-                        <MessageCircle className="h-8 w-8 text-white transition-transform duration-300" />
-                    )}
-                </Button>
-            </div>
+
 
             {isOpen && (
                 <div className="fixed bottom-28 right-6 w-[85vw] md:w-96 h-[600px] max-h-[80vh] bg-white rounded-[2rem] shadow-2xl flex flex-col animate-in slide-in-from-bottom-10 fade-in duration-300 z-50 overflow-hidden border border-gray-100/50 font-sans">

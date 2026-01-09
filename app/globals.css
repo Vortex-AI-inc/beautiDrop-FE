@@ -138,6 +138,11 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  input,
+  textarea {
+    @apply text-gray-900 placeholder:text-gray-400;
+  }
 }
 
 .darkveil-canvas {

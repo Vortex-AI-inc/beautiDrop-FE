@@ -195,7 +195,7 @@ export default function PricingPage() {
     if (billingPeriod === 'yearly') {
       return getPlanByName(`${baseName} Yearly`) || getPlanByName(baseName)
     }
-    return getPlanByName(baseName)
+    return getPlanByName(`${baseName} Monthly`) || getPlanByName(baseName)
   }
 
   const starterPlan = getActivePlan('Starter')
@@ -203,7 +203,7 @@ export default function PricingPage() {
   const enterprisePlan = getActivePlan('Enterprise')
 
   const getMonthlyPlan = (baseName: string) => {
-    return getPlanByName(baseName)
+    return getPlanByName(`${baseName} Monthly`) || getPlanByName(baseName)
   }
 
   const getDisplayPrice = (plan: any) => {
