@@ -22,6 +22,41 @@ import Image from "next/image"
 import { useShopStore } from "@/lib/store/shop-store"
 import { useVoiceStore } from "@/lib/store/voice-store"
 
+function DescriptionSection({ description }: { description: string }) {
+    const maxLength = 200
+    const truncatedDescription = description.length > maxLength
+        ? description.substring(0, maxLength) + '...'
+        : description
+
+    return (
+        <div className="mb-6 max-w-3xl">
+            <p className="text-lg md:text-xl text-white/95 leading-relaxed drop-shadow">
+                {truncatedDescription}
+            </p>
+        </div>
+    )
+}
+
+function getImagePath(url: string | null | undefined): string {
+    if (!url) return "/saloon-bg.jpg"
+
+    try {
+        const urlObj = new URL(url)
+        const currentDomain = typeof window !== 'undefined' ? window.location.hostname : ''
+
+        if (urlObj.hostname === currentDomain ||
+            urlObj.hostname === 'staging.beautydrop.ai' ||
+            urlObj.hostname === 'beautydrop.ai' ||
+            urlObj.hostname === 'localhost') {
+            return urlObj.pathname
+        }
+
+        return url
+    } catch {
+        return url || "/saloon-bg.jpg"
+    }
+}
+
 export default function SalonDetailPage() {
     const params = useParams()
     const router = useRouter()
@@ -149,7 +184,7 @@ export default function SalonDetailPage() {
             {/* Hero Section with Cover Image */}
             <section className="relative h-[450px] md:h-[550px] bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 overflow-hidden">
                 <Image
-                    src={shop.cover_image_url || "/saloon-bg.jpg"}
+                    src={getImagePath(shop.cover_image_url) || "/saloon-bg.jpg"}
                     alt={shop.name}
                     fill
                     className="object-cover"
@@ -180,9 +215,7 @@ export default function SalonDetailPage() {
                         </h1>
 
                         {shop.description && (
-                            <p className="text-lg md:text-xl text-white/95 mb-6 max-w-3xl leading-relaxed drop-shadow">
-                                {shop.description}
-                            </p>
+                            <DescriptionSection description={shop.description} />
                         )}
 
                         {/* Contact Info Pills */}

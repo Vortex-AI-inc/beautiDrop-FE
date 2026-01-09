@@ -21,6 +21,26 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { useRef } from "react"
 
+function getImagePath(url: string | null | undefined): string {
+    if (!url) return ""
+
+    try {
+        const urlObj = new URL(url)
+        const currentDomain = typeof window !== 'undefined' ? window.location.hostname : ''
+
+        if (urlObj.hostname === currentDomain ||
+            urlObj.hostname === 'staging.beautydrop.ai' ||
+            urlObj.hostname === 'beautydrop.ai' ||
+            urlObj.hostname === 'localhost') {
+            return urlObj.pathname
+        }
+
+        return url
+    } catch {
+        return url || ""
+    }
+}
+
 export default function CompanyProfilePage() {
     const params = useParams()
     const shopId = params.shopId as string
@@ -633,7 +653,7 @@ export default function CompanyProfilePage() {
                                         {coverImagePreview || selectedShop?.cover_image_url ? (
                                             <div className="relative group">
                                                 <img
-                                                    src={coverImagePreview || selectedShop?.cover_image_url}
+                                                    src={coverImagePreview || getImagePath(selectedShop?.cover_image_url)}
                                                     alt="Cover preview"
                                                     className="w-full h-48 object-cover rounded-2xl border-2 border-slate-100 shadow-sm"
                                                 />
